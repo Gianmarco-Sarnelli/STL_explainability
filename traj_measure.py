@@ -41,6 +41,9 @@ class BaseMeasure(Measure):
             probability of initial sign of  derivative. The default is 0.5.
         device : 'cpu' or 'cuda', optional
             device on which to run the algorithm. The default is 'cpu'..
+        density : INT, optional
+            desity-1 is the number of points to be added (on a line) between the
+            non-dense points of the trajectory
 
         Returns
         -------
@@ -122,4 +125,66 @@ class BaseMeasure(Measure):
                 dense_signal[:, :, i + 1::self.density] = dense_signal[:, :, 0:-self.density:self.density] + \
                                                           (diff / self.density) * (i + 1)
             signal = copy.deepcopy(dense_signal)
+        return signal
+
+class LocalMeasure(Measure):
+    def __init__(
+        self, base_traj, std = 1.0, device="cpu"
+    ):
+        """
+
+        Parameters
+        ----------
+        base_traj (torch.Tensor): A tensor of shape [samples, varn, points]
+            - `samples` represents the number of trajectory samples.
+            - `varn` represents the number of variables in each trajectory.
+            - `points` represents the number points for each trajectory.
+        std : standard deviation of normal around the base_traj, optional
+            The default is 1.0.
+        device : 'cpu' or 'cuda', optional
+            device on which to run the algorithm. The default is 'cpu'
+        
+        Returns
+        -------
+        None.
+
+        """
+        self.device = device
+        self.base_traj = base_traj
+        self.std = std
+        if base_traj.dim() != 3:
+            raise ValueError(f"`base_traj` must have 3 dimensions, but got {base_traj.dim()} dimensions.")
+        self.samples = base_traj.shape[0] 
+        self.varn = base_traj.shape[1]     
+        self.points = base_traj.shape[2]
+
+    def sample(self, samples=100000, varn=2, points=100):
+        """
+        Samples a set of trajectories from the basic measure space, with parameters
+        passed to the sampler
+
+        Parameters
+        ----------
+        points : INT, optional
+            number of points per trajectory, including initial one. The default is 100.
+        samples : INT, optional
+            number of trajectories. The default is 100000.
+        varn : INT, optional
+            number of variables per trajectory. The default is 2.
+
+
+        Returns
+        -------
+        signal : samples x varn x points double pytorch tensor
+            The sampled signals.
+
+        """
+        if self.device == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError("GPU card or CUDA library not available!")
+
+        # generate normal distr of points
+        noise = self.std*torch.randn(samples, varn, points, device=self.device)
+        # Adding the noise to the base traectory
+        signal = noise + self.base_traj
+        
         return signal

@@ -1,14 +1,20 @@
 import torch
 import numpy as np
-import pickle
+from matplotlib import pyplot as plt
 import math
 from kernel import StlKernel, KernelRegression, GramMatrix
-#from generator import BaseMeasure, StlGenerator
 from phis_generator import StlGenerator
 from traj_measure import BaseMeasure
 from scipy.stats import norm
 
 class local_matrix:
+    """
+    Class to convert a global kernel into a local one
+    It can reiceve in input the parameters local_traj, global_traj, std_local, std_global, formula_bag, PHI
+    (if already computed) or it can generate them in a standard way 
+    """
+
+
     def __init__(self, prob_unbound_time_operator = 0.1, 
                  leaf_probability = 0.5, 
                  time_bound_max_range = 10, 
@@ -19,10 +25,18 @@ class local_matrix:
                  n_formulae = 1050, 
                  n_traj = 1000, 
                  n_traj_points: int = 11, 
-                 evaluate_at_all_times = False ):
+                 evaluate_at_all_times = False,
+                 std_local = 10,
+                 std_global = 10,
+                 global_traj = None,
+                 local_traj = None,
+                 formula_bag=None,
+                 PHI = None ):
+        
+        self.local_distr = "Brownian"  # The local distribution is considered as a brownian motion around the local trajectory
+        self.global_distr = "mu0"    # NOTE: for now these are the only available distributions
 
-        # Local distribution (TODO: to be implemented later)
-        self.local_distr = "normal"
+        self.normalize_weights = True # The diagonal elements of D will be normalized (divided by the sum of the weights)
 
         # stl generator parameters
         self.prob_unbound_time_operator = prob_unbound_time_operator  # probability of a temporal operator to have a time bound o the type [0,infty]
@@ -36,6 +50,8 @@ class local_matrix:
         self.n_vars = n_vars # number of variables of each trajectory
 
         # local matrix parameters
+        self.std_local = std_local
+        self.std_global = std_global
         self.n_formulae = n_formulae # number of formulae used to create the matrix P
         self.n_traj = n_traj # number of trajectories used to create the matrix P
         self.n_traj_points: int = n_traj_points # number of points in a trajectory
@@ -47,11 +63,12 @@ class local_matrix:
         self.device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # formulae and trajectories
-        self.bag = None
-        self.traj = None
+        self.formula_bag = formula_bag
+        self.local_traj = local_traj # trajectory in the center of the local distribution
+        self.global_traj = global_traj # trajectories used to compute PHI
 
         # Important matrices and values
-        self.PHI = None
+        self.PHI = PHI
         self.PHI_daga = None
         self.dprob = None
         self.norm_factor = None
@@ -63,82 +80,150 @@ class local_matrix:
                                time_bound_max_range=self.time_bound_max_range,
                                unbound_prob=self.prob_unbound_time_operator, 
                                threshold_sd=self.atom_threshold_sd)
-        self.bag = formula.bag_sample(self.n_formulae, 
+        self.formula_bag = formula.bag_sample(self.n_formulae, 
                                       self.n_vars)
 
-    def generate_traj(self):
-        mu0 = BaseMeasure(device=self.device, 
-                          sigma0=self.initial_std, 
-                          sigma1=self.total_var_std)
-        self.traj = mu0.sample(samples=self.n_traj, 
-                               varn=self.n_vars, 
-                               points=self.n_traj_points)
+    def generate_global_traj(self):
+        if self.global_distr == "mu0": # Then dividing by the global distribution
+            mu0 = BaseMeasure(device=self.device, 
+                            sigma0=self.initial_std, 
+                            sigma1=self.total_var_std)
+            self.global_traj = mu0.sample(samples=self.n_traj, 
+                                varn=self.n_vars, 
+                                points=self.n_traj_points)
+        else:
+            raise("Other global distributions are not implemented yet!")
         
-    def compute_Q(self):
-        # Trajectory for the local explanation
-        r0 = torch.zeros([self.n_vars, self.n_traj_points], dtype=torch.float64, device=self.device) # list of points of the local trajectory (for now all zeros)
-        std0 = 10 * torch.ones([self.n_vars, self.n_traj_points], dtype=torch.float64, device=self.device) # list of std of the local trajectory (no covariance matrix for now)
-
-        # Generating the formulas and trajectories
-        self.generate_formulae()
-        self.generate_traj()
-
+    def generate_PHI(self):
         # Computing PHI and PHI_daga
-        self.PHI = torch.zeros([self.n_formulae, self.n_traj], dtype=torch.float64, device=self.device)
+        if self.formula_bag is None:
+            self.generate_formulae()
+        if self.global_traj is None:
+            self.generate_global_traj()
+
+        self.PHI = torch.empty([self.n_formulae, self.n_traj], dtype=torch.float64, device=self.device)
         for i in range(self.n_formulae):
-            quant = self.bag[i].quantitative(self.traj, evaluate_at_all_times=self.evaluate_at_all_times)
+            quant = self.formula_bag[i].quantitative(self.global_traj, evaluate_at_all_times=self.evaluate_at_all_times)
             # quantitative returns the robustness of the formula for a certain sample
             # quantitative needs in input a tensor x : torch.Tensor, of size N_samples x N_vars x N_sampling_points
             for j in range(self.n_traj):
                 self.PHI[i][j] = quant[j].item()
-        self.PHI_daga = torch.linalg.pinv(self.PHI)
 
+    
+
+    def compute_dprob(self):
         # Computing dprob (probability values on the diagonal of D)
-        self.dprob = torch.ones(self.n_traj, device=self.device)
-        if self.evaluate_at_all_times:
-            raise("The normalization constant for the evaluation on all time points is not built yet")
-            #Here the norm_factor should be the inverse of the sum over all the trajectories AND all times
-        else:
-            # norm_factor is the (negative log of the) normalization constant
-            self.norm_factor = 0
-            for i in range(self.n_traj):
-                prod = 1
-                for j in range(self.n_vars):
-                    for k in range(self.n_traj_points):
-                        if self.local_distr == "normal":
-                            prod *= norm.pdf(self.traj[i][j][k], loc=r0[j][k], scale=std0[j][k])
-                        else:
-                            raise("Other local distributions are not implemented yet!")
-                self.norm_factor += prod
-            #norm_factor is the inverse of the sum of the probabilities of each trajectory
-            self.norm_factor = - math.log(self.norm_factor)
-            #Here we do the opposite of the log for numerical stability
+        self.dprob = torch.empty(self.n_traj, device=self.device)
 
+        if self.evaluate_at_all_times:
+            raise("The normalization constant for the evaluation on all time points is not built yet")  # TODO: Implementa
+        
+        else:
             # To have a more stable code, we add the log of the probabilities and then do the exponentiation
             for i in range(self.n_traj):
-                log_prob = self.norm_factor
-                for j in range(self.n_vars):
-                    for k in range(self.n_traj_points):
-                        if self.local_distr == "normal":
-                            log_prob = log_prob + math.log(norm.pdf(self.traj[i][j][k], loc=r0[j][k], scale=std0[j][k]))
-                        else:
-                            raise("Other local distributions are not implemented yet!")
-                self.dprob[i] = math.exp(log_prob)
+                log_prob = 0
+                local_log_error = False # This signals that the local probability is zero
+                global_log_error = False # This signals that the global probability is zero
 
-        # Computing Q
-        self.Q = torch.matmul(self.PHI, torch.diag(self.dprob).type(torch.float64))
-        self.Q = torch.matmul(self.Q, self.PHI_daga)
+                if self.local_distr == "Brownian": # Multiplying first by the local distribution
+                    for k in range(self.n_traj_points):
+                        for j in range(self.n_vars):
+                            try:
+                                log_prob +=  math.log(norm.pdf(self.global_traj[i][j][k], loc=self.local_traj[j][k], scale=math.sqrt(k+1)*self.std_local))
+                            except ValueError:
+                                local_log_error = True
+                else:
+                            raise("Other local distributions are not implemented yet!")
+                
+                if self.global_distr == "mu0": # Then dividing by the global distribution
+                    # computing increments and storing them in points 1 to end
+                    increments = self.global_traj[i, :, 1:] - self.global_traj[i, :, :-1]
+                    # summing the absolute values of the increments
+                    var_sum = torch.sum(torch.abs(increments), dim=1)
+                    for j in range(self.n_vars):
+                        try:
+                            log_prob -= math.log(norm.pdf(self.global_traj[i][j][0], loc=0, scale=self.initial_std)) # probability density of the first point
+                            log_prob -= math.log(2 * norm.pdf(math.sqrt(var_sum[j]), loc=0, scale=self.total_var_std)) # probability density of the total variation
+                            log_prob += (self.n_traj_points-1)*math.log(2) # each trajectory has one of 2^n possible combinations of direction of increments
+                        except ValueError:
+                            global_log_error = True
+                else:
+                            raise("Other global distributions are not implemented yet!")
+
+                if global_log_error:
+                    print("##global_log_error##")
+                    self.dprob = torch.zeros(self.n_traj, device=self.device)
+                    # This is the case when the traj is too extreme for mu0 and so we get a division by zero
+                    # TODO: rivedi meglio che succede se la prob globale è zero
+                    break
+                elif local_log_error:
+                    self.dprob[i] = 0
+                    # This is the case where the traj is too extreme for the local distrib and we obtain a simple multiplication by zero
+                else:
+                    self.dprob[i] = math.exp(log_prob) # standard case
+            if self.normalize_weights:
+                sum_weights = torch.sum(self.dprob)
+                self.dprob /= sum_weights
+                print(f"The sum of the weights is: {sum_weights}")
+
+
+    def compute_Q(self, local_traj=None, global_traj = None, std_local=None, initial_std=None, total_var_std=None, formula_bag=None, PHI=None ):
+        # Parameters of the local explanation (computed in a stadard way or with a given value)
+        if local_traj is not None:
+            self.local_traj = local_traj
+        if self.local_traj is None:
+            self.local_traj = torch.zeros([self.n_vars, self.n_traj_points], dtype=torch.float64, device=self.device) # Center of the local trajectories (for now all zeros)
+        if std_local is not None:
+            self.std_local = std_local # std of the local trajectory (no covariance matrix for now)
+        if initial_std is not None:
+            self.initial_std = initial_std
+        if total_var_std is not None:
+            self.total_var_std = total_var_std
+        
+        # Generating the trajectories if not given
+        if global_traj is not None:
+            self.global_traj = global_traj
+        if self.global_traj is None:
+            self.generate_global_traj()
+
+        # Generating the formulae if not given
+        if formula_bag is not None:
+            self.formula_bag = formula_bag
+        if self.formula_bag is None:
+            self.generate_formulae()
+
+        # Generating PHI/PHI_daga if not given
+        if PHI is not None:
+            self.PHI = PHI
+        if self.PHI is None:
+            self.generate_PHI()
+        self.PHI_daga = torch.linalg.pinv(self.PHI)
+    
+        # Computing dprob (probability values on the diagonal of D)
+        self.compute_dprob()
+
+        # Computing Q # TODO: scegli quale dtype usare
+        M = torch.matmul(self.PHI.type(torch.float64), torch.diag(self.dprob).type(torch.float64))
+        self.Q = torch.matmul(M, self.PHI_daga.type(torch.float64))
     
     def check_independence(self):
         ## CHECKING THE INDEPENDENCE OF P ##
-        self.rank = torch.linalg.matrix_rank(self.PHI)
         if self.PHI is not None:
+            self.rank = torch.linalg.matrix_rank(self.PHI)
             if self.rank < self.n_traj:
-                print("Columns of PHI are not independent!!")
+                #print("Columns of PHI are not independent!!")
+                return False
             else:
-                print("Columns of PHI are independent!!")
+                #print("Columns of PHI are independent!!")
+                return True
         else:
             print("No matrix PHI is found")
+
+    def convert_to_local(self, global_kernel):
+        if self.Q is None:
+            print("No matrix Q is found, computing it with given settings")
+            self.compute_Q()
+        return torch.matmul(self.Q, global_kernel.type(torch.float64))
 
 
 # About 1050 rows (formulae) are enough to have 1000 independent columns

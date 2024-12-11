@@ -195,9 +195,9 @@ np.save('Cos_distances.npy', Cos_distances)
 np.save('Norms.npy', Norms)
 
 # Loading the arrays back
-#Distances = np.load('Distances.npy')
-#Cos_distances = np.load('Cos_distances.npy')
-#Norms = np.load('Norms.npy')
+#Distances = np.load('Distances.npy', allow_pickle=True)
+#Cos_distances = np.load('Cos_distances.npy', allow_pickle=True)
+#Norms = np.load('Norms.npy', allow_pickle=True)
 
 #TODO: plot results
 

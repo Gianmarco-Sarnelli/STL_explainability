@@ -136,7 +136,7 @@ class local_matrix:
                             raise("Other local distributions are not implemented yet!")
                 
                 if self.global_distr == "mu0": # Then dividing by the global distribution
-                    # computing increments and storing them in points 1 to end
+                    # computing increments
                     increments = self.global_traj[i, :, 1:] - self.global_traj[i, :, :-1]
                     # summing the absolute values of the increments
                     var_sum = torch.sum(torch.abs(increments), dim=1)

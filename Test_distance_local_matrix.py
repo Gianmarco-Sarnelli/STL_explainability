@@ -4,12 +4,6 @@ from matplotlib import pyplot as plt
 from Local_Matrix import local_matrix
 from traj_measure import BaseMeasure
 from phis_generator import StlGenerator
-try:
-    import A
-    module_used = A
-except ImportError:
-    import kernel
-    module_used = kernel
 
 
 """

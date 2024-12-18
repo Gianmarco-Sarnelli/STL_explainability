@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from Local_Matrix import local_matrix
 from traj_measure import BaseMeasure
 from phis_generator import StlGenerator
+import math
 
 
 """
@@ -55,11 +56,22 @@ list_stds = list(np.arange(1, 0.5, -0.05))
 list_n_traj = list(range(100, 1100, 100))
 list_n_psi_added = list(range(100, 1100, 100))
 
-# Creating the numpy array for the resulting distances (the array contains a list of values: (n_traj, n_psi_added, local_std, mean distance))
+# Creating the numpy array for the resulting distances (the array contains a list of values: (n_traj, n_psi_added, local_std, mean distance, mean cos distance))
 Distances = np.ndarray(shape=(len(list_n_traj), len(list_n_psi_added), len(list_stds)), dtype=object)
-Cos_distances = np.ndarray(shape=(len(list_n_traj), len(list_n_psi_added), len(list_stds)), dtype=object)
-# Creating the arrays for the norms of the kernels (K_global, K_cl, K_imp)
+# Creating the arrays for the norms of the kernels (n_traj, n_psi_added, local_std, K_global, K_cl, K_imp)
 Norms = np.ndarray(shape=(len(list_n_traj), len(list_n_psi_added), len(list_stds)), dtype=object)
+
+# Initializing the trajectory generator
+base_mu0 = BaseMeasure(device=device, 
+                                sigma0=base_initial_std, 
+                                sigma1=base_total_var_std)
+
+# Initializing the formulae generator
+formulae = StlGenerator(leaf_prob=leaf_probability, 
+                                    time_bound_max_range=time_bound_max_range,
+                                    unbound_prob=prob_unbound_time_operator, 
+                                    threshold_sd=atom_threshold_sd)
+
 
 
 for (idx1, n_psi_added) in enumerate(list_n_psi_added):
@@ -70,9 +82,6 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
         global_n_traj = n_traj
 
         # Sampling of the base trajectories
-        base_mu0 = BaseMeasure(device=device, 
-                                sigma0=base_initial_std, 
-                                sigma1=base_total_var_std)
         base_xi = base_mu0.sample(samples=base_n_traj, 
                                     varn=n_vars, 
                                     points=n_traj_points)
@@ -83,10 +92,6 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                                     points=n_traj_points)
 
         # Sampling the formulae (phi and psi) for the kernels
-        formulae = StlGenerator(leaf_prob=leaf_probability, 
-                                    time_bound_max_range=time_bound_max_range,
-                                    unbound_prob=prob_unbound_time_operator, 
-                                    threshold_sd=atom_threshold_sd)
         phi_bag = formulae.bag_sample(n_phi, n_vars)  # we want the kernel representation of each phi
         psi_bag = formulae.bag_sample(n_psi, n_vars)
 
@@ -97,14 +102,17 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
         rhos_phi_global = torch.empty(n_phi, global_n_traj, device=device) # robustness of each phi on the global_xi
         rhos_psi_global = torch.empty(n_psi, global_n_traj, device=device) # robustness of each psi on the global_xi
 
-        # Computing the global kernels that will be converted into local ones
+        # Computing the global kernels that will be converted into local ones 
+        # (divided by the number of trajectory to have a normalized kernel)
+        # (also divided by the square root of the number of psi)
         for (j, psi) in enumerate(psi_bag):
             rhos_psi_global[j, :] = torch.tanh(psi.quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
 
         for (j, phi) in enumerate(phi_bag):
             rhos_phi_global[j, :] = torch.tanh(phi.quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
 
-        K_global = torch.tensordot(rhos_phi_global, rhos_psi_global, dims=([1],[1]) ) # TODO: this doesn't work if there's time evaluation!
+        K_global = torch.tensordot(rhos_phi_global, rhos_psi_global, dims=([1],[1]) ) / (global_n_traj * math.sqrt(n_psi)) 
+        # TODO: this doesn't work if there's time evaluation!
 
         for (idx3, local_std) in enumerate(list_stds): # Iteration over different local standard deviations
 
@@ -127,7 +135,10 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                     rhos_phi_local[j, :] = torch.tanh(phi.quantitative(local_xi, evaluate_at_all_times=evaluate_at_all_times))
 
                 # Computing the classical kernels
-                K_cl[:,i,:] = torch.tensordot(rhos_phi_local, rhos_psi_local, dims=([1],[1]) ) # TODO: this doesn't work if there's time evaluation!
+                # (divided by the number of trajectory to have a normalized kernel)
+                # (also divided by the square root of the number of psi)
+                K_cl[:,i,:] = torch.tensordot(rhos_phi_local, rhos_psi_local, dims=([1],[1]) ) / (local_n_traj * math.sqrt(n_psi))  
+                # TODO: this doesn't work if there's time evaluation!
             
             # Computing the local kernels using importance sampling (first computing the global kernel then converting it to local)
             K_imp = K_global.unsqueeze(1).repeat(1, base_xi.size(0), 1)
@@ -140,7 +151,6 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                                         )
             
             for i in range(base_xi.size(0)):
-
                 # Computing the matrix Q that converts to a local kernel around the base_xi
                 converter.compute_Q(local_traj = base_xi[i], 
                                     global_traj = global_xi,
@@ -156,41 +166,38 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
 
             #Testing the norms of the kernels
             print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
-            Norm_global = torch.norm((K_global), dim=1)
+            Norm_global = torch.norm((K_global), dim=1).mean().item()
             print(f"Testing the norm of K_global: {Norm_global}")
-            Norm_cl = torch.norm((K_cl), dim=2)
+            Norm_cl = torch.norm((K_cl), dim=2).mean().item()
             print(f"Testing the norm of K_cl: {Norm_cl}")
             #print(f"K_cl :{K_cl}")
-            Norm_imp = torch.norm((K_imp), dim=2)
+            Norm_imp = torch.norm((K_imp), dim=2).mean().item()
             print(f"Testing the norm of K_imp: {Norm_imp}")
             #print(f"K_imp : {K_imp}")
 
             #Computing the matrix Dist and Cos_Dist
             Dist = torch.norm((K_cl - K_imp), dim=2)
-            Cos_Dist = torch.norm((K_cl/Norm_cl - K_imp/Norm_imp), dim=2)
+            Cos_Dist = 1 - torch.tensordot(K_cl/Norm_cl, K_imp/Norm_imp, dims=([2],[2]) )
             #print(f"The matrix Dist is: {Dist}")
-            Dist_same_formula = torch.mean(Dist, dim=1)
-            Dist_same_traj = torch.mean(Dist, dim=0)
+            #Dist_same_formula = torch.mean(Dist, dim=1)
+            #Dist_same_traj = torch.mean(Dist, dim=0)
             Dist_mean = Dist.mean()
             Cos_dist_mean = Cos_Dist.mean()
-            print(f"The mean distance on a single formula is: {Dist_same_formula}")
-            print(f"The mean distance on a single trajectory is: {Dist_same_traj}")
+            #print(f"The mean distance on a single formula is: {Dist_same_formula}")
+            #print(f"The mean distance on a single trajectory is: {Dist_same_traj}")
             print(f"The mean distance is: {Dist_mean}")
             print(f"The mean cosine distance is : {Cos_dist_mean} \n")
 
             # Filling the result arrays
-            Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist_mean)
-            Cos_distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Cos_dist_mean)
+            Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean)
             Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Norm_global,Norm_cl,Norm_imp)
 
 # Saving the arrays
 np.save('Distances.npy', Distances)
-np.save('Cos_distances.npy', Cos_distances)
 np.save('Norms.npy', Norms)
 
 # Loading the arrays back
 #Distances = np.load('Distances.npy', allow_pickle=True)
-#Cos_distances = np.load('Cos_distances.npy', allow_pickle=True)
 #Norms = np.load('Norms.npy', allow_pickle=True)
 
 #TODO: plot results

@@ -163,8 +163,14 @@ class local_matrix:
                     self.dprob[i] = math.exp(log_prob) # standard case
             if self.normalize_weights:
                 sum_weights = torch.sum(self.dprob)
+                sum_squared_weights = torch.sum(torch.square(self.dprob))
+                n_e = sum_weights**2/sum_squared_weights
                 self.dprob /= sum_weights
+                self.dprob *= self.n_traj
                 print(f"The sum of the weights is: {sum_weights}")
+                print(f"The sum of squares of the weights is: {sum_squared_weights}")
+                print(f"n_e is: {n_e}")
+                print(f"n/n_e = {self.n_traj / n_e}")
 
 
     def compute_Q(self, local_traj=None, global_traj = None, std_local=None, initial_std=None, total_var_std=None, formula_bag=None, PHI=None ):

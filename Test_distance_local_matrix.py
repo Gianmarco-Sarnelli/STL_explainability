@@ -206,8 +206,8 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Norm_global,Norm_loc,Norm_imp)
 
 # Saving the arrays
-np.save('Distances.npy', Distances)
-np.save('Norms.npy', Norms)
+np.save('Distances_basic.npy', Distances)
+np.save('Norms_basic.npy', Norms)
 
 # Loading the arrays back
 #Distances = np.load('Distances.npy', allow_pickle=True)

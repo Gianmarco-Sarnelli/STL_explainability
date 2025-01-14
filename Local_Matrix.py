@@ -37,7 +37,7 @@ class local_matrix:
                  ):
         
 
-        self.normalize_weights = True # The diagonal elements of D will be normalized (divided by their sum)
+        self.normalize_weights = False # The diagonal elements of D will be normalized (divided by their sum)
 
         # stl generator parameters
         self.prob_unbound_time_operator = prob_unbound_time_operator  # probability of a temporal operator to have a time bound o the type [0,infty]

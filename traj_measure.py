@@ -10,6 +10,8 @@
 
 import torch
 import copy
+import math
+from scipy.stats import norm
 
 # TODO: reason about density of sampling etc (both here and in formulae generation)
 
@@ -50,6 +52,7 @@ class BaseMeasure(Measure):
         None.
 
         """
+        self.name = "BaseMeasure"
         self.mu0 = mu0
         self.sigma0 = sigma0
         self.mu1 = mu1
@@ -109,7 +112,7 @@ class BaseMeasure(Measure):
             self.mu1 + self.sigma1 * torch.randn(samples, varn, 1, device=self.device),
             2,
          )
-        # multiplying total variation and derivatives an making initial point non-invasive
+        # multiplying total variation and derivatives and making initial point non-invasive
         derivs = derivs * totvar
         derivs[:, :, 0] = 1.0
 
@@ -126,8 +129,111 @@ class BaseMeasure(Measure):
                                                           (diff / self.density) * (i + 1)
             signal = copy.deepcopy(dense_signal)
         return signal
+    
+    def compute_pdf_trajectory(self, trajectory: torch.Tensor,
+                               log: bool = False) -> torch.Tensor:
+        """
+        Computes the probability density function of a trajectory sampled using mu0.
+        The computations are done in log space for numerical stability
 
-class LocalMeasure(Measure):
+        Parameters:
+        ----------
+        trajectory (torch.Tensor): The trajectory tensor of shape [samples, varn, points]
+        log (bool): decides if the output will be the log of the pdf or the pdf itself
+        
+        Returns:
+        --------
+        log_pdf(torch.Tensor): The tensor containing the log of the pdf of the trajectories
+        pdf (torch.Tensor): The tensor containing the pdf of the trajectories
+
+        """
+        log_error = False
+
+        # Getting the shape of the trajectory
+        samples, varn, points = trajectory.shape
+
+        log_pdf = torch.empty(samples, device=self.device)
+        for i in range(samples):
+            # Computing increments
+            increments = trajectory[i, :, 1:] - trajectory[i, :, :-1]
+
+            # Computing the total variation
+            totvar = torch.sum(torch.abs(increments), dim=1)
+
+            try:
+                # Computing the probability density function of the first point
+                initial_pdf = torch.distributions.Normal(self.mu0, self.sigma0).log_prob(trajectory[i, :, 0])
+
+                # The probability density function of the total variation is 
+                # prob(totvar) = (normal_prob(sqrt(totvar)) + normal_prob(-sqrt(totvar))) / ( 2 * sqrt(totvar) )
+                sqroot_totvar = torch.sqrt(totvar)
+                sum_normal = torch.distributions.Normal(self.mu1, self.sigma1).log_prob(sqroot_totvar).exp() + torch.distributions.Normal(self.mu1, self.sigma1).log_prob(-sqroot_totvar).exp()
+                totvar_pdf = torch.log(sum_normal / (2 * sqroot_totvar) )
+
+                # Computing the Bernoulli probabilities of the change of sign in the increments
+                change_sign = increments[:, :-1] * increments[:, 1:]
+                bernoulli_pdf = math.log(self.q) * (change_sign < 0) + math.log(1 - self.q) * (change_sign >= 0)
+
+                # The sign of the derivative at the first point is positive with probability: p = ( q0*(1-q) + (1-q0)*q )
+                # This is because we consider the case where the derivative is positive and stays positive plus the case where it changes
+                p = self.q0*(1-self.q) + (1-self.q0)*self.q
+                initial_bernoulli_pdf = math.log(p)*(increments[:, 0] >= 0) + math.log(1-p)*(increments[:, 0] < 0)
+
+                # The probability distribution of the uniform spacings is (n-2)! where n is the number of points in the
+                # trajectory. This is the same pdf of the ordered vactor of n-2 points sampled from the uniform distribution.
+                # In pytorch we can compute log(n+1) = lgamma(n)
+                uniform_spacing_pdf = torch.ones(varn) * torch.lgamma(torch.tensor(points - 1, dtype=torch.float))
+
+                # Computing the log of the jacobian term
+                log_jacobian = torch.log(totvar) * (2-points)
+
+                # Computing the log pdf
+                log_pdf[i] = torch.sum(initial_pdf)
+                log_pdf[i] += torch.sum(totvar_pdf)
+                log_pdf[i] += torch.sum(bernoulli_pdf)
+                log_pdf[i] += torch.sum(initial_bernoulli_pdf)
+                log_pdf[i] += torch.sum(uniform_spacing_pdf)
+                log_pdf[i] += torch.sum(log_jacobian)
+
+            except ValueError: # If there's a value error then I considere that the log prob is too low
+                log_error = True
+
+        if log:    
+            return (log_pdf, log_error)
+        if not log:
+            return (torch.exp(log_pdf), log_error)
+        
+    def compute_pdf_trajectory_old(self, trajectory: torch.Tensor,
+                               log: bool = False) -> tuple[torch.Tensor, bool]:
+        """
+        Old version of the pdf
+        """
+        # Getting the shape of the trajectory
+        samples, varn, points = trajectory.shape
+        log_error = False
+        log_pdf = torch.zeros(samples, device=self.device)
+
+        for i in range(samples):
+            # computing increments
+            increments = trajectory[i, :, 1:] - trajectory[i, :, :-1]
+            # summing the absolute values of the increments
+            var_sum = torch.sum(torch.abs(increments), dim=1)
+            for j in range(varn):
+                try:
+                    log_pdf[i] += math.log(norm.pdf(trajectory[i][j][0], loc=0, scale=self.sigma0)) # probability density of the first point
+                    log_pdf[i] += math.log(2 * norm.pdf(math.sqrt(var_sum[j]), loc=0, scale=self.sigma1)) # probability density of the total variation
+                    log_pdf[i] -= (points-1)*math.log(2) # each trajectory has one of 2^n possible combinations of direction of increments
+                except ValueError:
+                    log_error = True
+        
+        if log:    
+            return (log_pdf, log_error)
+        if not log:
+            return (torch.exp(log_pdf), log_error)
+
+        
+
+class LocalBrownian(Measure):
     def __init__(
         self, base_traj, std = 1.0, device="cpu"
     ):
@@ -135,8 +241,7 @@ class LocalMeasure(Measure):
 
         Parameters
         ----------
-        base_traj (torch.Tensor): A tensor of shape [samples, varn, points]
-            - `samples` represents the number of trajectory samples.
+        base_traj (torch.Tensor): A tensor of shape [varn, points]
             - `varn` represents the number of variables in each trajectory.
             - `points` represents the number points for each trajectory.
         std : standard deviation of normal around the base_traj, optional
@@ -149,18 +254,18 @@ class LocalMeasure(Measure):
         None.
 
         """
+        self.name = "LocalBrownian"
         self.device = device
         self.base_traj = base_traj
         self.std = std
-        if base_traj.dim() != 3:
-            raise ValueError(f"`base_traj` must have 3 dimensions, but got {base_traj.dim()} dimensions.")
-        self.samples = base_traj.shape[0] 
-        self.varn = base_traj.shape[1]     
-        self.points = base_traj.shape[2]
+        if base_traj.dim() != 2:
+            raise ValueError(f"`base_traj` must have 2 dimensions, but got {base_traj.dim()} dimensions.")
+        self.base_traj_varn = base_traj.shape[0]     
+        self.base_traj_points = base_traj.shape[1]
 
     def sample(self, samples=100000, varn=2, points=100):
         """
-        Samples a set of trajectories from the basic measure space, with parameters
+        Samples a set of trajectories around a base trajectory, with parameters
         passed to the sampler
 
         Parameters
@@ -183,8 +288,69 @@ class LocalMeasure(Measure):
             raise RuntimeError("GPU card or CUDA library not available!")
 
         # generate normal distr of points
-        noise = self.std*torch.randn(samples, varn, points, device=self.device)
+        noise = self.std*torch.cumsum(torch.randn(samples, varn, points, device=self.device), 2)
         # Adding the noise to the base traectory
         signal = noise + self.base_traj
         
         return signal
+    
+    def compute_pdf_trajectory(self, trajectory: torch.Tensor, 
+                               log: bool = False) -> torch.Tensor:
+        """
+        Computes the probability density function of a trajectory sampled using local brownian.
+        The computations are done in log space for numerical stability
+
+        Parameters:
+        ----------
+        trajectory (torch.Tensor): The trajectory tensor of shape [samples, varn, points]
+        log (bool): decides if the output will be the log of the pdf or the pdf itself
+        
+        Returns:
+        --------
+        log_pdf(torch.Tensor): The tensor containing the log of the pdf of the trajectories
+        pdf (torch.Tensor): The tensor containing the pdf of the trajectories
+
+        """
+        log_error = False
+
+        # Getting the shape of the trajectory
+        samples, varn, points = trajectory.shape
+        noise = trajectory - self.base_traj
+        diff = noise[:, :, 1:] - noise[:, :, :-1]
+        noise[:, :, 1:] = diff
+
+        try:
+            all_log_pdf = torch.distributions.Normal(self.base_traj, self.std).log_prob(noise)
+            log_pdf = torch.sum(all_log_pdf, dim=(1,2))
+
+        except ValueError: # If there's a value error then I considere that the log prob is too low
+            log_error = True
+        
+        if log:    
+            return (log_pdf, log_error)
+        if not log:
+            return (torch.exp(log_pdf), log_error)
+
+
+    def compute_pdf_trajectory_old(self, trajectory: torch.Tensor, 
+                               log: bool = False) -> tuple[torch.Tensor, bool]:
+        
+        # Getting the shape of the trajectory
+        samples, varn, points = trajectory.shape
+        log_error = False
+        log_pdf = torch.zeros(samples, device=self.device)
+        for i in range(samples):
+            for k in range(points):
+                for j in range(varn):
+                    try:
+                        log_pdf[i] +=  math.log(norm.pdf(trajectory[i][j][k], loc=self.base_traj[j][k], scale=math.sqrt(k+1)*self.std))
+                    except ValueError:
+                        log_error = True
+
+        if log:    
+            return (log_pdf, log_error)
+        if not log:
+            return (torch.exp(log_pdf), log_error)
+
+
+

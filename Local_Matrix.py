@@ -37,7 +37,7 @@ class local_matrix:
                  ):
         
 
-        self.normalize_weights = False # The diagonal elements of D will be normalized (divided by their sum)
+        self.normalize_weights = True # The diagonal elements of D will be normalized (divided by their sum)
 
         # stl generator parameters
         self.prob_unbound_time_operator = prob_unbound_time_operator  # probability of a temporal operator to have a time bound o the type [0,infty]
@@ -125,20 +125,22 @@ class local_matrix:
                 proposal_log_error = False # This signals that the proposal probability is zero
 
                 if self.target_distr_name == "LocalBrownian": 
-                    #try: # We handle the cases where there's a log of zero
-                    target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    log_prob += target_log_prob.item()
-                    #except ValueError:
-                    #    target_log_error = True
+                    new_target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                    old_target_log_prob, _ =  self.target_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                    #print(f"The traget log prob for the old case is {old_target_log_prob} while the new one is {new_target_log_prob}")
+
+                    log_prob += new_target_log_prob.item()
                 else:
                     raise RuntimeError("Other target distributions are not implemented yet!")
 
                 if self.proposal_distr_name == "BaseMeasure": 
-                    #try: # We handle the cases where there's a log of zero
-                    proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    log_prob -= proposal_log_prob.item()
-                    #except ValueError:
-                    #    proposal_log_error = True
+                    new_proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                    old_proposal_log_prob, _ = self.proposal_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                    #print(f"The proposal log prob for the old case is {old_proposal_log_prob} while the new one is {new_proposal_log_prob}")
+
+                    #print(f"The difference between target and proposal is: {new_target_log_prob-new_proposal_log_prob}, while for the old case is: {old_target_log_prob-old_proposal_log_prob} \n")
+                    
+                    log_prob -= new_proposal_log_prob.item()
                 else:
                     raise RuntimeError("Other proposal distributions are not implemented yet!")
                 
@@ -156,7 +158,7 @@ class local_matrix:
                     try:
                         self.dweights[i] = math.exp(log_prob) # standard case
                     except OverflowError:
-                        print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
+                        print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {new_target_log_prob.item()}, proposal_log_prob = {new_proposal_log_prob.item()}")
 
 
             

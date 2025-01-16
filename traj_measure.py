@@ -221,7 +221,7 @@ class BaseMeasure(Measure):
             for j in range(varn):
                 try:
                     log_pdf[i] += math.log(norm.pdf(trajectory[i][j][0], loc=0, scale=self.sigma0)) # probability density of the first point
-                    log_pdf[i] += math.log(2 * norm.pdf(math.sqrt(var_sum[j]), loc=0, scale=self.sigma1)) # probability density of the total variation
+                    log_pdf[i] += math.log(norm.pdf(math.sqrt(var_sum[j]), loc=0, scale=self.sigma1) / math.sqrt(var_sum[j])) # probability density of the total variation
                     log_pdf[i] -= (points-1)*math.log(2) # each trajectory has one of 2^n possible combinations of direction of increments
                 except ValueError:
                     log_error = True
@@ -323,7 +323,7 @@ class LocalBrownian(Measure):
             all_log_pdf = torch.distributions.Normal(self.base_traj, self.std).log_prob(noise)
             log_pdf = torch.sum(all_log_pdf, dim=(1,2))
 
-        except ValueError: # If there's a value error then I considere that the log prob is too low
+        except ValueError: # If there's a value error then it means that the log prob is too low
             log_error = True
         
         if log:    

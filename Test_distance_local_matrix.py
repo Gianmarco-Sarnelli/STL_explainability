@@ -203,8 +203,8 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             #Computing the matrix Dist and Cos_Dist
             Dist = torch.norm((K_loc - K_imp), dim=2)
             Cos_Dist = 1 - torch.tensordot(K_loc/(Norms_loc.unsqueeze(-1)), K_imp/(Norms_imp.unsqueeze(-1)), dims=([2],[2]) )
-            Dist_mean = Dist.mean()
-            Cos_dist_mean = Cos_Dist.mean()   #TODO: This doesn't work if n_phi and base_n_traj are not 1!!!!
+            Dist_mean = Dist.mean().item()
+            Cos_dist_mean = Cos_Dist.mean().item()   #TODO: This doesn't work if n_phi and base_n_traj are not 1!!!!
             print(f"The mean distance is: {Dist_mean}")
             print(f"The mean cosine distance is : {Cos_dist_mean} \n")
 

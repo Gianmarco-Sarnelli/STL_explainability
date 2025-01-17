@@ -12,6 +12,7 @@ import torch
 import copy
 import math
 from scipy.stats import norm
+import sys
 
 # TODO: reason about density of sampling etc (both here and in formulae generation)
 
@@ -152,7 +153,7 @@ class BaseMeasure(Measure):
         # Getting the shape of the trajectory
         samples, varn, points = trajectory.shape
 
-        log_pdf = torch.empty(samples, device=self.device)
+        log_pdf = torch.empty(samples, device=self.device, dtype=torch.float64)
         for i in range(samples):
             # Computing increments
             increments = trajectory[i, :, 1:] - trajectory[i, :, :-1]
@@ -211,7 +212,7 @@ class BaseMeasure(Measure):
         # Getting the shape of the trajectory
         samples, varn, points = trajectory.shape
         log_error = False
-        log_pdf = torch.zeros(samples, device=self.device)
+        log_pdf = torch.zeros(samples, device=self.device, dtype=torch.float64)
 
         for i in range(samples):
             # computing increments
@@ -221,7 +222,8 @@ class BaseMeasure(Measure):
             for j in range(varn):
                 try:
                     log_pdf[i] += math.log(norm.pdf(trajectory[i][j][0], loc=0, scale=self.sigma0)) # probability density of the first point
-                    log_pdf[i] += math.log(norm.pdf(math.sqrt(var_sum[j]), loc=0, scale=self.sigma1) / math.sqrt(var_sum[j])) # probability density of the total variation
+                    sqrt_var_sum = max(math.sqrt(var_sum[j]), sys.float_info.min) # Computing the sqrt of the variance and clipping it to not be zero
+                    log_pdf[i] += math.log(norm.pdf(sqrt_var_sum, loc=0, scale=self.sigma1) / sqrt_var_sum) # probability density of the total variation
                     log_pdf[i] -= (points-1)*math.log(2) # each trajectory has one of 2^n possible combinations of direction of increments
                 except ValueError:
                     log_error = True
@@ -320,7 +322,7 @@ class LocalBrownian(Measure):
         noise[:, :, 1:] = diff
 
         try:
-            all_log_pdf = torch.distributions.Normal(self.base_traj, self.std).log_prob(noise)
+            all_log_pdf = torch.distributions.Normal(self.base_traj, self.std).log_prob(noise).type(torch.float64)
             log_pdf = torch.sum(all_log_pdf, dim=(1,2))
 
         except ValueError: # If there's a value error then it means that the log prob is too low
@@ -338,7 +340,7 @@ class LocalBrownian(Measure):
         # Getting the shape of the trajectory
         samples, varn, points = trajectory.shape
         log_error = False
-        log_pdf = torch.zeros(samples, device=self.device)
+        log_pdf = torch.zeros(samples, device=self.device, dtype=torch.float64)
         for i in range(samples):
             for k in range(points):
                 for j in range(varn):

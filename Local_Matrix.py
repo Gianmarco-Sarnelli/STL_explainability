@@ -5,6 +5,7 @@ import math
 from kernel import StlKernel, KernelRegression, GramMatrix
 from phis_generator import StlGenerator
 from traj_measure import BaseMeasure, LocalBrownian
+import sys
 
 class local_matrix:
     """
@@ -109,7 +110,7 @@ class local_matrix:
 
     def compute_dweights(self):
         # Computing dweights (weights on the diagonal of D)
-        self.dweights = torch.empty(self.n_traj, device=self.device)
+        self.dweights = torch.empty(self.n_traj, device=self.device, dtype=torch.float64)
 
         # Sample the proposal trajectories if they're not given
         if self.proposal_traj is None:
@@ -126,8 +127,7 @@ class local_matrix:
 
                 if self.target_distr_name == "LocalBrownian": 
                     new_target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    old_target_log_prob, _ =  self.target_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    #print(f"The traget log prob for the old case is {old_target_log_prob} while the new one is {new_target_log_prob}")
+                    #old_target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
 
                     log_prob += new_target_log_prob.item()
                 else:
@@ -135,18 +135,15 @@ class local_matrix:
 
                 if self.proposal_distr_name == "BaseMeasure": 
                     new_proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    old_proposal_log_prob, _ = self.proposal_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    #print(f"The proposal log prob for the old case is {old_proposal_log_prob} while the new one is {new_proposal_log_prob}")
+                    #old_proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
 
-                    #print(f"The difference between target and proposal is: {new_target_log_prob-new_proposal_log_prob}, while for the old case is: {old_target_log_prob-old_proposal_log_prob} \n")
-                    
                     log_prob -= new_proposal_log_prob.item()
                 else:
                     raise RuntimeError("Other proposal distributions are not implemented yet!")
                 
                 # Handling the possible errors
                 if proposal_log_error:
-                    print("##proposal_log_error##")
+                    #print("##proposal_log_error##")
                     self.dweights = torch.zeros(self.n_traj, device=self.device)
                     # This is the case when the traj is too extreme for the proposal distr and so we get a division by zero
                     # TODO: rivedi meglio che succede se la prob globale è zero
@@ -160,9 +157,7 @@ class local_matrix:
                     except OverflowError:
                         print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {new_target_log_prob.item()}, proposal_log_prob = {new_proposal_log_prob.item()}")
 
-
-            
-            sum_weights = torch.sum(self.dweights)
+            sum_weights = max(torch.sum(self.dweights), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
             sum_squared_weights = torch.sum(torch.square(self.dweights))
             n_e = sum_weights**2/sum_squared_weights
             if self.normalize_weights:
@@ -173,7 +168,6 @@ class local_matrix:
             #print(f"The sum of squares of the weights is: {sum_squared_weights}")
             #print(f"n_e is: {n_e}")
             #print(f"n/n_e = {self.n_traj / n_e} \n")
-
 
     def compute_Q(self, proposal_traj=None, PHI=None):
 
@@ -195,9 +189,8 @@ class local_matrix:
         # Computing dweights (weights on the diagonal of D)
         self.compute_dweights()
 
-        # Computing Q # TODO: scegli quale dtype usare
-        #M = self.PHI.type(torch.float64) * self.dweights.type(torch.float64).unsqueeze(0)
-        M = torch.matmul(self.PHI.type(torch.float64), torch.diag(self.dweights).type(torch.float64))
+        M = self.PHI.type(torch.float64) * self.dweights.type(torch.float64).unsqueeze(0)
+        #M = torch.matmul(self.PHI.type(torch.float64), torch.diag(self.dweights).type(torch.float64)) # Old version
         self.Q = torch.matmul(M, self.PHI_daga.type(torch.float64))
     
     def check_independence(self):
@@ -205,10 +198,10 @@ class local_matrix:
         if self.PHI is not None:
             self.rank = torch.linalg.matrix_rank(self.PHI)
             if self.rank < self.n_traj:
-                #print("Columns of PHI are not independent!!")
+                print("Columns of PHI are not independent!!")
                 return False
             else:
-                #print("Columns of PHI are independent!!")
+                print("Columns of PHI are independent!!")
                 return True
         else:
             raise RuntimeError("No matrix PHI is found")

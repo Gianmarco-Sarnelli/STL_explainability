@@ -81,9 +81,9 @@ base_n_traj = 1
 n_phi = 1
 
 # Parameters for the test
-list_stds = list(np.arange(1, 0.45, -0.05))#list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.45, -0.05))
-list_n_traj = list(range(100, 1100, 100))#list(range(10000, 14000, 1000))#list(range(100, 1100, 100))
-list_n_psi_added = list(range(100, 1100, 100))#list(range(100, 500, 100))#list(range(100, 1100, 100))
+list_stds = list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.45, -0.05))
+list_n_traj = list(range(1000, 1400, 100))#list(range(10000, 14000, 1000))#list(range(100, 1100, 100))
+list_n_psi_added = list(range(100, 500, 100))#list(range(100, 500, 100))#list(range(100, 1100, 100))
 
 # Creating the numpy array for the resulting distances 
 # The array contains a list of values: (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean)

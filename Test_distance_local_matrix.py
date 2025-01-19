@@ -225,7 +225,10 @@ np.save('Distances_big_new.npy', Distances)
 np.save('Norms_big_new.npy', Norms)
 
 #Ending the script
-print(f"The time elapsed is: {time.time() - start_time}")
+total_time = time.time() - start_time
+print(f"The time elapsed is: {total_time}")
+with open('Elapsed_time.txt', 'a') as file:
+    file.write(f"Time elapsed with the big test= {total_time}\n")
 
 # Loading the arrays back
 #Distances = np.load('Distances.npy', allow_pickle=True)

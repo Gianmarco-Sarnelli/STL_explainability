@@ -6,6 +6,7 @@ from traj_measure import BaseMeasure, LocalBrownian
 from phis_generator import StlGenerator
 import math
 from typing import List, Any
+import time
 
 """
 Evaluates the transformation of kernels when three parameters are varied:
@@ -55,6 +56,10 @@ def compute_robustness_tensor(formula_bag: List[Any],
         rhos[i, :] = torch.tanh(formula.quantitative(trajectories, evaluate_at_all_times=evaluate_at_all_times))
     return rhos
 
+# Starting the program
+print("Running...")
+start_time = time.time()
+
 
 # Device used
 device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -81,9 +86,9 @@ base_n_traj = 1
 n_phi = 1
 
 # Parameters for the test
-list_stds = list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.45, -0.05))
-list_n_traj = list(range(1000, 1400, 100))#list(range(10000, 14000, 1000))#list(range(100, 1100, 100))
-list_n_psi_added = list(range(100, 500, 100))#list(range(100, 500, 100))#list(range(100, 1100, 100))
+list_stds = list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.45, -0.05))
+list_n_traj = list(range(10000, 15000, 1000))#list(range(100, 1100, 100))
+list_n_psi_added = list(range(100, 1100, 200))#list(range(100, 1100, 100))
 
 # Creating the numpy array for the resulting distances 
 # The array contains a list of values: (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean)
@@ -218,6 +223,9 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
 # Saving the arrays
 np.save('Distances_big_new.npy', Distances)
 np.save('Norms_big_new.npy', Norms)
+
+#Ending the script
+print(f"The time elapsed is: {time.time() - start_time}")
 
 # Loading the arrays back
 #Distances = np.load('Distances.npy', allow_pickle=True)

@@ -56,6 +56,10 @@ def compute_robustness_tensor(formula_bag: List[Any],
         rhos[i, :] = torch.tanh(formula.quantitative(trajectories, evaluate_at_all_times=evaluate_at_all_times))
     return rhos
 
+# Starting the program
+print("Running...")
+start_time = time.time()
+
 
 # Device used
 device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -78,8 +82,8 @@ prob_unbound_time_operator = 0.1
 atom_threshold_sd = 1.0
 
 # Parameters for the repetition of the results (for now always set to 1)
-base_n_traj = 1
-n_phi = 1
+#base_n_traj = 1
+#n_phi = 1
 
 # Parameters for the test
 list_stds = list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.45, -0.05))
@@ -121,13 +125,13 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
 
             # Timing each internal loop
             start_time = time.time()
-
+            
             n_psi = n_traj + n_psi_added 
             local_n_traj = n_traj
             global_n_traj = n_traj
 
             # Sampling of the base trajectories (the local distributions will be created around these base trajectories)
-            base_xi = base_distr.sample(samples=base_n_traj, 
+            base_xi = base_distr.sample(samples=1,
                                         varn=n_vars, 
                                         points=n_traj_points)
 
@@ -135,59 +139,54 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             global_xi = global_distr.sample(samples=global_n_traj, 
                                         varn=n_vars, 
                                         points=n_traj_points)
+            
+            # Initializing the local trajectory distribution and sampling local_xi
+            local_distr = LocalBrownian(base_traj=base_xi[i], 
+                                        std=local_std, 
+                                        device=device)
+            local_xi = local_distr.sample(samples=local_n_traj, 
+                                          varn=n_vars, 
+                                          points=n_traj_points)
 
             # Sampling the formulae (phi and psi) for the kernels
             # Each formula phi will have its kernel representation
-            phi_bag = formulae_distr.bag_sample(n_phi, n_vars)
+            phi_bag = formulae_distr.bag_sample(1, n_vars)
             psi_bag = formulae_distr.bag_sample(n_psi, n_vars)
 
-            # Iterating over each base_xi and each phi
-            
             # Defining the kernel tensors
-            K_loc = torch.empty(n_phi, base_n_traj, n_psi, device=device)
-            K_global = torch.empty(n_phi, base_n_traj, n_psi, device=device)
-            K_imp = torch.empty(n_phi, base_n_traj, n_psi, device=device)
+            K_loc = torch.empty(n_psi, device=device)
+            K_global = torch.empty(n_psi, device=device)
+            K_imp = torch.empty(n_psi, device=device)
+            
+            # Computing the robustness of each psi over the local_xi
+            rhos_psi_local = compute_robustness_tensor(psi_bag, local_xi, evaluate_at_all_times)
+            # Computing the robustness of phi over local_xi
+            rhos_phi_local = torch.tanh(phi_bag[0].quantitative(local_xi, evaluate_at_all_times=evaluate_at_all_times))
+            # Computing the local kernels
+            K_loc = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0]) ) / (local_n_traj * math.sqrt(n_psi))  
 
             # Computing the robustness of each psi over the global_xi
             rhos_psi_global = compute_robustness_tensor(psi_bag, global_xi, evaluate_at_all_times)
-            
-            for i in range(base_n_traj): # Iteration over each base_xi (so we iterate over different local trajectories)
-                
-                # Initializing the local trajectory distribution and sampling local_xi
-                local_distr = LocalBrownian(base_traj=base_xi[i], std=local_std, device=device)
-                local_xi = local_distr.sample(samples=local_n_traj, varn=n_vars, points=n_traj_points)
+            # Computing the robustness of phi over the global_xi
+            rhos_phi_global = torch.tanh(phi_bag[0].quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
+            # Computing the global kernel
+            K_global = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0]) ) / (global_n_traj * math.sqrt(n_psi)) 
 
-                # Computing the robustness of each psi over the local_xi
-                rhos_psi_local = compute_robustness_tensor(psi_bag, local_xi, evaluate_at_all_times)
-                
-                # Initializing the converter class
-                converter = local_matrix(n_vars = n_vars, 
-                                            n_formulae = n_psi, 
-                                            n_traj = global_n_traj, 
-                                            n_traj_points = n_traj_points, 
-                                            evaluate_at_all_times = evaluate_at_all_times,
-                                            target_distr = local_distr,
-                                            proposal_distr = global_distr
-                                            )
-                # Computing the matrix Q that converts to a local kernel around the base_xi
-                converter.compute_Q(proposal_traj = global_xi,
-                                    PHI = rhos_psi_global
-                                    )
-
-                for j in range(n_phi):
-
-                    # Computing the robustness of phi over local_xi
-                    rhos_phi_local = torch.tanh(phi_bag[j].quantitative(local_xi, evaluate_at_all_times=evaluate_at_all_times))
-                    # Computing the local kernels
-                    K_loc[j,i,:] = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0]) ) / (local_n_traj * math.sqrt(n_psi))  
-
-                    # Computing the robustness of phi over the global_xi
-                    rhos_phi_global = torch.tanh(phi_bag[j].quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
-                    # Computing the global kernel
-                    K_global[j,i,:] = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0]) ) / (global_n_traj * math.sqrt(n_psi)) 
-
-                    # Computing the importance sampling kernel starting from the global one
-                    K_imp[j,i,:] = converter.convert_to_local(K_global[j,i,:])
+            # Initializing the converter class
+            converter = local_matrix(n_vars = n_vars, 
+                                        n_formulae = n_psi, 
+                                        n_traj = global_n_traj, 
+                                        n_traj_points = n_traj_points, 
+                                        evaluate_at_all_times = evaluate_at_all_times,
+                                        target_distr = local_distr,
+                                        proposal_distr = global_distr
+                                        )
+            # Computing the matrix Q that converts to a local kernel around the base_xi
+            converter.compute_Q(proposal_traj = global_xi,
+                                PHI = rhos_psi_global
+                                )            
+            # Computing the importance sampling kernel starting from the global one
+            K_imp = converter.convert_to_local(K_global)
 
 
             #Testing the norms of the kernels
@@ -210,11 +209,6 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             #print(f"The mean distance is: {Dist_mean}")
             #print(f"The mean cosine distance is : {Cos_dist_mean} \n")
 
-
-            #cos_dist_list.append(Cos_dist_mean)
-            #dist_list.append(Dist_mean)
-
-
             # Filling the result arrays
             Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean)
             Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Norm_global,Norm_loc,Norm_imp)
@@ -230,6 +224,11 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
 np.save('Distances_big_new.npy', Distances)
 np.save('Norms_big_new.npy', Norms)
 
+#Ending the script
+total_time = time.time() - start_time
+print(f"The time elapsed is: {total_time}")
+with open('Elapsed_time.txt', 'a') as file:
+    file.write(f"Time elapsed with the big test= {total_time}\n")
 
 # Loading the arrays back
 #Distances = np.load('Distances.npy', allow_pickle=True)

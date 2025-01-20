@@ -180,18 +180,18 @@ class local_matrix:
 
         # Generating PHI/PHI_daga if not given
         if PHI is not None:
-            self.PHI = PHI
+            self.PHI = PHI.type(torch.float64)
         if self.PHI is None:
             print("##There's no PHI!!##")
             self.generate_PHI()
-        self.PHI_daga = torch.linalg.pinv(self.PHI)
+        self.PHI_daga = torch.linalg.pinv(self.PHI).type(torch.float64)
     
         # Computing dweights (weights on the diagonal of D)
         self.compute_dweights()
 
-        M = self.PHI.type(torch.float64) * self.dweights.type(torch.float64).unsqueeze(0)
+        M = self.PHI * self.dweights.unsqueeze(0)
         #M = torch.matmul(self.PHI.type(torch.float64), torch.diag(self.dweights).type(torch.float64)) # Old version
-        self.Q = torch.matmul(M, self.PHI_daga.type(torch.float64))
+        self.Q = torch.matmul(M, self.PHI_daga)
     
     def check_independence(self):
         # Checks the independence of PHI

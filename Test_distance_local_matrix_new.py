@@ -56,11 +56,6 @@ def compute_robustness_tensor(formula_bag: List[Any],
         rhos[i, :] = torch.tanh(formula.quantitative(trajectories, evaluate_at_all_times=evaluate_at_all_times))
     return rhos
 
-# Starting the program
-print("Running...")
-start_time = time.time()
-
-
 # Device used
 device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -125,7 +120,7 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
 
             # Timing each internal loop
             start_time = time.time()
-            
+
             n_psi = n_traj + n_psi_added 
             local_n_traj = n_traj
             global_n_traj = n_traj
@@ -141,7 +136,7 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                                         points=n_traj_points)
             
             # Initializing the local trajectory distribution and sampling local_xi
-            local_distr = LocalBrownian(base_traj=base_xi[i], 
+            local_distr = LocalBrownian(base_traj=base_xi[0], 
                                         std=local_std, 
                                         device=device)
             local_xi = local_distr.sample(samples=local_n_traj, 
@@ -152,18 +147,15 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             # Each formula phi will have its kernel representation
             phi_bag = formulae_distr.bag_sample(1, n_vars)
             psi_bag = formulae_distr.bag_sample(n_psi, n_vars)
-
-            # Defining the kernel tensors
-            K_loc = torch.empty(n_psi, device=device)
-            K_global = torch.empty(n_psi, device=device)
-            K_imp = torch.empty(n_psi, device=device)
             
             # Computing the robustness of each psi over the local_xi
             rhos_psi_local = compute_robustness_tensor(psi_bag, local_xi, evaluate_at_all_times)
             # Computing the robustness of phi over local_xi
             rhos_phi_local = torch.tanh(phi_bag[0].quantitative(local_xi, evaluate_at_all_times=evaluate_at_all_times))
             # Computing the local kernels
-            K_loc = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0]) ) / (local_n_traj * math.sqrt(n_psi))  
+            K_loc = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0]) ) / (local_n_traj * math.sqrt(n_psi)) 
+            # Deleting used tensors
+            del rhos_psi_local, rhos_phi_local, K_loc
 
             # Computing the robustness of each psi over the global_xi
             rhos_psi_global = compute_robustness_tensor(psi_bag, global_xi, evaluate_at_all_times)
@@ -171,6 +163,8 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             rhos_phi_global = torch.tanh(phi_bag[0].quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
             # Computing the global kernel
             K_global = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0]) ) / (global_n_traj * math.sqrt(n_psi)) 
+            # Deleting used tensors
+            del rhos_psi_global, rhos_phi_global, K_global
 
             # Initializing the converter class
             converter = local_matrix(n_vars = n_vars, 
@@ -179,14 +173,15 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                                         n_traj_points = n_traj_points, 
                                         evaluate_at_all_times = evaluate_at_all_times,
                                         target_distr = local_distr,
-                                        proposal_distr = global_distr
-                                        )
+                                        proposal_distr = global_distr)
             # Computing the matrix Q that converts to a local kernel around the base_xi
             converter.compute_Q(proposal_traj = global_xi,
-                                PHI = rhos_psi_global
-                                )            
+                                PHI = rhos_psi_global)            
             # Computing the importance sampling kernel starting from the global one
             K_imp = converter.convert_to_local(K_global)
+            # Deleting used tensors
+            converter.__dict__.clear()  # Removes all instance attributes
+            del converter, K_imp
 
 
             #Testing the norms of the kernels
@@ -223,12 +218,6 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
 # Saving the arrays
 np.save('Distances_big_new.npy', Distances)
 np.save('Norms_big_new.npy', Norms)
-
-#Ending the script
-total_time = time.time() - start_time
-print(f"The time elapsed is: {total_time}")
-with open('Elapsed_time.txt', 'a') as file:
-    file.write(f"Time elapsed with the big test= {total_time}\n")
 
 # Loading the arrays back
 #Distances = np.load('Distances.npy', allow_pickle=True)

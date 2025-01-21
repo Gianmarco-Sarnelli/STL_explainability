@@ -76,6 +76,7 @@ class local_matrix:
         self.norm_factor = None
         self.Q = None
         self.rank = None
+        self.pinv_error = None
 
     def init_formula_generator(self):
         self.formula_generator = StlGenerator(leaf_prob=self.leaf_probability, 
@@ -168,6 +169,7 @@ class local_matrix:
             #print(f"The sum of squares of the weights is: {sum_squared_weights}")
             #print(f"n_e is: {n_e}")
             #print(f"n/n_e = {self.n_traj / n_e} \n")
+            
 
     def compute_Q(self, proposal_traj=None, PHI=None):
 
@@ -180,18 +182,24 @@ class local_matrix:
 
         # Generating PHI/PHI_daga if not given
         if PHI is not None:
-            self.PHI = PHI.type(torch.float64)
+            self.PHI = PHI#.type(torch.float64) # Evrything goes bad if I convert here to float64 (Perchè la pseudoinversa più precisa funziona male)
         if self.PHI is None:
             print("##There's no PHI!!##")
             self.generate_PHI()
-        self.PHI_daga = torch.linalg.pinv(self.PHI).type(torch.float64)
+        self.PHI_daga = torch.linalg.pinv(self.PHI)#, atol=torch.finfo(self.PHI.dtype).tiny)#.type(torch.float64) 
+        #TODO: capisci perchè la pinv con più precisione funziona male
+        #NOTE: la pseudoinversa funziona sempre male
+
+        # Computing the error of the pseudo inverse
+        self.pinv_error = self.check_goodness_pinv()
+        #print(f"The error of the pseudo inverse is: {self.pinv_error}")
     
         # Computing dweights (weights on the diagonal of D)
         self.compute_dweights()
 
-        M = self.PHI * self.dweights.unsqueeze(0)
+        M = self.PHI.type(torch.float64) * self.dweights.type(torch.float64).unsqueeze(0)
         #M = torch.matmul(self.PHI.type(torch.float64), torch.diag(self.dweights).type(torch.float64)) # Old version
-        self.Q = torch.matmul(M, self.PHI_daga)
+        self.Q = torch.matmul(M, self.PHI_daga.type(torch.float64))
     
     def check_independence(self):
         # Checks the independence of PHI
@@ -205,6 +213,13 @@ class local_matrix:
                 return True
         else:
             raise RuntimeError("No matrix PHI is found")
+        
+    def check_goodness_pinv(self):
+        # Checks how good is the pseudoinverse of the matrix PHI
+        I_M = torch.eye(self.n_traj) # Identity matrix
+        # Computing the distance between the product PHI_daga*PHI and the identity matrix
+        error = torch.norm(torch.matmul(self.PHI_daga, self.PHI) - I_M)
+        return error
 
     def convert_to_local(self, global_kernel):
         if self.Q is None:

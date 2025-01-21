@@ -181,8 +181,11 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             K_imp = converter.convert_to_local(K_global)
             # Deleting used tensors
             converter.__dict__.clear()  # Removes all instance attributes
+            pinv_error = converter.pinv_error
             del converter, K_imp
 
+
+            # TODO: TUTTI QUESTI PARAMETRI NON DOVREBBERO ESSERE TENSORI!
 
             #Testing the norms of the kernels
             #print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
@@ -205,8 +208,8 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             #print(f"The mean cosine distance is : {Cos_dist_mean} \n")
 
             # Filling the result arrays
-            Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean)
-            Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Norm_global,Norm_loc,Norm_imp)
+            Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean, pinv_error)
+            Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Norm_global,Norm_loc,Norm_imp, pinv_error)
 
             # End timing
             total_time = time.time() - start_time

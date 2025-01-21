@@ -51,7 +51,7 @@ def compute_robustness_tensor(formula_bag: List[Any],
     --------
     rhos (torch.Tensor): robustness tensor of shape [n_formulae, n_trajectories]
     """
-    rhos = torch.empty(len(formula_bag), trajectories.shape[0] )
+    rhos = torch.empty((len(formula_bag), trajectories.shape[0]))
     for (i, formula) in enumerate(formula_bag):
         rhos[i, :] = torch.tanh(formula.quantitative(trajectories, evaluate_at_all_times=evaluate_at_all_times))
     return rhos
@@ -171,8 +171,7 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                                             )
                 # Computing the matrix Q that converts to a local kernel around the base_xi
                 converter.compute_Q(proposal_traj = global_xi,
-                                    PHI = rhos_psi_global
-                                    )
+                                    PHI = rhos_psi_global)
 
                 for j in range(n_phi):
 
@@ -216,8 +215,8 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
 
 
             # Filling the result arrays
-            Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean)
-            Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Norm_global,Norm_loc,Norm_imp)
+            Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean, converter.pinv_error)
+            Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Norm_global,Norm_loc,Norm_imp, converter.pinv_error)
 
             # End timing
             total_time = time.time() - start_time

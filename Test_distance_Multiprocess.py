@@ -192,7 +192,7 @@ if __name__ == "__main__":
     # Parameters for the test
     list_stds = list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.45, -0.05))
     list_n_traj = list(range(5000, 10000, 1000))#list(range(100, 1100, 100))
-    list_n_psi_added = list(range(100, 1100, 200))#list(range(100, 1100, 100))
+    list_n_psi_added = list(range(500, 1100, 200))#list(range(100, 1100, 100))
 
     # Creating the cartesian product of the parameters
     parameter_combinations = list(product(list_n_psi_added, list_n_traj, list_stds))

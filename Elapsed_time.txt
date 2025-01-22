@@ -238,3 +238,6 @@ Time elapsed with n_psi=4700, n_traj=4000 is:78.35028672218323
 Time elapsed with n_psi=4700, n_traj=4000 is:79.20658826828003
 Time elapsed with n_psi=4700, n_traj=4000 is:78.31400156021118
 Time elapsed with n_psi=4700, n_traj=4000 is:77.9691481590271
+Time elapsed with n_psi=5100, n_traj=5000 is:106.68306517601013
+Time elapsed with n_psi=5100, n_traj=5000 is:89.98562240600586
+Time elapsed with n_psi=5100, n_traj=5000 is:103.17944121360779

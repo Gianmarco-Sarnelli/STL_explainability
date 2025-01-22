@@ -27,9 +27,6 @@ Also computes the norms of the three kernels:
 3) Norm of the importance sampling kernel
 
 This results into an array (Norms) that contains these norms computed while varying the previous parameters.
-
-The results the averaged over many phi and many local distributions.
-
 """
 
 
@@ -125,7 +122,7 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             local_n_traj = n_traj
             global_n_traj = n_traj
 
-            # Sampling of the base trajectories (the local distributions will be created around these base trajectories)
+            # Sampling of the base trajectory (the local distribution will be created around the base trajectory)
             base_xi = base_distr.sample(samples=1,
                                         varn=n_vars, 
                                         points=n_traj_points)
@@ -155,16 +152,16 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             # Computing the local kernels
             K_loc = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0]) ) / (local_n_traj * math.sqrt(n_psi)) 
             # Deleting used tensors
-            del rhos_psi_local, rhos_phi_local, K_loc
+            del rhos_psi_local, rhos_phi_local
 
             # Computing the robustness of each psi over the global_xi
             rhos_psi_global = compute_robustness_tensor(psi_bag, global_xi, evaluate_at_all_times)
             # Computing the robustness of phi over the global_xi
             rhos_phi_global = torch.tanh(phi_bag[0].quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
             # Computing the global kernel
-            K_global = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0]) ) / (global_n_traj * math.sqrt(n_psi)) 
+            K_glob = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0]) ) / (global_n_traj * math.sqrt(n_psi)) 
             # Deleting used tensors
-            del rhos_psi_global, rhos_phi_global, K_global
+            del rhos_phi_global
 
             # Initializing the converter class
             converter = local_matrix(n_vars = n_vars, 
@@ -178,38 +175,34 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             converter.compute_Q(proposal_traj = global_xi,
                                 PHI = rhos_psi_global)            
             # Computing the importance sampling kernel starting from the global one
-            K_imp = converter.convert_to_local(K_global)
+            K_imp = converter.convert_to_local(K_glob).type(torch.float32)
+            # Saving the goodness metric of the pseudo inverse
+            pinv_error = converter.pinv_error
             # Deleting used tensors
             converter.__dict__.clear()  # Removes all instance attributes
-            pinv_error = converter.pinv_error
-            del converter, K_imp
-
-
-            # TODO: TUTTI QUESTI PARAMETRI NON DOVREBBERO ESSERE TENSORI!
+            del rhos_psi_global, converter
 
             #Testing the norms of the kernels
-            #print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
-            Norms_global = torch.norm((K_global), dim=2)
-            Norm_global = Norms_global.mean().item()
-            #print(f"Testing the norm of K_global: {Norm_global}")
-            Norms_loc = torch.norm((K_loc), dim=2)
-            Norm_loc = Norms_loc.mean().item()
-            #print(f"Testing the norm of K_loc: {Norm_loc}")
-            Norms_imp = torch.norm((K_imp), dim=2)
-            Norm_imp = Norms_imp.mean().item()
-            #print(f"Testing the norm of K_imp: {Norm_imp}")
+            print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
+            Norm_glob = torch.norm(K_glob).item()
+            print(f"Testing the norm of K_glob: {Norm_glob}")
+            Norm_loc = torch.norm(K_loc).item()
+            print(f"Testing the norm of K_loc: {Norm_loc}")
+            Norm_imp = torch.norm(K_imp).item()
+            print(f"Testing the norm of K_imp: {Norm_imp}")
 
             #Computing the matrix Dist and Cos_Dist
-            Dist = torch.norm((K_loc - K_imp), dim=2)
-            Cos_Dist = 1 - torch.tensordot(K_loc/(Norms_loc.unsqueeze(-1)), K_imp/(Norms_imp.unsqueeze(-1)), dims=([2],[2]) )
-            Dist_mean = Dist.mean().item()
-            Cos_dist_mean = Cos_Dist.mean().item()   #TODO: This doesn't work if n_phi and base_n_traj are not 1!
-            #print(f"The mean distance is: {Dist_mean}")
-            #print(f"The mean cosine distance is : {Cos_dist_mean} \n")
+            Dist = torch.norm(K_loc - K_imp).item()
+            Cos_Dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
+            print(f"The distance is: {Dist}")
+            print(f"The cosine distance is : {Cos_Dist} \n")
 
             # Filling the result arrays
-            Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean, pinv_error)
-            Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Norm_global,Norm_loc,Norm_imp, pinv_error)
+            Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist,Cos_Dist, pinv_error)
+            Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Norm_glob,Norm_loc,Norm_imp, pinv_error)
+
+            # Deleting used tensors
+            del K_glob, K_loc, K_imp
 
             # End timing
             total_time = time.time() - start_time

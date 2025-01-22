@@ -219,7 +219,7 @@ class local_matrix:
         I_M = torch.eye(self.n_traj) # Identity matrix
         # Computing the distance between the product PHI_daga*PHI and the identity matrix
         error = torch.norm(torch.matmul(self.PHI_daga, self.PHI) - I_M)
-        return error
+        return error.item()
 
     def convert_to_local(self, global_kernel):
         if self.Q is None:

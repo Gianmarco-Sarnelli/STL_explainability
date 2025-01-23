@@ -191,10 +191,10 @@ class BaseMeasure(Measure):
                 # Computing the log pdf
                 log_pdf[i] = torch.sum(initial_pdf)
                 log_pdf[i] += torch.sum(totvar_pdf)
-                log_pdf[i] += torch.sum(bernoulli_pdf)
-                log_pdf[i] += torch.sum(initial_bernoulli_pdf)
+                #log_pdf[i] += torch.sum(bernoulli_pdf)
+                #log_pdf[i] += torch.sum(initial_bernoulli_pdf)
                 log_pdf[i] += torch.sum(uniform_spacing_pdf)
-                log_pdf[i] += torch.sum(log_jacobian)
+                #log_pdf[i] += torch.sum(log_jacobian)
 
             except ValueError: # If there's a value error then I considere that the log prob is too low
                 log_error = True

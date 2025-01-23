@@ -82,9 +82,9 @@ base_n_traj = 1
 n_phi = 1
 
 # Parameters for the test
-list_stds = list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.45, -0.05))
-list_n_traj = list(range(2000, 5000, 1000))#list(range(100, 1100, 100))
-list_n_psi_added = list(range(100, 900, 200))#list(range(100, 1100, 100))
+list_stds = list(np.arange(1, 0.90, -0.05))#list(np.arange(1, 0.75, -0.05))#list(np.arange(1, 0.45, -0.05))
+list_n_traj = list(range(1000, 1500, 200))#list(range(2000, 5000, 1000))#list(range(100, 1100, 100))
+list_n_psi_added = list(range(1000, 1500, 200))#list(range(100, 900, 200))#list(range(100, 1100, 100))
 
 # Creating the numpy array for the resulting distances 
 # The array contains a list of values: (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean)
@@ -110,8 +110,8 @@ formulae_distr = StlGenerator(leaf_prob=leaf_probability,
                                     threshold_sd=atom_threshold_sd)
 
 
-#cos_dist_list = [] # Easy way of saving the cosine dists
-#dist_list = [] # Easy way of saving the dist
+cos_dist_list = [] # Easy way of saving the cosine dists
+dist_list = [] # Easy way of saving the dist
 
 
 # Iteration over the parameters
@@ -190,28 +190,28 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
 
 
             #Testing the norms of the kernels
-            #print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
+            print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
             Norms_global = torch.norm((K_global), dim=2)
             Norm_global = Norms_global.mean().item()
-            #print(f"Testing the norm of K_global: {Norm_global}")
+            print(f"Testing the norm of K_global: {Norm_global}")
             Norms_loc = torch.norm((K_loc), dim=2)
             Norm_loc = Norms_loc.mean().item()
-            #print(f"Testing the norm of K_loc: {Norm_loc}")
+            print(f"Testing the norm of K_loc: {Norm_loc}")
             Norms_imp = torch.norm((K_imp), dim=2)
             Norm_imp = Norms_imp.mean().item()
-            #print(f"Testing the norm of K_imp: {Norm_imp}")
+            print(f"Testing the norm of K_imp: {Norm_imp}")
 
             #Computing the matrix Dist and Cos_Dist
             Dist = torch.norm((K_loc - K_imp), dim=2)
             Cos_Dist = 1 - torch.tensordot(K_loc/(Norms_loc.unsqueeze(-1)), K_imp/(Norms_imp.unsqueeze(-1)), dims=([2],[2]) )
             Dist_mean = Dist.mean().item()
             Cos_dist_mean = Cos_Dist.mean().item()   #TODO: This doesn't work if n_phi and base_n_traj are not 1!
-            #print(f"The mean distance is: {Dist_mean}")
-            #print(f"The mean cosine distance is : {Cos_dist_mean} \n")
+            print(f"The mean distance is: {Dist_mean}")
+            print(f"The mean cosine distance is : {Cos_dist_mean} \n")
 
 
-            #cos_dist_list.append(Cos_dist_mean)
-            #dist_list.append(Dist_mean)
+            cos_dist_list.append(Cos_dist_mean)
+            dist_list.append(Dist_mean)
 
 
             # Filling the result arrays
@@ -236,21 +236,21 @@ np.save('Norms_big_new.npy', Norms)
 
 
 #Printing the results:
-#somma_cos = 0
-#elementi_cos = 0
-#for x in cos_dist_list:
-#    if not math.isnan(x):
-#        somma_cos += x
-#        elementi_cos += 1
+somma_cos = 0
+elementi_cos = 0
+for x in cos_dist_list:
+    if not math.isnan(x):
+        somma_cos += x
+        elementi_cos += 1
 
-#print(f"The cos distance results are: {somma_cos/elementi_cos}")
+print(f"The cos distance results are: {somma_cos/elementi_cos}")
 
 #Printing the results:
-#somma_dist = 0
-#elementi_dist = 0
-#for x in dist_list:
-#    if not math.isnan(x):
-#        somma_dist += x
-#        elementi_dist += 1
+somma_dist = 0
+elementi_dist = 0
+for x in dist_list:
+    if not math.isnan(x):
+        somma_dist += x
+        elementi_dist += 1
 
-#print(f"The distance results are: {somma_dist/elementi_dist}")
+print(f"The distance results are: {somma_dist/elementi_dist}")

@@ -174,8 +174,10 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                                         target_distr = local_distr,
                                         proposal_distr = global_distr)
             # Computing the matrix Q that converts to a local kernel around the base_xi
-            converter.compute_Q(proposal_traj = global_xi,
-                                PHI = rhos_psi_global)            
+            if converter.compute_Q(proposal_traj = global_xi,PHI = rhos_psi_global):
+                Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,math.nan,math.nan, math.nan)
+                Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,math.nan,math.nan,math.nan, math.nan)
+                break # Breaks the loop if there are problems with the pseudoinverse
             # Computing the importance sampling kernel starting from the global one
             K_imp = converter.convert_to_local(K_glob).type(torch.float32)
             # Saving the goodness metric of the pseudo inverse

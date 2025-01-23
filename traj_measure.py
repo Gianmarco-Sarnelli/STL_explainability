@@ -453,3 +453,142 @@ class LocalGaussian(Measure):
             return (log_pdf, log_error)
         if not log:
             return (torch.exp(log_pdf), log_error)
+        
+
+class SemiBrownian(Measure):
+    def __init__(
+        self, base_traj=None, std = 1.0, std_multiplier = 4.0, device="cpu"
+    ):
+        """
+        Creates a trajectory whose speed at a certain point depends on the
+        distance of that point from the base trajectory (if there's none,
+        the local trajectory will be all zeros)
+
+        Parameters
+        ----------
+        base_traj (torch.Tensor): A tensor of shape [varn, points]
+            - `varn` represents the number of variables in each trajectory.
+            - `points` represents the number points for each trajectory.
+        If None is passed, the base trajectory will be zeros.
+        std : standard deviation of normal around the base_traj, optional
+            The default is 1.0.
+        std_multiplier : mutiplies std to obtain the standard deviation of 
+            the first point, optional. The default is 4.0.
+        device : 'cpu' or 'cuda', optional
+            device on which to run the algorithm. The default is 'cpu'
+        
+        Returns
+        -------
+        None.
+
+        """
+        self.name = "SemiBrownian"
+        self.device = device
+        self.base_traj = base_traj
+        self.std = std
+        self.std_multiplier = std_multiplier
+        if (self.base_traj is not None) and  (base_traj.dim() != 2):
+            raise ValueError(f"`base_traj` must have 2 dimensions, but got {base_traj.dim()} dimensions.")
+        
+    def sample(self, samples=100000, varn=2, points=100):
+        """
+        Samples a set of trajectories around a base trajectory, with parameters
+        passed to the sampler
+
+        Parameters
+        ----------
+        points : INT, optional
+            number of points per trajectory, including initial one. The default is 100.
+        samples : INT, optional
+            number of trajectories. The default is 100000.
+        varn : INT, optional
+            number of variables per trajectory. The default is 2.
+
+
+        Returns
+        -------
+        signal : samples x varn x points pytorch tensor
+            The sampled signals.
+
+        """
+        if self.device == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError("GPU card or CUDA library not available!")
+
+        signal = torch.empty((samples, varn, points), device=self.device)
+
+        # The first point is sampled according to a broader normal distribution
+        signal[:,:,0] = self.std*self.std_multiplier*torch.randn(samples, varn, device=self.device)
+
+        # The speed tensor starts at zero
+        speed = torch.zeros((samples, varn), device=self.device)
+
+        if self.base_traj is None:
+            for i in range(1, points):
+                # The speed tensor is a random variable that has a bias for pointing toward the base trajectory
+                speed = speed + self.std*torch.randn(samples, varn, device=self.device) - torch.tanh(signal[:,:,i-1])
+                signal[:,:,i] = signal[:,:,i-1] + speed
+
+        else:
+            for i in range(1, points):
+                # The speed tensor is a random variable that has a bias for pointing toward the base trajectory
+                speed = speed + self.std*torch.randn(samples, varn, device=self.device) - torch.tanh(signal[:,:,i-1]-self.base_traj[:,:,i-1])
+                signal[:,:,i] = signal[:,:,i-1] + speed
+
+        return signal
+
+    def compute_pdf_trajectory(self, trajectory: torch.Tensor, 
+                               log: bool = False) -> torch.Tensor:
+        """
+        Computes the probability density function of a trajectory sampled using SemiBrownian.
+        
+        Parameters:
+        ----------
+        trajectory (torch.Tensor): The trajectory tensor of shape [samples, varn, points]
+        log (bool): decides if the output will be the log of the pdf or the pdf itself
+        
+        Returns:
+        --------
+        log_pdf(torch.Tensor): The tensor containing the log of the pdf of the trajectories
+        pdf (torch.Tensor): The tensor containing the pdf of the trajectories
+
+        """
+        log_error = False
+
+
+
+
+
+######################TODO: RIVEDI!
+
+
+
+
+
+
+        
+        # Computing the shape of the trajectory
+        samples, varn, points = trajectory.shape
+
+        log_pdf = torch.empty(samples, device=self.device, dtype=torch.float64)
+
+        # Computing the speed at each point
+        speeds = trajectory[:, :, 1:] - trajectory[:,:,:-1]
+
+        # Computing the value added to the speed tensor (resembling accelerations)
+        accs = speeds
+        accs[:,:,1:] = speeds[:,:,1:] - speeds[:,:,:-1]
+
+        # From this tensor, we remove the deterministic component
+        if self.base_traj is None:
+            accs = accs + torch.tanh(trajectory[:,:,])
+
+        try:
+            log_pdf = torch.distributions.Normal(torch.zeros(samples, varn), self.std).log_prob(noise).type(torch.float64)
+        except ValueError: # If there's a value error then it means that the log prob is too low
+            log_error = True
+        
+        if log:    
+            return (log_pdf, log_error)
+        if not log:
+            return (torch.exp(log_pdf), log_error)
+        

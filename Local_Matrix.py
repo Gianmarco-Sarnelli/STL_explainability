@@ -186,9 +186,11 @@ class local_matrix:
         if self.PHI is None:
             print("##There's no PHI!!##")
             self.generate_PHI()
-        self.PHI_daga = torch.linalg.pinv(self.PHI)#, atol=torch.finfo(self.PHI.dtype).tiny)#.type(torch.float64) 
-        #TODO: capisci perchè la pinv con più precisione funziona male
-        #NOTE: la pseudoinversa funziona sempre male
+        try:
+            self.PHI_daga = torch.linalg.pinv(self.PHI)#, atol=torch.finfo(self.PHI.dtype).tiny)#.type(torch.float64) 
+        except RuntimeError:
+            print("## PROBLEM WITH THE PSEUDO INVERSE ##")
+            return True
 
         # Computing the error of the pseudo inverse
         self.pinv_error = self.check_goodness_pinv()

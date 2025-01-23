@@ -188,19 +188,19 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             del rhos_psi_global, converter
 
             #Testing the norms of the kernels
-            #print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
+            print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
             Norm_glob = torch.norm(K_glob).item()
-            #print(f"Testing the norm of K_glob: {Norm_glob}")
+            print(f"Testing the norm of K_glob: {Norm_glob}")
             Norm_loc = torch.norm(K_loc).item()
-            #print(f"Testing the norm of K_loc: {Norm_loc}")
+            print(f"Testing the norm of K_loc: {Norm_loc}")
             Norm_imp = torch.norm(K_imp).item()
-            #print(f"Testing the norm of K_imp: {Norm_imp}")
+            print(f"Testing the norm of K_imp: {Norm_imp}")
 
             #Computing the matrix Dist and Cos_Dist
             Dist = torch.norm(K_loc - K_imp).item()
             Cos_Dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
-            #print(f"The distance is: {Dist}")
-            #print(f"The cosine distance is : {Cos_Dist} \n")
+            print(f"The distance is: {Dist}")
+            print(f"The cosine distance is : {Cos_Dist} \n")
 
             # Filling the result arrays
             Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,Dist,Cos_Dist, pinv_error)

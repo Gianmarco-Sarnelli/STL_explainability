@@ -127,18 +127,18 @@ class local_matrix:
                 proposal_log_error = False # This signals that the proposal probability is zero
 
                 if self.target_distr_name == "LocalBrownian": 
-                    new_target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                    target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
                     #old_target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
 
-                    log_prob += new_target_log_prob.item()
+                    log_prob += target_log_prob.item()
                 else:
                     raise RuntimeError("Other target distributions are not implemented yet!")
 
                 if self.proposal_distr_name == "BaseMeasure": 
-                    new_proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                    proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
                     #old_proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
 
-                    log_prob -= new_proposal_log_prob.item()
+                    log_prob -= proposal_log_prob.item()
                 else:
                     raise RuntimeError("Other proposal distributions are not implemented yet!")
                 
@@ -156,7 +156,7 @@ class local_matrix:
                     try:
                         self.dweights[i] = math.exp(log_prob) # standard case
                     except OverflowError:
-                        print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {new_target_log_prob.item()}, proposal_log_prob = {new_proposal_log_prob.item()}")
+                        print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
 
             sum_weights = max(torch.sum(self.dweights), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
             sum_squared_weights = torch.sum(torch.square(self.dweights))

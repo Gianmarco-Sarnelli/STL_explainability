@@ -7,6 +7,8 @@ from phis_generator import StlGenerator
 import math
 from typing import List, Any
 import time
+import psutil
+
 
 """
 Evaluates the transformation of kernels when three parameters are varied:
@@ -178,6 +180,9 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             K_imp = converter.convert_to_local(K_glob).type(torch.float32)
             # Saving the goodness metric of the pseudo inverse
             pinv_error = converter.pinv_error
+            # Computing the peak memory used
+            process = psutil.Process()
+            process_mem = process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
             # Deleting used tensors
             converter.__dict__.clear()  # Removes all instance attributes
             del rhos_psi_global, converter
@@ -207,8 +212,8 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
             # End timing
             total_time = time.time() - start_time
             #print(f"The time elapsed with n_psi={n_psi}, n_traj={n_traj} is:{total_time}")
-            with open('Elapsed_time.txt', 'a') as file:
-                file.write(f"Time elapsed with n_psi={n_psi}, n_traj={n_traj} is:{total_time}\n")
+            with open('Resources_used_mp.txt', 'a') as file:
+                file.write(f"With n_psi={n_psi_added+n_traj}, n_traj={n_traj}, the time elapsed is:{total_time}s and the peak memory used is:{process_mem}MB\n")
 
 
 # Saving the arrays

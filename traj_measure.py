@@ -189,7 +189,7 @@ class BaseMeasure(Measure):
                 log_jacobian = torch.log(totvar) * (2-points)
 
                 # Computing the log pdf
-                #log_pdf[i] = torch.sum(initial_pdf)
+                log_pdf[i] = torch.sum(initial_pdf)
                 log_pdf[i] += torch.sum(totvar_pdf) # Removing this decreases the performances a bit
                 #log_pdf[i] += torch.sum(bernoulli_pdf)
                 #log_pdf[i] += torch.sum(initial_bernoulli_pdf)
@@ -555,7 +555,7 @@ class SemiBrownian(Measure):
         log_error = False
 
         # TODO: rivedi, non si sa mai
-        
+
         # Computing the shape of the trajectory
         samples, varn, points = trajectory.shape
 

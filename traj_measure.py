@@ -193,7 +193,7 @@ class BaseMeasure(Measure):
                 log_pdf[i] += torch.sum(totvar_pdf)
                 #log_pdf[i] += torch.sum(bernoulli_pdf)
                 #log_pdf[i] += torch.sum(initial_bernoulli_pdf)
-                log_pdf[i] += torch.sum(uniform_spacing_pdf)
+                #log_pdf[i] += torch.sum(uniform_spacing_pdf) # This element was never useful if I do the self norm sampling
                 #log_pdf[i] += torch.sum(log_jacobian)
 
             except ValueError: # If there's a value error then I considere that the log prob is too low

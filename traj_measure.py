@@ -189,7 +189,7 @@ class BaseMeasure(Measure):
                 log_jacobian = torch.log(totvar) * (2-points)
 
                 # Computing the log pdf
-                log_pdf[i] = torch.sum(initial_pdf)
+                #log_pdf[i] = torch.sum(initial_pdf)
                 log_pdf[i] += torch.sum(totvar_pdf) # Removing this decreases the performances a bit
                 #log_pdf[i] += torch.sum(bernoulli_pdf)
                 #log_pdf[i] += torch.sum(initial_bernoulli_pdf)
@@ -554,22 +554,12 @@ class SemiBrownian(Measure):
         """
         log_error = False
 
-
-
-
-
-######################TODO: RIVEDI!
-
-
-
-
-
-
+        # TODO: rivedi, non si sa mai
         
         # Computing the shape of the trajectory
         samples, varn, points = trajectory.shape
 
-        log_pdf = torch.empty(samples, device=self.device, dtype=torch.float64)
+        log_pdf = torch.zeros(samples, device=self.device, dtype=torch.float64)
 
         # Computing the speed at each point
         speeds = trajectory[:, :, 1:] - trajectory[:,:,:-1]
@@ -580,10 +570,18 @@ class SemiBrownian(Measure):
 
         # From this tensor, we remove the deterministic component
         if self.base_traj is None:
-            accs = accs + torch.tanh(trajectory[:,:,])
+            noise = accs + torch.tanh(trajectory[:,:,:-1]) # All but the last element of the the trajectory influences this component
+        else:
+            noise = accs + torch.tanh(trajectory[:,:,:-1]-self.base_traj[:,:-1]) # All but the last element of the the trajectory influences this component
+
 
         try:
-            log_pdf = torch.distributions.Normal(torch.zeros(samples, varn), self.std).log_prob(noise).type(torch.float64)
+            pdf_initial = torch.distributions.Normal(torch.zeros(samples, varn), self.std*self.std_multiplier).log_prob(trajectory[:,:,0]).type(torch.float64)
+            pdf_noise = torch.distributions.Normal(torch.zeros(samples, varn), self.std).log_prob(noise).type(torch.float64)
+
+            # Summing the log components
+            log_pdf += torch.sum(pdf_initial, dim=[1])
+            log_pdf += torch.sum(pdf_noise, dim=[1,2])
         except ValueError: # If there's a value error then it means that the log prob is too low
             log_error = True
         

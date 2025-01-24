@@ -190,7 +190,7 @@ class BaseMeasure(Measure):
 
                 # Computing the log pdf
                 log_pdf[i] = torch.sum(initial_pdf)
-                log_pdf[i] += torch.sum(totvar_pdf)
+                log_pdf[i] += torch.sum(totvar_pdf) # Removing this decreases the performances a bit
                 #log_pdf[i] += torch.sum(bernoulli_pdf)
                 #log_pdf[i] += torch.sum(initial_bernoulli_pdf)
                 #log_pdf[i] += torch.sum(uniform_spacing_pdf) # This element was never useful if I do the self norm sampling

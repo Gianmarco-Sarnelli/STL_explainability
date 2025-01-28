@@ -45,14 +45,10 @@ for file in files:
                 command = ['sbatch', job_path]
                 # Run the command and capture output
                 print(f"Submitted job {file}")
-                print()
                 result = subprocess.run(
                     command,
-                    capture_output=True,  # Captures stdout and stderr
-                    text=True,           # Returns string instead of bytes
                     check=True           # Raises CalledProcessError if return code != 0
                 )
-                print("Command output:", result.stdout)
                 print(f"Completed job {file}")
 
                 
@@ -75,13 +71,10 @@ for file in files:
                 command = ['python3', 'Test_distance_slurm.py', params_file, test_name]
                 # Run the command and capture output
                 print(f"Submitted job {file} without SLURM")
-                result = subprocess.run(
+                subprocess.run(
                     command,
-                    capture_output=True,  # Captures stdout and stderr
-                    text=True,           # Returns string instead of bytes
                     check=True           # Raises CalledProcessError if return code != 0
                 )
-                print("Command output:", result.stdout)
                 print(f"Completed job {file} without SLURM")
 
                 # Create the new filename by inserting '_done' before the extension

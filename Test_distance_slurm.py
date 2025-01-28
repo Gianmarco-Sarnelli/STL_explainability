@@ -204,6 +204,10 @@ if __name__ == "__main__":
     with open(params_file, 'r') as f:
         parameter_combinations = json.load(f)
 
+    # Some prints
+    print("starting the work inside Run_jobs")
+    print(f"parameter combinations: {parameter_combinations}")
+
     # Process work in parallel
     #num_processes = mp.cpu_count() - 1 # Use all available CPUs except one
     num_processes = 1  # Apply this for a single process at a time

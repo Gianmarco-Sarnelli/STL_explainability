@@ -18,7 +18,7 @@ SLURM = args.SLURM
 files = os.listdir("job_files")
 
 # Starting the execution
-print("STarting the execution!")
+print("Starting the execution!")
 
 # Running the scripts/jobs
 for file in files:
@@ -45,6 +45,7 @@ for file in files:
                 command = ['sbatch', job_path]
                 # Run the command and capture output
                 print(f"Submitted job {file}")
+                print()
                 result = subprocess.run(
                     command,
                     capture_output=True,  # Captures stdout and stderr

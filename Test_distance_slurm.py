@@ -191,7 +191,7 @@ def Work_on_process(params: Tuple[int, int, float, int]) -> Tuple[Any, Any, Any,
 
 
 
-
+print(f"__name__ : {__name__}")
 if __name__ == "__main__":
     # Get the parameter file and test name from command line argument
     try:

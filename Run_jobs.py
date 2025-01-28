@@ -17,6 +17,9 @@ SLURM = args.SLURM
 # Get all files in the job_files directory
 files = os.listdir("job_files")
 
+# Starting the execution
+print("STarting the execution!")
+
 # Running the scripts/jobs
 for file in files:
     if file.startswith(f"slurm_{test_name}"):
@@ -41,6 +44,7 @@ for file in files:
             try:
                 command = ['sbatch', job_path]
                 # Run the command and capture output
+                print(f"Submitted job {file}")
                 result = subprocess.run(
                     command,
                     capture_output=True,  # Captures stdout and stderr
@@ -48,8 +52,9 @@ for file in files:
                     check=True           # Raises CalledProcessError if return code != 0
                 )
                 print("Command output:", result.stdout)
-                print(f"Submitted job {file}")
+                print(f"Completed job {file}")
 
+                
                 # Create the new filename by inserting '_done' before the extension
                 base = file.rsplit('.', 1)[0]  # Get everything before the .sh
                 new_filename = f"{base}_done.sh"
@@ -68,6 +73,7 @@ for file in files:
             try:
                 command = ['python3', 'Test_distance_slurm.py', params_file, test_name]
                 # Run the command and capture output
+                print(f"Submitted job {file} without SLURM")
                 result = subprocess.run(
                     command,
                     capture_output=True,  # Captures stdout and stderr
@@ -75,7 +81,7 @@ for file in files:
                     check=True           # Raises CalledProcessError if return code != 0
                 )
                 print("Command output:", result.stdout)
-                print(f"Submitted job {file}")
+                print(f"Completed job {file} without SLURM")
 
                 # Create the new filename by inserting '_done' before the extension
                 base = file.rsplit('.', 1)[0]  # Get everything before the .sh

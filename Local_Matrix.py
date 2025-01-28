@@ -77,6 +77,8 @@ class local_matrix:
         self.Q = None
         self.rank = None
         self.pinv_error = None
+        self.sum_weights = None
+        self.sum_squared_weights = None
 
     def init_formula_generator(self):
         self.formula_generator = StlGenerator(leaf_prob=self.leaf_probability, 
@@ -158,17 +160,17 @@ class local_matrix:
                     except OverflowError:
                         print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
 
-            sum_weights = max(torch.sum(self.dweights), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
-            sum_squared_weights = torch.sum(torch.square(self.dweights))
-            n_e = sum_weights**2/sum_squared_weights
+            self.sum_weights = max(torch.sum(self.dweights), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
+            self.sum_squared_weights = torch.sum(torch.square(self.dweights))
+            n_e = self.sum_weights**2/self.sum_squared_weights
             if self.normalize_weights:
-                self.dweights /= sum_weights
+                self.dweights /= self.sum_weights
                 self.dweights *= self.n_traj
             #print(f"\n #Inside the local_matrix class#")
-            #print(f"The sum of the weights is: {sum_weights}")
-            #print(f"The sum of squares of the weights is: {sum_squared_weights}")
+            #print(f"The sum of the weights is: {self.sum_weights}")
+            #print(f"The sum of squares of the weights is: {self.sum_squared_weights}")
             #print(f"n_e is: {n_e}")
-            #print(f"n/n_e = {self.n_traj / n_e} \n")
+            #print(f"n/n_e = {self.n_traj / n_e}")
             
 
     def compute_Q(self, proposal_traj=None, PHI=None):

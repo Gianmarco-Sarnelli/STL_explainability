@@ -67,7 +67,7 @@ base_total_var_std = 1.0
 n_vars = 2
 # NOTE: n_traj_points must be >= max_timespan in phis_generator
 # NOTE: max_timespan must be greater than 11 (for some reason) #TODO: find why this is the case
-n_traj_points = 11
+#n_traj_points = 11
 
 # Parameters for the sampling of the formulae
 leaf_probability = 0.5
@@ -90,13 +90,13 @@ list_n_psi_added = [350, 600, 1000] #list(range(100, 1100, 200))#list(range(100,
 
 # Creating the numpy array for the resulting distances 
 # The array contains a list of values: (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean,Dist_rho)
-Distances = np.ndarray(shape=(len(list_n_psi_added), len(list_n_traj), len(list_stds)), dtype=object)
+Distances = np.ndarray(shape=(len(list_n_psi_added), len(list_n_traj), len(list_stds), len(list_n_traj_points)), dtype=object)
 # Creating the arrays for the norms of the kernels
 # The array contains : (n_psi_added,n_traj,local_std,Norm_global,Norm_loc,Norm_imp)
-Norms = np.ndarray(shape=(len(list_n_psi_added), len(list_n_traj), len(list_stds)), dtype=object)
+Norms = np.ndarray(shape=(len(list_n_psi_added), len(list_n_traj), len(list_stds), len(list_n_traj_points)), dtype=object)
 # Creating the arrays for the pseudoinverse error
 # The array contains : (n_psi_added,n_traj,local_std,Dist_rho)
-Pinv_error = np.ndarray(shape=(len(list_n_psi_added), len(list_n_traj), len(list_stds)), dtype=object)
+Pinv_error = np.ndarray(shape=(len(list_n_psi_added), len(list_n_traj), len(list_stds), len(list_n_traj_points)), dtype=object)
 
 
 # Initializing the base trajectory distribution. The local distributions will be centered around each base trajectory
@@ -182,9 +182,10 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                                             proposal_distr = global_distr)
                 # Computing the matrix Q that converts to a local kernel around the base_xi
                 if converter.compute_Q(proposal_traj = global_xi,PHI = rhos_psi_global):
-                    Distances[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,math.nan,math.nan, math.nan)
-                    Norms[idx1, idx2, idx3] = (n_psi_added,n_traj,local_std,math.nan,math.nan,math.nan, math.nan)
-                    break # Breaks the loop if there are problems with the pseudoinverse
+                    Distances[idx1, idx2, idx3, idx4] = (n_psi_added,n_traj,local_std,n_traj_points,math.nan,math.nan, math.nan)
+                    Norms[idx1, idx2, idx3, idx4] = (n_psi_added,n_traj,local_std,n_traj_points,math.nan,math.nan,math.nan, math.nan)
+                    Pinv_error[idx1, idx2, idx3, idx4] = (n_psi_added,n_traj,local_std,n_traj_points,math.nan)
+                    continue # skips the iteration of the loop if there are problems with the pseudoinverse
                 # Computing the importance sampling kernel starting from the global one
                 K_imp = converter.convert_to_local(K_glob).type(torch.float32)
                 # Saving the goodness metric of the pseudo inverse
@@ -197,7 +198,7 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                 del rhos_psi_global, converter
 
                 #Testing the norms of the kernels
-                print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
+                print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}, n_traj_points = {n_traj_points}")
                 Norm_glob = torch.norm(K_glob).item()
                 print(f"Testing the norm of K_glob: {Norm_glob}")
                 Norm_loc = torch.norm(K_loc).item()
@@ -208,10 +209,10 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
                 #Computing the matrix Dist and Cos_Dist and Dist_rho
                 Dist = torch.norm(K_loc - K_imp).item()
                 Cos_Dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
-                Dist_rho = torch.dot(rhos_phi_global, rhos_phi_local).item()/math.sqrt(global_n_traj)
+                Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(global_n_traj)
                 print(f"The distance is: {Dist}")
                 print(f"The cosine distance is : {Cos_Dist}")
-                print(f"The robustness distance is : {Dist_rho} \n")
+                print(f"The robustness distance is : {Dist_rho}")
                 print(f"The pseudoinverse error is : {pinv_error}")
 
                 # Filling the result arrays
@@ -224,7 +225,7 @@ for (idx1, n_psi_added) in enumerate(list_n_psi_added):
 
                 # End timing
                 total_time = time.time() - start_time
-                print(f"The time elapsed with n_psi={n_psi}, n_traj={n_traj} is:{total_time}")
+                print(f"The time elapsed with n_psi={n_psi}, n_traj={n_traj} is:{total_time}\n")
 
                 # Saving the csv
                 with open(f'Resources/Resources_{test_name}.csv', 'a') as file:

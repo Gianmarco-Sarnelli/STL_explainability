@@ -28,10 +28,14 @@ for file in files:
         pattern = r"slurm_(.+?)_(\d+)(?:_done)?\.sh"
         match = re.match(pattern, file)
         if match:
-            test_name, job_id = match.groups()
+            test_name_file, job_id = match.groups()
             done = "_done" in file
         else:
             print(f"Match not valid")
+            continue
+        
+        # Skipping if the job is of a different test
+        if test_name != test_name_file:
             continue
         
         # Skipping the job if it's already done

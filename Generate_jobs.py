@@ -80,7 +80,7 @@ all_combinations = list(itertools.product(
 ))
 
 # Number of jobs and combinations per job
-n_jobs = 16
+n_jobs = 54
 combinations_per_job = int(np.ceil(len(all_combinations) / n_jobs))
 
 # Distribute combinations across jobs

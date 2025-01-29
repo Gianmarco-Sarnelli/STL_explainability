@@ -3,6 +3,7 @@ import subprocess
 import sys
 import argparse
 import re
+import time
 
 parser = argparse.ArgumentParser(description="Runs the tests for associated with each parameter file in 'job_files/params_..'\n Aguments: --test_name, --tests_num, --SLURM")
 parser.add_argument('--test_name', default="default", help="Name of the test")
@@ -22,10 +23,10 @@ print("Starting the execution!")
 
 # Running the scripts/jobs
 for file in files:
-    if file.startswith(f"slurm_{test_name}"):
+    if file.startswith(f"params_"):
 
         #Extract the informations in the file name
-        pattern = r"slurm_(.+?)_(\d+)(?:_done)?\.sh"
+        pattern = r"params_(.+?)_(\d+)(?:_done)?\.json"
         match = re.match(pattern, file)
         if match:
             test_name_file, job_id = match.groups()
@@ -43,24 +44,16 @@ for file in files:
             continue
         
         if SLURM: # If this is a SLURM job
-            job_path = os.path.join("job_files", file)
+            job_path = os.path.join("job_files", f"slurm_{test_name}_{job_id}.sh")
             # Submit the job
             try:
                 command = ['sbatch', job_path]
                 # Run the command and capture output
-                print(f"Submitted job {file}")
-                result = subprocess.run(
+                subprocess.run(
                     command,
                     check=True           # Raises CalledProcessError if return code != 0
                 )
-                print(f"Completed job {file}")
-
-                
-                # Create the new filename by inserting '_done' before the extension
-                base = job_path.rsplit('.', 1)[0]  # Get everything before the .sh
-                new_filename = f"{base}_done.sh"
-                # Rename the file
-                os.rename(job_path, new_filename)
+                print(f"Submitted job {job_id}")
 
                 tests_num -= 1
                 if tests_num == 0:
@@ -69,25 +62,18 @@ for file in files:
                         # would become negative and the loop never breaks
             except subprocess.CalledProcessError as e:
                 print(f"Error submitting job {file}: {e.stderr}")
-        else:
-            params_file = f"job_files/params_{test_name}_{job_id}.json"
-            job_path = os.path.join("job_files", file)
+
+        else: # If not SLURM
+            params_file = os.path.join("job_files", f"params_{test_name}_{job_id}.json")
             try:
                 command = ['python3', 'Test_distance_slurm.py', params_file, test_name]
-                # Run the command and capture output
-                print(f"Submitted job {file} without SLURM")
+                # Run the command 
+                print(f"Submitted job {job_id} without SLURM")
                 subprocess.run(
                     command,
                     check=True           # Raises CalledProcessError if return code != 0
                 )
-                print(f"Completed job {file} without SLURM")
-
-                # Create the new filename by inserting '_done' before the extension
-                base = job_path.rsplit('.', 1)[0]  # Get everything before the .sh
-                new_filename = f"{base}_done.sh"
-                # Rename the file
-
-                os.rename(job_path, new_filename)
+                print(f"Completed job {job_id} without SLURM")
 
                 tests_num -= 1
                 if tests_num == 0:

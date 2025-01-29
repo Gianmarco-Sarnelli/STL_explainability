@@ -13,6 +13,7 @@ import os
 import sys
 import json
 import sqlite3
+import re
 
 
 """
@@ -190,23 +191,6 @@ def Work_on_process(params: Tuple[int, int, float, int]) -> Tuple[Any, Any, Any,
     Elapsed_time = time.time() - start_time
     
     #return distances_result, norms_result, pinv_result, total_time, process_mem
-    # Print type of each value
-    print("Types of each value:")
-    print(f"n_psi_added: {type(n_psi_added)}")
-    print(f"n_traj: {type(n_traj)}")
-    print(f"local_std: {type(local_std)}")
-    print(f"n_traj_points: {type(n_traj_points)}")
-    print(f"Dist: {type(Dist)}")
-    print(f"Cos_dist: {type(Cos_dist)}")
-    print(f"Dist_rho: {type(Dist_rho)}")
-    print(f"Norm_glob: {type(Norm_glob)}")
-    print(f"Norm_loc: {type(Norm_loc)}")
-    print(f"Norm_imp: {type(Norm_imp)}")
-    print(f"Pinv_error: {type(Pinv_error)}")
-    print(f"Sum_weights: {type(Sum_weights)}")
-    print(f"Sum_squared_weights: {type(Sum_squared_weights)}")
-    print(f"Elapsed_time: {type(Elapsed_time)}")
-    print(f"Process_mem: {type(Process_mem)}")
     return n_psi_added, n_traj, local_std, n_traj_points, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
 
 
@@ -252,6 +236,23 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                     Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem))
             
             conn.commit()
+    
+    #Extract the informations in the file name
+    pattern = r"job_files/params_(.+?)_(\d+)(?:_done)?\.json"
+    match = re.match(pattern, params_file)
+    if match:
+        test_name_file, job_id = match.groups()
+    else:
+        print(f"Match not valid")
+
+    print(f"Completed job {job_id}")
+    
+    # Create the new filename by inserting '_done' before the extension
+    base = params_file.rsplit('.', 1)[0]  # Get everything before the .json
+    new_filename = f"{base}_done.json"
+    # Rename the file
+    os.rename(params_file, new_filename)
+
 
     
 

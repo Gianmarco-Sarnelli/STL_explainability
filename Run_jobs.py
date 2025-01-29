@@ -37,7 +37,7 @@ for file in files:
         # Skipping if the job is of a different test
         if test_name != test_name_file:
             continue
-        
+
         # Skipping the job if it's already done
         if done:
             continue
@@ -57,10 +57,10 @@ for file in files:
 
                 
                 # Create the new filename by inserting '_done' before the extension
-                base = file.rsplit('.', 1)[0]  # Get everything before the .sh
+                base = job_path.rsplit('.', 1)[0]  # Get everything before the .sh
                 new_filename = f"{base}_done.sh"
                 # Rename the file
-                os.rename(file, new_filename)
+                os.rename(job_path, new_filename)
 
                 tests_num -= 1
                 if tests_num == 0:
@@ -71,6 +71,7 @@ for file in files:
                 print(f"Error submitting job {file}: {e.stderr}")
         else:
             params_file = f"job_files/params_{test_name}_{job_id}.json"
+            job_path = os.path.join("job_files", file)
             try:
                 command = ['python3', 'Test_distance_slurm.py', params_file, test_name]
                 # Run the command and capture output
@@ -82,10 +83,11 @@ for file in files:
                 print(f"Completed job {file} without SLURM")
 
                 # Create the new filename by inserting '_done' before the extension
-                base = file.rsplit('.', 1)[0]  # Get everything before the .sh
+                base = job_path.rsplit('.', 1)[0]  # Get everything before the .sh
                 new_filename = f"{base}_done.sh"
                 # Rename the file
-                os.rename(file, new_filename)
+
+                os.rename(job_path, new_filename)
 
                 tests_num -= 1
                 if tests_num == 0:

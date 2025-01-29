@@ -160,8 +160,8 @@ class local_matrix:
                     except OverflowError:
                         print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
 
-            self.sum_weights = max(torch.sum(self.dweights), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
-            self.sum_squared_weights = torch.sum(torch.square(self.dweights))
+            self.sum_weights = max(torch.sum(self.dweights), torch.finfo(self.dweights.dtype).tiny).item() # Finding the sum of the weights (clipping it at the minimum float value)
+            self.sum_squared_weights = torch.sum(torch.square(self.dweights)).item()
             n_e = self.sum_weights**2/self.sum_squared_weights
             if self.normalize_weights:
                 self.dweights /= self.sum_weights

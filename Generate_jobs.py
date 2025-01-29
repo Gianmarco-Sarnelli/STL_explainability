@@ -108,7 +108,7 @@ for job_id in range(n_jobs):
 #SBATCH --get-user-env          # Activating the environment
 
 # Activate the virtual environment
-source /path_to_your_venv/bin/activate #MODIFY!!!!!
+source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # Run the Python script
 python3 Test_distance_slurm.py {params_file} {test_name} 

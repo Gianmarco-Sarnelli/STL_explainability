@@ -223,7 +223,7 @@ if __name__ == "__main__":
         
         db_path = f"Databases/database_{test_name}.db"
         
-        n_psi_added, n_traj, local_std, n_traj_points, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem = results
+        n_psi_added, n_traj, local_std, n_traj_points, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem = result
         
         with sqlite3.connect(db_path, timeout=60.0) as conn:  # Increased timeout for concurrent access
             c = conn.cursor()

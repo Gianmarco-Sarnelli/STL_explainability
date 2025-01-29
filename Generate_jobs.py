@@ -60,7 +60,7 @@ initialize_database(test_name)
 # Parameters for the test
 list_n_traj_points = [11, 50, 100]
 list_stds = [1, 0.75]
-list_n_traj = [700, 3500, 7000]
+list_n_traj = [1000, 2500, 4000]
 list_n_psi_added = [350, 600, 1000]
 
 # Saving the parameters in the Params file #NOTE: This is not needed anymore, but could be useful

@@ -203,6 +203,7 @@ if __name__ == "__main__":
         test_name = sys.argv[2]
     except IndexError:
         raise ValueError("No test name or params file provided. Usage: python3 Test_distance_slurm.py <params_file> <test_name>")
+        # Exemple: python3 Test_distance_slurm.py params_basic.json TESTtestTEST
 
     # Load the parameters for this job
     with open(params_file, 'r') as f:
@@ -246,7 +247,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         print(f"Match not valid")
 
     print(f"Completed job {job_id}")
-    
+
     # Create the new filename by inserting '_done' before the extension
     base = params_file.rsplit('.', 1)[0]  # Get everything before the .json
     new_filename = f"{base}_done.json"

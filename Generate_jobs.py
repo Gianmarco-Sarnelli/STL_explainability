@@ -1,7 +1,6 @@
 import itertools
 import numpy as np
 import json
-import math
 import sys
 import sqlite3
 import os
@@ -100,7 +99,7 @@ for job_id in range(n_jobs):
 #SBATCH --partition=EPYC                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (since we're using multiprocessing)
-#SBATCH --cpus-per-task=2                    # CPUs per task (for multiprocessing)
+#SBATCH --cpus-per-task=8                    # CPUs per task (for multiprocessing)
 #SBATCH --mem-per-cpu=2G                     # Memory per CPU
 #SBATCH --time=2:00:00                       # Time limit (2 hours)
 #SBATCH --output=output_{job_id}.log         # Standard output log

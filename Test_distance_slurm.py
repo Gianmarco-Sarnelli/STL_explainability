@@ -54,6 +54,9 @@ def Work_on_process(params: Tuple[int, int, float, int]) -> Tuple[Any, Any, Any,
     # Timing each process
     start_time = time.time()
 
+    # Begin work on process
+    print("Begin work on process")
+
     ## Parameters ##
     # Process ID
     process = psutil.Process(os.getpid())
@@ -213,6 +216,7 @@ if __name__ == "__main__":
     num_processes = 1  # Apply this for a single process at a time
     with mp.Pool(processes=num_processes) as pool:
         results = pool.map(Work_on_process, parameter_combinations)
+        print(results)
 
     # Store results in database
     for result in results:

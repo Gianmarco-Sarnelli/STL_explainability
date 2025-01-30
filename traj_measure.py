@@ -153,7 +153,9 @@ class BaseMeasure(Measure):
         # Getting the shape of the trajectory
         samples, varn, points = trajectory.shape
 
-        log_pdf = torch.empty(samples, device=self.device, dtype=torch.float64)
+        # Adding a stabilization constant to avoid zeros #TODO: make it better!
+
+        log_pdf = torch.zeros(samples, device=self.device, dtype=torch.float64)
         for i in range(samples):
             # Computing increments
             increments = trajectory[i, :, 1:] - trajectory[i, :, :-1]
@@ -191,10 +193,62 @@ class BaseMeasure(Measure):
                 # Computing the log pdf
                 log_pdf[i] = torch.sum(initial_pdf)
                 log_pdf[i] += torch.sum(totvar_pdf) # Removing this decreases the performances a bit
-                #log_pdf[i] += torch.sum(bernoulli_pdf)
-                #log_pdf[i] += torch.sum(initial_bernoulli_pdf)
-                #log_pdf[i] += torch.sum(uniform_spacing_pdf) # This element was never useful if I do the self norm sampling
-                #log_pdf[i] += torch.sum(log_jacobian)
+                log_pdf[i] += torch.sum(bernoulli_pdf)
+                log_pdf[i] += torch.sum(initial_bernoulli_pdf)
+                log_pdf[i] += torch.sum(uniform_spacing_pdf) # This element was never useful if I do the self norm sampling
+                log_pdf[i] += torch.sum(log_jacobian)
+
+            except ValueError: # If there's a value error then I considere that the log prob is too low
+                log_error = True
+
+        if log:    
+            return (log_pdf, log_error)
+        if not log:
+            return (torch.exp(log_pdf), log_error)
+        
+    def compute_pdf_trajectory_easy(self, trajectory: torch.Tensor,
+                               log: bool = False) -> torch.Tensor:
+        """
+        Computes the "easy version" of the  probability density function of a trajectory sampled using mu0.
+        The computations are done in log space for numerical stability
+
+        Parameters:
+        ----------
+        trajectory (torch.Tensor): The trajectory tensor of shape [samples, varn, points]
+        log (bool): decides if the output will be the log of the pdf or the pdf itself
+        
+        Returns:
+        --------
+        log_pdf(torch.Tensor): The tensor containing the log of the pdf of the trajectories
+        pdf (torch.Tensor): The tensor containing the pdf of the trajectories
+
+        """
+        log_error = False
+
+        # Getting the shape of the trajectory
+        samples, varn, points = trajectory.shape
+
+        log_pdf = torch.empty(samples, device=self.device, dtype=torch.float64)
+        for i in range(samples):
+            # Computing increments
+            increments = trajectory[i, :, 1:] - trajectory[i, :, :-1]
+
+            # Computing the total variation
+            totvar = torch.sum(torch.abs(increments), dim=1)
+
+            try:
+                # Computing the probability density function of the first point
+                initial_pdf = torch.distributions.Normal(self.mu0, self.sigma0).log_prob(trajectory[i, :, 0])
+
+                # The probability density function of the total variation is 
+                # prob(totvar) = (normal_prob(sqrt(totvar)) + normal_prob(-sqrt(totvar))) / ( 2 * sqrt(totvar) )
+                sqroot_totvar = torch.sqrt(totvar)
+                sum_normal = torch.distributions.Normal(self.mu1, self.sigma1).log_prob(sqroot_totvar).exp() + torch.distributions.Normal(self.mu1, self.sigma1).log_prob(-sqroot_totvar).exp()
+                totvar_pdf = torch.log(sum_normal / (2 * sqroot_totvar) )
+
+                # Computing the log pdf
+                log_pdf[i] = torch.sum(initial_pdf)
+                log_pdf[i] += torch.sum(totvar_pdf) # Removing this decreases the performances a bit
 
             except ValueError: # If there's a value error then I considere that the log prob is too low
                 log_error = True
@@ -320,6 +374,8 @@ class LocalBrownian(Measure):
         noise = trajectory - self.base_traj
         diff = noise[:, :, 1:] - noise[:, :, :-1]
         noise[:, :, 1:] = diff
+
+        #TODO: add some stabilization constant to this!
 
         try:
             #all_log_pdf = torch.distributions.Normal(self.base_traj, self.std).log_prob(noise).type(torch.float64) # BIG MISTAKE!!!!!!!!!!!!!!!!!!!!

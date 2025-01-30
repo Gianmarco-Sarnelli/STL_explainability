@@ -30,7 +30,7 @@ Norm_imp REAl,
 Pinv_error REAl,
 Sum_weights REAL,
 Sum_squared_weights REAL,
-Plapsed_time REAL,
+Elapsed_time REAL,
 Process_mem REAL,
 PRIMARY KEY (n_psi_added, n_traj, local_std, n_traj_points))''')
 
@@ -58,9 +58,9 @@ except IndexError:
 initialize_database(test_name)
 
 # Parameters for the test
-list_n_traj_points = [11, 50, 100]
-list_stds = [1, 0.75]
-list_n_traj = [1000, 2500, 4000]
+list_n_traj_points = [11, 33, 55]
+list_stds = [1, 0.8, 0.6]
+list_n_traj = [1000, 2000, 3000, 4000]
 list_n_psi_added = [350, 600, 1000]
 
 # Saving the parameters in the Params file #NOTE: This is not needed anymore, but could be useful

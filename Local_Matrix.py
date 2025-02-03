@@ -4,14 +4,12 @@ from matplotlib import pyplot as plt
 import math
 from kernel import StlKernel, KernelRegression, GramMatrix
 from phis_generator import StlGenerator
-from traj_measure import BaseMeasure, LocalBrownian
+from traj_measure import BaseMeasure, Brownian, Gaussian, SemiBrownian
 import sys
 
 class local_matrix:
     """
-    Class that converts a global kernel into a local one
-    It can reiceve in input the parameters local_traj, global_traj, std_local, std_global, formula_bag, PHI
-    (if already computed) or it can generate them in a standard way 
+    Class used to convert a global kernel into a local one
     """
 
 
@@ -128,7 +126,7 @@ class local_matrix:
                 target_log_error = False # This signals that the target probability is zero
                 proposal_log_error = False # This signals that the proposal probability is zero
 
-                if self.target_distr_name == "LocalBrownian": 
+                if self.target_distr_name == "Brownian": 
                     target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
                     #old_target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
 
@@ -192,6 +190,7 @@ class local_matrix:
             self.PHI_daga = torch.linalg.pinv(self.PHI)#, atol=torch.finfo(self.PHI.dtype).tiny)#.type(torch.float64) 
         except RuntimeError:
             print("## PROBLEM WITH THE PSEUDO INVERSE ##")
+            # TODO: Fix the problem with mkl here (Intel MKL ERROR: Parameter 12 was incorrect on entry to SGESDD.)
             return True
 
         # Computing the error of the pseudo inverse

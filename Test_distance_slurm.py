@@ -3,7 +3,7 @@ import multiprocessing as mp
 from itertools import product
 import numpy as np
 from Local_Matrix import local_matrix
-from traj_measure import BaseMeasure, LocalBrownian
+from traj_measure import BaseMeasure, Easy_BaseMeasure, Brownian, Gaussian, SemiBrownian
 from phis_generator import StlGenerator
 import math
 from typing import List, Any, Tuple
@@ -20,7 +20,7 @@ import re
 Evaluates the transformation of kernels when three parameters are varied:
 1) The number of trajectories used
 2) The number of formulae used (in particoular the number of formulae minus the number of trajectories)
-3) The standard deviation of the distribution around the local trajectory
+3) The standard deviation of the distribution around the base trajectory
 
 The euclidean and cosine distance between two tipe of kernels is measured:
 1) Local kernels obtained by sampling around a local trajectory
@@ -102,7 +102,10 @@ def Work_on_process(params: Tuple[int, int, float, int]) -> Tuple[Any, Any, Any,
                                 points=n_traj_points)
     
     # Initializing the local trajectory distribution and sampling local_xi
-    local_distr = LocalBrownian(base_traj=base_xi[0], 
+    #local_distr = Brownian(base_traj=base_xi[0], 
+                                #std=local_std, 
+                                #device=device)
+    local_distr = Gaussian(base_traj=base_xi[0], 
                                 std=local_std, 
                                 device=device)
     local_xi = local_distr.sample(samples=local_n_traj, 
@@ -195,12 +198,12 @@ def Work_on_process(params: Tuple[int, int, float, int]) -> Tuple[Any, Any, Any,
 
 
 
-print(f"__name__ : {__name__}")
 if __name__ == "__main__":
     # Get the parameter file and test name from command line argument
     try:
         params_file = sys.argv[1]
         test_name = sys.argv[2]
+        # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrawnian = S.
     except IndexError:
         raise ValueError("No test name or params file provided. Usage: python3 Test_distance_slurm.py <params_file> <test_name>")
         # Exemple: python3 Test_distance_slurm.py params_basic.json TESTtestTEST

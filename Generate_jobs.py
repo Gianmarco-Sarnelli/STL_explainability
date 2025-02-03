@@ -102,8 +102,8 @@ for job_id in range(n_jobs):
 #SBATCH --cpus-per-task=8                    # CPUs per task (for multiprocessing)
 #SBATCH --mem-per-cpu=2G                     # Memory per CPU
 #SBATCH --time=2:00:00                       # Time limit (2 hours)
-#SBATCH --output=output_{job_id}.log         # Standard output log
-#SBATCH --error=error_{job_id}.log           # Standard error log
+#SBATCH --output=output_{test_name}_{job_id}.log         # Standard output log
+#SBATCH --error=error_{test_name}_{job_id}.log           # Standard error log
 #SBATCH --get-user-env                       # Activating the environment
 
 # Activate the virtual environment

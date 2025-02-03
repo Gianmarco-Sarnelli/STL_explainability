@@ -131,6 +131,9 @@ class local_matrix:
                     #old_target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
 
                     log_prob += target_log_prob.item()
+                elif self.target_distr_name == "Gaussian": 
+                    target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                    log_prob += target_log_prob.item()
                 else:
                     raise RuntimeError("Other target distributions are not implemented yet!")
 

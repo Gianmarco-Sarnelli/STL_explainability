@@ -681,7 +681,7 @@ class Gaussian(Measure):
         if self.base_traj is None:
             noise = trajectory[:,:,0]
         else:
-            noise = trajectory[:,:,0] - self.base_traj[:,:,0]
+            noise = trajectory[:,:,0] - self.base_traj[:,0]
 
         try:
             log_pdf = torch.distributions.Normal(torch.zeros(samples, varn), self.std).log_prob(noise).type(torch.float64)
@@ -770,7 +770,7 @@ class SemiBrownian(Measure):
         else:
             for i in range(1, points):
                 # The speed tensor is a random variable that has a bias for pointing toward the base trajectory
-                speed = speed + self.std*torch.randn(samples, varn, device=self.device) - torch.tanh(signal[:,:,i-1]-self.base_traj[:,:,i-1])
+                speed = speed + self.std*torch.randn(samples, varn, device=self.device) - torch.tanh(signal[:,:,i-1]-self.base_traj[:,i-1])
                 signal[:,:,i] = signal[:,:,i-1] + speed
 
         return signal

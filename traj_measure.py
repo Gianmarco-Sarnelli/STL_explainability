@@ -685,13 +685,14 @@ class Gaussian(Measure):
 
         try:
             log_pdf = torch.distributions.Normal(torch.zeros(samples, varn), self.std).log_prob(noise).type(torch.float64)
+            log_prob = torch.sum(log_pdf)
         except ValueError: # If there's a value error then it means that the log prob is too low
             log_error = True
         
         if log:    
-            return (log_pdf, log_error)
+            return (log_prob, log_error)
         if not log:
-            return (torch.exp(log_pdf), log_error)
+            return (torch.exp(log_prob), log_error)
         
 
 class SemiBrownian(Measure):

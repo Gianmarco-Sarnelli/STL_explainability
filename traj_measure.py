@@ -144,7 +144,7 @@ class BaseMeasure(Measure):
         else:
             return signal + self.base_traj
     
-    def compute_pdf_trajectory(self, traj: torch.Tensor,
+    def compute_pdf_trajectory(self, trajectory: torch.Tensor,
                                log: bool = False) -> torch.Tensor:
         """
         Computes the probability density function of a trajectory sampled using mu0.
@@ -164,13 +164,11 @@ class BaseMeasure(Measure):
         log_error = False
 
         # Getting the shape of the trajectory
-        samples, varn, points = traj.shape
+        samples, varn, points = trajectory.shape
 
         # Removing the base trajectory if it's present:
-        if self.base_traj is None:
-            trajectory = traj
-        else:
-            trajectory = traj - self.base_traj
+        if not (self.base_traj is None):
+            trajectory = trajectory - self.base_traj
 
         # Adding a stabilization constant to avoid zeros #TODO: make it better!
 
@@ -226,19 +224,17 @@ class BaseMeasure(Measure):
             return (torch.exp(log_pdf), log_error)
         
     
-    def compute_pdf_trajectory_old(self, traj: torch.Tensor,
+    def compute_pdf_trajectory_old(self, trajectory: torch.Tensor,
                                log: bool = False) -> tuple[torch.Tensor, bool]:
         """
         Old version of the pdf
         """
         # Getting the shape of the trajectory
-        samples, varn, points = traj.shape
+        samples, varn, points = trajectory.shape
         
         # Removing the base trajectory if it's present:
-        if self.base_traj is None:
-            trajectory = traj
-        else:
-            trajectory = traj - self.base_traj
+        if not (self.base_traj is None):
+            trajectory = trajectory - self.base_traj
         
         log_error = False
         log_pdf = torch.zeros(samples, device=self.device, dtype=torch.float64)
@@ -386,7 +382,7 @@ class Easy_BaseMeasure(Measure):
         else:
             return signal + self.base_traj
     
-    def compute_pdf_trajectory(self, traj: torch.Tensor,
+    def compute_pdf_trajectory(self, trajectory: torch.Tensor,
                                log: bool = False) -> torch.Tensor:
         """
         Computes the "easy version" of the  probability density function of a trajectory sampled using mu0.
@@ -406,13 +402,11 @@ class Easy_BaseMeasure(Measure):
         log_error = False
 
         # Getting the shape of the trajectory
-        samples, varn, points = traj.shape
+        samples, varn, points = trajectory.shape
 
         # Removing the base trajectory if it's present:
-        if self.base_traj is None:
-            trajectory = traj
-        else:
-            trajectory = traj - self.base_traj
+        if not (self.base_traj is None):
+            trajectory = trajectory - self.base_traj
 
         log_pdf = torch.empty(samples, device=self.device, dtype=torch.float64)
         for i in range(samples):
@@ -646,14 +640,13 @@ class Gaussian(Measure):
                 raise RuntimeError(f"Number of trajectory points don't match with base trajectory. Should be {self.base_traj_points}")
 
         # generate normal distr of points
-        noise = self.std*torch.randn(samples, self.base_traj_varn, device=self.device).unsqueeze(-1)
+        noise = self.std*torch.randn(samples, varn, points, device=self.device)
 
         # Adding the noise to the base trajectory if given
         if self.base_traj is None:
             signal = noise
         else:
-            signal = self.base_traj + noise
-        
+            signal = self.base_traj + noise        
         return signal
     
     def compute_pdf_trajectory(self, trajectory: torch.Tensor, 
@@ -754,7 +747,7 @@ class SemiBrownian(Measure):
         if self.device == "cuda" and not torch.cuda.is_available():
             raise RuntimeError("GPU card or CUDA library not available!")
 
-        signal = torch.empty((samples, varn, points), device=self.device)
+        signal = torch.zeros((samples, varn, points), device=self.device)
 
         # The first point is sampled according to a broader normal distribution
         signal[:,:,0] = self.std*self.std_multiplier*torch.randn(samples, varn, device=self.device)
@@ -794,7 +787,8 @@ class SemiBrownian(Measure):
         """
         log_error = False
 
-        # TODO: rivedi, non si sa mai
+        # TODO: rivedi, la probabilità sembra sempre essere uguale a zero!!!
+        # NOTE: a quanto pare log error è sempre true
 
         # Computing the shape of the trajectory
         samples, varn, points = trajectory.shape
@@ -817,8 +811,8 @@ class SemiBrownian(Measure):
 
         try:
             pdf_initial = torch.distributions.Normal(torch.zeros(samples, varn), self.std*self.std_multiplier).log_prob(trajectory[:,:,0]).type(torch.float64)
-            pdf_noise = torch.distributions.Normal(torch.zeros(samples, varn), self.std).log_prob(noise).type(torch.float64)
-
+            pdf_noise = torch.distributions.Normal(torch.zeros(samples, varn, noise.shape[-1]), self.std).log_prob(noise).type(torch.float64)
+            
             # Summing the log components
             log_pdf += torch.sum(pdf_initial, dim=[1])
             log_pdf += torch.sum(pdf_noise, dim=[1,2])

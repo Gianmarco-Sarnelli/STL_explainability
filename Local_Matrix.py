@@ -126,24 +126,13 @@ class local_matrix:
                 target_log_error = False # This signals that the target probability is zero
                 proposal_log_error = False # This signals that the proposal probability is zero
 
-                if self.target_distr_name == "Brownian": 
-                    target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    #old_target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-
-                    log_prob += target_log_prob.item()
-                elif self.target_distr_name == "Gaussian": 
-                    target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    log_prob += target_log_prob.item()
-                else:
-                    raise RuntimeError("Other target distributions are not implemented yet!")
-
-                if self.proposal_distr_name == "BaseMeasure": 
-                    proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    #old_proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory_old(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-
-                    log_prob -= proposal_log_prob.item()
-                else:
-                    raise RuntimeError("Other proposal distributions are not implemented yet!")
+                # Computing the log probability of the target distribution
+                target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                log_prob += target_log_prob.item()
+            
+                # Computing the log probability of the proposal distribution
+                proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                log_prob -= proposal_log_prob.item()
                 
                 # Handling the possible errors
                 if proposal_log_error:
@@ -161,7 +150,7 @@ class local_matrix:
                     except OverflowError:
                         print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
 
-            self.sum_weights = max(torch.sum(self.dweights), torch.finfo(self.dweights.dtype).tiny).item() # Finding the sum of the weights (clipping it at the minimum float value)
+            self.sum_weights = max(torch.sum(self.dweights).item(), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
             self.sum_squared_weights = torch.sum(torch.square(self.dweights)).item()
             n_e = self.sum_weights**2/self.sum_squared_weights
             if self.normalize_weights:

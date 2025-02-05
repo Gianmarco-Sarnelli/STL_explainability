@@ -39,18 +39,19 @@ This results into an array (Norms) that contains these norms computed while vary
 This script is optimized to run on multiprocess
 """
 
-def Work_on_process(params: Tuple[int, int, float, int]) -> Tuple[Any, Any, Any, float, float]:
+def Work_on_process(params, global_name="M", local_name="B"): #(params: Tuple[int, int, float, int]) -> Tuple[Any, Any, Any, float, float]:
     """
     Process a single parameter combination and return the results
 
     Parameters
     ----------
     params = (n_psi_added, n_traj, local_std, n_traj_points): tuple of parameters used by the iteration
+    global_name: string that chooses the global distribution
+    local_name: string that chooses the local distribution
 
     Returns
     ---------
-    distances_result, norms_result, pinv_result, total_time, process_mem
-
+    dn_psi_added, n_traj, local_std, n_traj_points, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
     """
     # Timing each process
     start_time = time.time()
@@ -84,30 +85,48 @@ def Work_on_process(params: Tuple[int, int, float, int]) -> Tuple[Any, Any, Any,
     local_n_traj = n_traj
     global_n_traj = n_traj
 
-    # Initializing the base trajectory distribution and sampling base_xi
-    # (the local distribution will be created around the base trajectory)
-    base_distr = BaseMeasure(device=device, 
-                                sigma0=base_initial_std, 
-                                sigma1=base_total_var_std)
-    base_xi = base_distr.sample(samples=1,
+    # Initializing the global trajectory distribution and sampling global_xi
+    # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
+    match global_name:
+        case "M":
+            global_distr = BaseMeasure(device=device)
+        case "E":
+            global_distr = Easy_BaseMeasure(device=device)
+        case "B":
+            global_distr = Brownian(device=device)
+        case "G":
+            global_distr = Gaussian(device=device)
+        case "S":
+            global_distr = SemiBrownian(device=device)
+        case _:
+            raise RuntimeError("Global distribution name is not allowed")
+        
+    global_xi = global_distr.sample(samples=global_n_traj, 
                                 varn=n_vars, 
                                 points=n_traj_points)
 
-    # Initializing the global trajectory distribution and sampling global_xi
-    global_distr = BaseMeasure(device=device, 
-                                    sigma0=base_initial_std, 
-                                    sigma1=base_total_var_std)
-    global_xi = global_distr.sample(samples=global_n_traj, 
+    # Initializing the base trajectory distribution and sampling base_xi
+    # (the local distribution will be created around the base trajectory)
+    # (for now the base measure will be the same as the global measure)
+    base_xi = global_distr.sample(samples=1,
                                 varn=n_vars, 
                                 points=n_traj_points)
     
     # Initializing the local trajectory distribution and sampling local_xi
-    #local_distr = Brownian(base_traj=base_xi[0], 
-                                #std=local_std, 
-                                #device=device)
-    local_distr = Gaussian(base_traj=base_xi[0], 
-                                std=local_std, 
-                                device=device)
+    match local_name:
+        case "M":
+            local_distr = BaseMeasure(base_traj=base_xi[0], sigma1=local_std, device=device)
+        case "E":
+            local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma1=local_std, device=device)
+        case "B":
+            local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
+        case "G":
+            local_distr = Gaussian(base_traj=base_xi[0], std=local_std, device=device)
+        case "S":
+            local_distr = SemiBrownian(base_traj=base_xi[0], std=local_std, device=device)
+        case _:
+            raise RuntimeError("Local distribution name is not allowed")
+        
     local_xi = local_distr.sample(samples=local_n_traj, 
                                     varn=n_vars, 
                                     points=n_traj_points)
@@ -203,7 +222,7 @@ if __name__ == "__main__":
     try:
         params_file = sys.argv[1]
         test_name = sys.argv[2]
-        # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrawnian = S.
+        # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
     except IndexError:
         raise ValueError("No test name or params file provided. Usage: python3 Test_distance_slurm.py <params_file> <test_name>")
         # Exemple: python3 Test_distance_slurm.py params_basic.json TESTtestTEST
@@ -215,18 +234,32 @@ if __name__ == "__main__":
     # Some prints
     print("starting the work inside Run_jobs")
     print(f"parameter combinations: {parameter_combinations}")
+    print(f"test name: {test_name}")
+
+    # Checking if the test name is in the format "global_distr2local_distr"
+    global_distr, local_distr = "M", "B"
+    if "2" in test_name:
+        index = test_name.index("2")
+        global_distr = test_name[:index]
+        local_distr = test_name[index + 1:]
+        
+    # Creating the inputs to be passed to the process
+    inputs = [(param, global_distr, local_distr) for param in parameter_combinations]
 
     # Process work in parallel
     #num_processes = mp.cpu_count() - 1 # Use all available CPUs except one
     num_processes = 1  # Apply this for a single process at a time
     with mp.Pool(processes=num_processes) as pool:
-        results = pool.map(Work_on_process, parameter_combinations)
+        results = pool.starmap(Work_on_process, inputs)
         print(results)
 
     # Store results in database
     for result in results:
         
         db_path = f"Databases/database_{test_name}.db"
+        if not os.path.exists(db_path):
+            print(f"Database {db_path} not found")
+            exit()
         
         n_psi_added, n_traj, local_std, n_traj_points, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem = result
         
@@ -256,70 +289,4 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
     new_filename = f"{base}_done.json"
     # Rename the file
     os.rename(params_file, new_filename)
-
-
-    
-
-
-"""
-if __name__ == "__main__":
-
-    # Get the parameter file and test name from command line argument
-    try:
-        params_file = sys.argv[1]
-        test_name = sys.argv[2]
-    except IndexError:
-        raise ValueError("No test name or params file provided. Usage: python3 Test_distance_slurm.py <params_file> <test_name>")
-    
-    # Load the parameters for this job
-    with open(params_file, 'r') as f:
-        parameter_combinations = json.load(f)
-
-    # Reading the actual parameters from the txt file:
-    with open(f'Params/Params_{test_name}.txt', 'r') as file:
-        # Read each line and split by comma to convert back to list
-        list_n_psi_added = [int(x) for x in file.readline().strip().split(',')]
-        list_n_traj = [int(x) for x in file.readline().strip().split(',')]
-        list_stds = [float(x) for x in file.readline().strip().split(',')]
-        list_n_traj_points = [int(x) for x in file.readline().strip().split(',')]
-    
-    #num_processes = mp.cpu_count() - 1 # Use all available CPUs except one
-    num_processes = 1 # Apply this for a single process at a time
-    
-    # Process work in parallel
-    with mp.Pool(processes=num_processes) as pool:
-        results = pool.map(Work_on_process, parameter_combinations)
-
-    # Store results in arrays and saving the elapsed time
-    for result, params in zip(results, parameter_combinations):
-        distances_result, norms_result, pinv_result, elapsed_time, process_mem = result
-        n_psi_added, n_traj, local_std, n_traj_points = params
-        
-        # Find indices for storing results
-        idx1 = list_n_psi_added.index(n_psi_added)
-        idx2 = list_n_traj.index(n_traj)
-        idx3 = list_stds.index(local_std)
-        idx4 = list_n_traj_points.index(n_traj_points)
-
-        # Loading the arrays. implement in parallel 
-        Distances = np.load(f'Distances/Distances_{test_name}.npy', allow_pickle=True)
-        Norms = np.load(f'Norms/Norms_{test_name}.npy', allow_pickle=True)
-        Pinv_error = np.load(f'Pinv_error/Pinv_error_{test_name}.npy', allow_pickle=True)
-
-        # Filling the result arrays
-        Distances[idx1, idx2, idx3, idx4] = distances_result
-        Norms[idx1, idx2, idx3, idx4] = norms_result
-        Pinv_error[idx1, idx2, idx3, idx4] = pinv_result
-
-        # Saving the arrays. implement in parallel
-        np.save(f'Distances/Distances_{test_name}.npy', Distances)
-        np.save(f'Norms/Norms_{test_name}.npy', Norms)
-        np.save(f'Pinv_error/Pinv_error_{test_name}.npy', Pinv_error)
-
-        # Saving the csv. implement in parallel
-        with open(f'Resources/Resources_{test_name}.csv', 'a') as file:
-            # The components are: n_psi, n_traj, n_traj_points, total_time, process_mem
-            file.write(f"{n_psi_added+n_traj},{n_traj},{n_traj_points},{elapsed_time},{process_mem}\n")
-"""
-
 

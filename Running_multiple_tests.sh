@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # List of test names
-test_names=("M2M" "M2E" "M2G" "M2S" ) #"E2M" "E2E" "E2G" "E2S" "B2M" "B2E" "B2B" "B2G" "B2S" "G2M" "G2E" "G2B" "G2G" "G2S" "S2M" "S2E" "S2B" "S2G" "S2S")                      
-CHECK_INTERVAL=600
+test_names=("B2M" "B2E" "B2B" "B2G" "B2S" "G2M" "G2E" "G2B" "G2G" "G2S" "S2M" "S2E" "S2B" "S2G" "S2S")                      
+CHECK_INTERVAL=60
 
 for test_name in "${test_names[@]}"; do
     while true; do

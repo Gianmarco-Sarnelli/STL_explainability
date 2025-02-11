@@ -152,7 +152,7 @@ class local_matrix:
 
             self.sum_weights = max(torch.sum(self.dweights).item(), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
             self.sum_squared_weights = torch.sum(torch.square(self.dweights)).item()
-            n_e = self.sum_weights**2/self.sum_squared_weights
+            #n_e = self.sum_weights**2/self.sum_squared_weights
             if self.normalize_weights:
                 self.dweights /= self.sum_weights
                 self.dweights *= self.n_traj

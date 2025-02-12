@@ -240,8 +240,8 @@ if __name__ == "__main__":
     global_distr, local_distr = "M", "B"
     if "2" in test_name:
         index = test_name.index("2")
-        global_distr = test_name[:index]
-        local_distr = test_name[index + 1:]
+        global_distr = test_name[index - 1]
+        local_distr = test_name[index + 1]
         
     # Creating the inputs to be passed to the process
     inputs = [(param, global_distr, local_distr) for param in parameter_combinations]

@@ -58,7 +58,7 @@ except IndexError:
 initialize_database(test_name)
 
 # Parameters for the test
-list_n_traj_points = [11, 33, 55]
+list_n_traj_points = [11, 55, 99]
 list_stds = [1, 0.8, 0.6]
 list_n_traj = [1000, 2000, 3000, 4000]
 list_n_psi_added = [350, 600, 1000]

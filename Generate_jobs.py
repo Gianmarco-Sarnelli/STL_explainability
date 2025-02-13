@@ -95,8 +95,8 @@ if save_all=="yes":
     atom_threshold_sd = 1.0
 
     # Parameters of the process
-    n_psi_added = max[list_n_psi_added]  # We will save all the psi needed and then select a subset of them for each test.
-    n_traj = max[list_n_traj]
+    n_psi_added = max(list_n_psi_added)  # We will save all the psi needed and then select a subset of them for each test.
+    n_traj = max(list_n_traj)
     local_std = list_stds[0]
     n_traj_points = list_n_traj_points[0]
     n_psi = n_traj + n_psi_added 

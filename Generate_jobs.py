@@ -129,6 +129,8 @@ if save_all=="yes":
     global_xi = global_distr.sample(samples=global_n_traj, 
                                 varn=n_vars, 
                                 points=n_traj_points)
+    if not os.path.exists("Global_xi_dir"):
+        os.makedirs("Global_xi_dir")
     torch.save(global_xi, os.path.join("Global_xi_dir",f"{test_name}.pt"))
 
     # ITERATING ON base_xi_id:
@@ -163,7 +165,11 @@ if save_all=="yes":
                                         points=n_traj_points)
         local_xi_dict[i] = local_xi
 
+    if not os.path.exists("Local_xi_dir"):
+        os.makedirs("Local_xi_dir")
     torch.save(local_xi_dict, os.path.join("Local_xi_dir",f"{test_name}.pt"))
+    if not os.path.exists("Base_xi_dir"):
+        os.makedirs("Base_xi_dir")
     torch.save(base_xi_dict, os.path.join("Base_xi_dir",f"{test_name}.pt"))
 
     # Sampling the formulae (phi and psi) for the kernels
@@ -179,11 +185,15 @@ if save_all=="yes":
         phi_bag = formulae_distr.bag_sample(1, n_vars)
         phi_bag_dict[i] = phi_bag
     # Save with pickle
+    if not os.path.exists("phis_dir"):
+        os.makedirs("phis_dir")
     with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'wb') as f:
         pickle.dump(phi_bag_dict, f)
 
     psi_bag = formulae_distr.bag_sample(n_psi, n_vars)
     # Save with pickle
+    if not os.path.exists("psis_dir"):
+        os.makedirs("psis_dir")
     with open(os.path.join("psis_dir", f"{test_name}.pkl"), 'wb') as f:
         pickle.dump(psi_bag, f)
 
@@ -191,6 +201,8 @@ if save_all=="yes":
     PHI = torch.empty(n_psi, global_n_traj)
     for (i, formula) in enumerate(psi_bag):
         PHI[i, :] = torch.tanh(formula.quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
+    if not os.path.exists("PHI_dir"):
+        os.makedirs("PHI_dir")
     torch.save(PHI, os.path.join("PHI_dir",f"{test_name}.pt"))
 else:
     save_all = "no"

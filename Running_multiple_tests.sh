@@ -13,7 +13,15 @@ for test_name in "${test_names[@]}"; do
             echo "Starting job for test: $test_name"
 
             source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
-            python3 Generate_jobs.py "$test_name" 20 "yes"
+            #python3 Generate_jobs.py "$test_name" 20 "yes"
+            sbatch generate_jobs.sh "$test_name" 20 "yes"
+            sleep 30
+            num_jobs=$(squeue -u gsarne00 | wc -l)
+            num_jobs=$((num_jobs - 1))
+            if [ $num_jobs -eq 0 ]; then
+                sleep 30
+            fi
+
             python3 Run_jobs.py --test_name "$test_name" --tests_num 20 --SLURM true
             sleep 30
 

@@ -180,7 +180,7 @@ if save_all=="yes":
     
     if not os.path.exists("Dweights_dir"):
         os.makedirs("Dweights_dir")
-    torch.save(dweights_dict, os.path.join("Local_xi_dir",f"{test_name}.pt"))
+    torch.save(dweights_dict, os.path.join("Dweights_dir",f"{test_name}.pt"))
     if not os.path.exists("Local_xi_dir"):
         os.makedirs("Local_xi_dir")
     torch.save(local_xi_dict, os.path.join("Local_xi_dir",f"{test_name}.pt"))

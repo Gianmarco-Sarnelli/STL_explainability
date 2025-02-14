@@ -8,6 +8,7 @@ from traj_measure import BaseMeasure, Easy_BaseMeasure, Brownian, Gaussian, Semi
 from phis_generator import StlGenerator
 import torch
 import pickle
+from Local_Matrix import local_matrix
 
 def initialize_database(test_name):
     """Initialize SQLite database with the required structure"""
@@ -78,7 +79,7 @@ if save_all=="yes":
     if (len(list_n_traj_points) != 1) or (len(list_stds) != 1):
         raise RuntimeError("To be able to save the trajectories the parameters 'list_n_traj_points' and 'list_stds' must have a single value")
     
-    ##  Saving the values of psi, phi, global_xi, local_xi, base_xi and PHI ##
+    ##  Saving the values of psi, phi, global_xi, local_xi, base_xi, dweights and PHI ##
     
     # Device used
     device: torch.device = torch.device("cpu")  # Force CPU usage
@@ -137,6 +138,7 @@ if save_all=="yes":
 
     base_xi_dict = {}
     local_xi_dict = {}
+    dweights_dict = {}
     for i in list_base_xi_id:
 
         # Initializing the base trajectory distribution and sampling base_xi
@@ -165,6 +167,20 @@ if save_all=="yes":
                                         points=n_traj_points)
         local_xi_dict[i] = local_xi
 
+        # Saving the values of the weights
+        converter = local_matrix(n_vars = n_vars, 
+                                n_formulae = n_psi, 
+                                n_traj = global_n_traj, 
+                                n_traj_points = n_traj_points, 
+                                evaluate_at_all_times = evaluate_at_all_times,
+                                target_distr = local_distr,
+                                proposal_distr = global_distr)
+        converter.compute_dweights()
+        dweights_dict[i] = converter.dweights
+    
+    if not os.path.exists("Dweights_dir"):
+        os.makedirs("Dweights_dir")
+    torch.save(dweights_dict, os.path.join("Local_xi_dir",f"{test_name}.pt"))
     if not os.path.exists("Local_xi_dir"):
         os.makedirs("Local_xi_dir")
     torch.save(local_xi_dict, os.path.join("Local_xi_dir",f"{test_name}.pt"))
@@ -265,33 +281,3 @@ python3 Test_distance.py {params_file} {test_name} {save_all}
     slurm_file = f"job_files/slurm_{test_name}_{job_id}.sh"
     with open(slurm_file, 'w') as f:
         f.write(slurm_script)
-
-
-
-
-
-# before using databases I saved everything as ndarrays
-
-# Creating the numpy array for the resulting distances 
-# The array contains a list of values: (n_psi_added,n_traj,local_std,Dist_mean,Cos_dist_mean,Dist_rho)
-#Distances = np.ndarray(shape=(len(list_n_psi_added), len(list_n_traj), len(list_stds), len(list_n_traj_points)), dtype=object)
-# Creating the arrays for the norms of the kernels
-# The array contains : (n_psi_added,n_traj,local_std,Norm_global,Norm_loc,Norm_imp)
-#Norms = np.ndarray(shape=(len(list_n_psi_added), len(list_n_traj), len(list_stds), len(list_n_traj_points)), dtype=object)
-# Creating the arrays for the pseudoinverse error
-# The array contains : (n_psi_added,n_traj,local_std,Dist_rho)
-#Pinv_error = np.ndarray(shape=(len(list_n_psi_added), len(list_n_traj), len(list_stds), len(list_n_traj_points)), dtype=object)
-
-# Filling the arrays with nan values
-#for (idx1, n_psi_added) in enumerate(list_n_psi_added):
-#    for (idx2, n_traj) in enumerate(list_n_traj):
-#        for (idx3, local_std) in enumerate(list_stds):
-#            for (idx4, n_traj_points) in enumerate(list_n_traj_points):
-#                Distances[idx1, idx2, idx3, idx4] = (n_psi_added,n_traj,local_std,n_traj_points,math.nan,math.nan, math.nan)
-#                Norms[idx1, idx2, idx3, idx4] = (n_psi_added,n_traj,local_std,n_traj_points,math.nan,math.nan,math.nan, math.nan)
-#                Pinv_error[idx1, idx2, idx3, idx4] = (n_psi_added,n_traj,local_std,n_traj_points,math.nan)
-
-# Saving the arrays
-#np.save(f'Distances/Distances_{test_name}.npy', Distances)
-#np.save(f'Norms/Norms_{test_name}.npy', Norms)
-#np.save(f'Pinv_error/Pinv_error_{test_name}.npy', Pinv_error)

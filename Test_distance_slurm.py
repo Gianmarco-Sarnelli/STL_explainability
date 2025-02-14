@@ -234,7 +234,6 @@ if __name__ == "__main__":
         parameter_combinations = json.load(f)
 
     # Some prints
-    print("starting the work inside Run_jobs")
     print(f"parameter combinations: {parameter_combinations}")
     print(f"test name: {test_name}")
 

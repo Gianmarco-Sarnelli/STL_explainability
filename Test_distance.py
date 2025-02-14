@@ -217,7 +217,7 @@ def Work_on_process(params, test_name):
     Elapsed_time = time.time() - start_time
     
     #return distances_result, norms_result, pinv_result, total_time, process_mem
-    return n_psi_added, n_traj, local_std, n_traj_points, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
+    return n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
 
 
 
@@ -394,7 +394,7 @@ def Work_on_process_precomp(params, test_name):
     Elapsed_time = time.time() - start_time
     
     #return distances_result, norms_result, pinv_result, total_time, process_mem
-    return n_psi_added, n_traj, local_std, n_traj_points, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
+    return n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
 
 
 

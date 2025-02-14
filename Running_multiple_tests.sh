@@ -14,7 +14,7 @@ for test_name in "${test_names[@]}"; do
 
             source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
             #python3 Generate_jobs.py "$test_name" 20 "yes"
-            sbatch generate_jobs.sh "$test_name" 20 "yes"
+            sbatch Slurm_Generate_jobs.sh "$test_name" 20 "yes"
             sleep 30
             num_jobs=$(squeue -u gsarne00 | wc -l)
             num_jobs=$((num_jobs - 1))

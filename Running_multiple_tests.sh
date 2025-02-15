@@ -36,7 +36,8 @@ for test_name in "${test_names[@]}"; do
             for i in {1..3}; do
                 python3 Run_jobs.py --test_name "$test_name" --tests_num 20 --SLURM true
                 sleep 30
-
+            done
+            
             break
         else
             sleep $CHECK_INTERVAL

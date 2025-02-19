@@ -68,7 +68,7 @@ for file in files:
                         try:
                             command = ['sbatch', job_path]
                             subprocess.run(command, check=True)
-                            print(f"Submitted job {job_id}")
+                            print(f"Submitted job {job_id} while there are {running_jobs} running jobs")
                             tests_num -= 1
                         except subprocess.CalledProcessError as e:
                             print(f"Error submitting job {file}: {e.stderr}")

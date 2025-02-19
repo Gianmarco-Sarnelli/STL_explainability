@@ -19,7 +19,7 @@ import pickle
 # Removing the warnings when we use pickle
 import warnings
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=UserWarning, module="torch.serialization")
+    warnings.filterwarnings("ignore")
 
 
 """
@@ -298,7 +298,7 @@ def Work_on_process_precomp(params, test_name):
     del local_xi_dict
 
     dweights_dict = torch.load(os.path.join("Dweights_dir", f"{test_name}.pt"))
-    dweights = dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)][:n_traj, :, :] # Selecting only the first n_traj elements
+    dweights = dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)][:n_traj] # Selecting only the first n_traj elements
     del dweights_dict
 
     # Loading the saved formulae

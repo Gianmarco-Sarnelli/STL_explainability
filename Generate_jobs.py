@@ -10,6 +10,8 @@ import torch
 import pickle
 from Local_Matrix import local_matrix
 
+
+
 def initialize_database(test_name):
     """Initialize SQLite database with the required structure"""
 
@@ -22,9 +24,11 @@ def initialize_database(test_name):
         
         # Create the main results table
         c.execute('''CREATE TABLE IF NOT EXISTS results
-(n_psi_added INTEGER,
+(weight_strategy STRING,
+n_psi_added INTEGER,
 n_traj INTEGER,
 local_std REAL,
+global_std REAL,
 n_traj_points INTEGER,
 phi_id INTEGER,
 base_xi_id INTEGER,
@@ -40,7 +44,7 @@ Sum_squared_weights REAL,
 Elapsed_time REAL,
 Process_mem REAL,
 n_e REAL,
-PRIMARY KEY (n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id))''')
+PRIMARY KEY (weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id))''')
 
         # Optimize database performance
 
@@ -52,6 +56,204 @@ PRIMARY KEY (n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id))
         c.execute('PRAGMA synchronous=NORMAL')
 
         conn.commit()
+
+
+
+def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global_std, list_local_std, list_n_traj, list_n_psi_added, list_phi_id, list_base_xi_id):
+
+    # Device used
+    device: torch.device = torch.device("cpu")  # Force CPU usage
+    # Evaluation of formulae
+    evaluate_at_all_times = False # TODO: implement for time evaluation
+    n_vars = 2
+    # NOTE: n_traj_points must be >= max_timespan in phis_generator
+    # NOTE: max_timespan must be greater than 11 (for some reason) #TODO: find why this is the case
+    #n_traj_points = 11
+    # Parameters for the sampling of the formulae
+    leaf_probability = 0.5
+    time_bound_max_range = 10
+    prob_unbound_time_operator = 0.1
+    atom_threshold_sd = 1.0
+
+    #Parameters specific for mu_0
+    totvar_mult = 1
+    sign_ch = 2
+
+    # Parameters of the process
+    n_psi_added = max(list_n_psi_added)  # We will save all the psi needed and then select a subset of them for each test.
+    n_traj = max(list_n_traj)
+    n_psi = n_traj + n_psi_added 
+
+    # Checking if the test name is in the format "global_name2local_name"
+    global_name, local_name = "M", "B"
+    if "2" in test_name:
+        index = test_name.index("2")
+        global_name = test_name[index - 1]
+        local_name = test_name[index + 1]
+
+    ## Global_xi, Base_xi, Local_xi and Dweights ##
+    global_xi_dict = {}
+    base_xi_dict = {}
+    local_xi_dict = {}
+    dweights_dict = {}
+    base_std = 1  # We fix this parameter to make the sampling of the base_xi independent of the global_std
+    ## Iteration on n_traj_points ##
+    for n_traj_points in list_n_traj_points:
+        ## Iteration on global_std ##
+        for global_std in list_global_std:
+            match global_name:
+                case "M":
+                    global_distr = BaseMeasure(sigma0=global_std,
+                                               sigma1=global_std*totvar_mult*n_traj_points, 
+                                               q=sign_ch/n_traj_points, 
+                                               device=device)
+                case "E":
+                    global_distr = Easy_BaseMeasure(sigma0=global_std, 
+                                                    sigma1=global_std*totvar_mult*n_traj_points, 
+                                                    q=sign_ch/n_traj_points, 
+                                                    device=device)
+                case "B":
+                    global_distr = Brownian(device=device)
+                case "G":
+                    global_distr = Gaussian(device=device)
+                case "S":
+                    global_distr = SemiBrownian(device=device)
+                case _:
+                    raise RuntimeError("Global distribution name is not allowed")
+            global_xi = global_distr.sample(samples=n_traj, 
+                                            varn=n_vars, 
+                                            points=n_traj_points)
+            global_xi_dict[(n_traj_points, global_std)] = global_xi
+
+        ## Iteration on base_xi_id
+        for base_xi_id in list_base_xi_id:
+            # Initializing the base_distr
+            match global_name:
+                case "M":
+                    base_distr = BaseMeasure(sigma0=base_std,
+                                            sigma1=base_std*totvar_mult*n_traj_points, 
+                                            q=sign_ch/n_traj_points, 
+                                            device=device)
+                case "E":
+                    base_distr = Easy_BaseMeasure(sigma0=base_std, 
+                                                    sigma1=base_std*totvar_mult*n_traj_points, 
+                                                    q=sign_ch/n_traj_points, 
+                                                    device=device)
+                case "B":
+                    base_distr = Brownian(device=device)
+                case "G":
+                    base_distr = Gaussian(device=device)
+                case "S":
+                    base_distr = SemiBrownian(device=device)
+                case _:
+                    raise RuntimeError("Global distribution name is not allowed")
+            
+            base_xi = base_distr.sample(samples=n_traj, 
+                                        varn=n_vars, 
+                                        points=n_traj_points)
+            base_xi_dict[(n_traj_points, base_xi_id)] = base_xi
+
+            ## Iteration on local_std ##
+            for local_std in list_local_std:
+                # Inizializing the local_distr
+                match local_name:
+                    case "M":
+                        local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                    case "E":
+                        local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                    case "B":
+                        local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
+                    case "G":
+                        local_distr = Gaussian(base_traj=base_xi[0], std=local_std, device=device)
+                    case "S":
+                        local_distr = SemiBrownian(base_traj=base_xi[0], std=local_std, device=device)
+                    case _:
+                        raise RuntimeError("Local distribution name is not allowed")
+                    
+                local_xi = local_distr.sample(samples=n_traj, 
+                                                varn=n_vars, 
+                                                points=n_traj_points)
+                local_xi_dict[(n_traj_points, local_std, base_xi_id)] = local_xi
+
+                ## Iteration on weight_strategy ##
+                for weight_strategy in list_weight_strategy:
+                    ## Iteration again on global_std ##
+                    for global_std in list_global_std: # We need to reiterate on the global_std to obtain the correct global_distr
+                        match global_name:
+                            case "M":
+                                global_distr = BaseMeasure(sigma0=global_std,
+                                                        sigma1=global_std*totvar_mult*n_traj_points, 
+                                                        q=sign_ch/n_traj_points, 
+                                                        device=device)
+                            case "E":
+                                global_distr = Easy_BaseMeasure(sigma0=global_std, 
+                                                                sigma1=global_std*totvar_mult*n_traj_points, 
+                                                                q=sign_ch/n_traj_points, 
+                                                                device=device)
+                            case "B":
+                                global_distr = Brownian(device=device)
+                            case "G":
+                                global_distr = Gaussian(device=device)
+                            case "S":
+                                global_distr = SemiBrownian(device=device)
+                            case _:
+                                raise RuntimeError("Global distribution name is not allowed")
+                            
+                        # Computing the Dweights
+                        converter = local_matrix(n_vars = n_vars, 
+                                                n_formulae = n_psi, 
+                                                n_traj = n_traj, 
+                                                n_traj_points = n_traj_points, 
+                                                evaluate_at_all_times = evaluate_at_all_times,
+                                                target_distr = local_distr,
+                                                proposal_distr = global_distr,
+                                                weight_strategy = weight_strategy)
+                        converter.compute_dweights()
+                        dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)] = converter.dweights
+    # Saving Global_xi_dict
+    os.makedirs("Global_xi_dir", exist_ok=True)
+    torch.save(global_xi_dict, os.path.join("Global_xi_dir",f"{test_name}.pt"))
+    # Saving Base_xi_dict
+    os.makedirs("Base_xi_dir", exist_ok=True)
+    torch.save(base_xi_dict, os.path.join("Base_xi_dir",f"{test_name}.pt"))
+    # Saving local_xi_dict
+    os.makedirs("Local_xi_dir", exist_ok=True)
+    torch.save(local_xi_dict, os.path.join("Local_xi_dir",f"{test_name}.pt"))
+    # Saving Dweights
+    os.makedirs("Dweights_dir", exist_ok=True)
+    torch.save(dweights_dict, os.path.join("Dweights_dir",f"{test_name}.pt"))
+
+
+    ## psi and phi ##
+    formulae_distr = StlGenerator(leaf_prob=leaf_probability, 
+                            time_bound_max_range=time_bound_max_range,
+                            unbound_prob=prob_unbound_time_operator, 
+                            threshold_sd=atom_threshold_sd)
+    
+    ## Iteration on phi_id ##
+    phi_bag_dict = {}
+    for i in list_phi_id:
+        phi_bag = formulae_distr.bag_sample(1, n_vars)
+        phi_bag_dict[i] = phi_bag
+    # Save with pickle
+    os.makedirs("phis_dir", exist_ok=True)
+    with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'wb') as f:
+        pickle.dump(phi_bag_dict, f)
+
+    psi_bag = formulae_distr.bag_sample(n_psi, n_vars)
+    # Save with pickle
+    os.makedirs("psis_dir", exist_ok=True)
+    with open(os.path.join("psis_dir", f"{test_name}.pkl"), 'wb') as f:
+        pickle.dump(psi_bag, f)
+
+    # Computing the robustness of each psi over the global_xi #NOTE: we don't precompute PHI anymore
+    #PHI = torch.empty(n_psi, global_n_traj)
+    #for (i, formula) in enumerate(psi_bag):
+    #    PHI[i, :] = torch.tanh(formula.quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
+    #if not os.path.exists("PHI_dir"):
+    #    os.makedirs("PHI_dir")
+    #torch.save(PHI, os.path.join("PHI_dir",f"{test_name}.pt"))
+
 
 
 
@@ -67,159 +269,27 @@ except IndexError:
 initialize_database(test_name)
 
 # Parameters for the test
-list_n_traj_points = [11] #[11, 55, 99]
-list_stds = [0.6] #[1, 0.8, 0.6]
+list_weight_strategy = ["self_norm", "standard"] #["self_norm"]
+list_n_traj_points = [11, 99]
+list_local_std = [1.0, 0.6] #[1, 0.8, 0.6]
+list_global_std = [1,0, 2.5, 4.0]
 list_n_traj = [4000] #[1000, 2000, 3000, 4000]
-list_n_psi_added = [1000] #[350, 600, 1000]
-list_phi_id = [x for x in range(100)]
-list_base_xi_id = [x for x in range(100)]
+list_n_psi_added = [500] #[350, 600, 1000]
+list_phi_id = [x for x in range(5)]
+list_base_xi_id = [x for x in range(5)]
 
 # If we want to save all variables we need to initialize them
 if save_all=="yes":
-    if (len(list_n_traj_points) != 1) or (len(list_stds) != 1):
-        raise RuntimeError("To be able to save the trajectories the parameters 'list_n_traj_points' and 'list_stds' must have a single value")
-    
-    ##  Saving the values of psi, phi, global_xi, local_xi, base_xi, dweights and PHI ##
-    
-    # Device used
-    device: torch.device = torch.device("cpu")  # Force CPU usage
-    # Evaluation of formulae
-    evaluate_at_all_times = False # TODO: implement for time evaluation
-    n_vars = 2
-    # NOTE: n_traj_points must be >= max_timespan in phis_generator
-    # NOTE: max_timespan must be greater than 11 (for some reason) #TODO: find why this is the case
-    #n_traj_points = 11
-    # Parameters for the sampling of the formulae
-    leaf_probability = 0.5
-    time_bound_max_range = 10
-    prob_unbound_time_operator = 0.1
-    atom_threshold_sd = 1.0
-
-    # Parameters of the process
-    n_psi_added = max(list_n_psi_added)  # We will save all the psi needed and then select a subset of them for each test.
-    n_traj = max(list_n_traj)
-    local_std = list_stds[0]
-    n_traj_points = list_n_traj_points[0]
-    n_psi = n_traj + n_psi_added 
-    local_n_traj = n_traj
-    global_n_traj = n_traj
-
-    # Checking if the test name is in the format "global_name2local_name"
-    global_name, local_name = "M", "B"
-    if "2" in test_name:
-        index = test_name.index("2")
-        global_name = test_name[index - 1]
-        local_name = test_name[index + 1]
-
-    # Initializing the global trajectory distribution and sampling global_xi
-    # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
-    match global_name:
-        case "M":
-            global_distr = BaseMeasure(device=device)
-        case "E":
-            global_distr = Easy_BaseMeasure(device=device)
-        case "B":
-            global_distr = Brownian(device=device)
-        case "G":
-            global_distr = Gaussian(device=device)
-        case "S":
-            global_distr = SemiBrownian(device=device)
-        case _:
-            raise RuntimeError("Global distribution name is not allowed")
-         
-    global_xi = global_distr.sample(samples=global_n_traj, 
-                                varn=n_vars, 
-                                points=n_traj_points)
-    if not os.path.exists("Global_xi_dir"):
-        os.makedirs("Global_xi_dir")
-    torch.save(global_xi, os.path.join("Global_xi_dir",f"{test_name}.pt"))
-
-    # ITERATING ON base_xi_id:
-
-    base_xi_dict = {}
-    local_xi_dict = {}
-    dweights_dict = {}
-    for i in list_base_xi_id:
-
-        # Initializing the base trajectory distribution and sampling base_xi
-        base_xi = global_distr.sample(samples=1,
-                                varn=n_vars, 
-                                points=n_traj_points)
-        base_xi_dict[i] = base_xi
-
-        # Initializing the local trajectory distribution and sampling local_xi
-        match local_name:
-            case "M":
-                local_distr = BaseMeasure(base_traj=base_xi[0], sigma1=local_std, device=device)
-            case "E":
-                local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma1=local_std, device=device)
-            case "B":
-                local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
-            case "G":
-                local_distr = Gaussian(base_traj=base_xi[0], std=local_std, device=device)
-            case "S":
-                local_distr = SemiBrownian(base_traj=base_xi[0], std=local_std, device=device)
-            case _:
-                raise RuntimeError("Local distribution name is not allowed")
-            
-        local_xi = local_distr.sample(samples=local_n_traj, 
-                                        varn=n_vars, 
-                                        points=n_traj_points)
-        local_xi_dict[i] = local_xi
-
-        # Saving the values of the weights
-        converter = local_matrix(n_vars = n_vars, 
-                                n_formulae = n_psi, 
-                                n_traj = global_n_traj, 
-                                n_traj_points = n_traj_points, 
-                                evaluate_at_all_times = evaluate_at_all_times,
-                                target_distr = local_distr,
-                                proposal_distr = global_distr)
-        converter.compute_dweights()
-        dweights_dict[i] = converter.dweights
-    
-    if not os.path.exists("Dweights_dir"):
-        os.makedirs("Dweights_dir")
-    torch.save(dweights_dict, os.path.join("Dweights_dir",f"{test_name}.pt"))
-    if not os.path.exists("Local_xi_dir"):
-        os.makedirs("Local_xi_dir")
-    torch.save(local_xi_dict, os.path.join("Local_xi_dir",f"{test_name}.pt"))
-    if not os.path.exists("Base_xi_dir"):
-        os.makedirs("Base_xi_dir")
-    torch.save(base_xi_dict, os.path.join("Base_xi_dir",f"{test_name}.pt"))
-
-    # Sampling the formulae (phi and psi) for the kernels
-    # Each formula phi will have its kernel representation
-    formulae_distr = StlGenerator(leaf_prob=leaf_probability, 
-                            time_bound_max_range=time_bound_max_range,
-                            unbound_prob=prob_unbound_time_operator, 
-                            threshold_sd=atom_threshold_sd)
-    
-    # ITERATING ON phi_id:
-    phi_bag_dict = {}
-    for i in list_phi_id:
-        phi_bag = formulae_distr.bag_sample(1, n_vars)
-        phi_bag_dict[i] = phi_bag
-    # Save with pickle
-    if not os.path.exists("phis_dir"):
-        os.makedirs("phis_dir")
-    with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'wb') as f:
-        pickle.dump(phi_bag_dict, f)
-
-    psi_bag = formulae_distr.bag_sample(n_psi, n_vars)
-    # Save with pickle
-    if not os.path.exists("psis_dir"):
-        os.makedirs("psis_dir")
-    with open(os.path.join("psis_dir", f"{test_name}.pkl"), 'wb') as f:
-        pickle.dump(psi_bag, f)
-
-    # Computing the robustness of each psi over the global_xi
-    PHI = torch.empty(n_psi, global_n_traj)
-    for (i, formula) in enumerate(psi_bag):
-        PHI[i, :] = torch.tanh(formula.quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
-    if not os.path.exists("PHI_dir"):
-        os.makedirs("PHI_dir")
-    torch.save(PHI, os.path.join("PHI_dir",f"{test_name}.pt"))
+    ##  Saving the values of psi, phi, global_xi, local_xi, base_xi and dweights ##
+    save_params(test_name, 
+                list_weight_strategy, 
+                list_n_traj_points, 
+                list_global_std, 
+                list_local_std, 
+                list_n_traj, 
+                list_n_psi_added, 
+                list_phi_id, 
+                list_base_xi_id)
 else:
     save_all = "no"
 
@@ -227,21 +297,25 @@ else:
 # Saving the parameters in the Params file #NOTE: This is not needed anymore, but could be useful
 os.makedirs("Params", exist_ok=True)  # Create directory if needed
 with open(f"Params/Params_{test_name}.txt", 'w') as file:
-    file.write(','.join(str(x) for x in list_n_psi_added) + '\n')
-    file.write(','.join(str(x) for x in list_n_traj) + '\n')
-    file.write(','.join(str(x) for x in list_stds) + '\n')
-    file.write(','.join(str(x) for x in list_n_traj_points) + '\n')
-    file.write(','.join(str(x) for x in list_phi_id) + '\n')
-    file.write(','.join(str(x) for x in list_base_xi_id) + '\n')
+    file.write("list_n_psi_added,"+','.join(str(x) for x in list_n_psi_added) + '\n')
+    file.write("list_n_traj,"+','.join(str(x) for x in list_n_traj) + '\n')
+    file.write("list_local_std,"+','.join(str(x) for x in list_local_std) + '\n')
+    file.write("list_n_traj_points,"+','.join(str(x) for x in list_n_traj_points) + '\n')
+    file.write("list_phi_id,"+','.join(str(x) for x in list_phi_id) + '\n')
+    file.write("list_base_xi_id,"+','.join(str(x) for x in list_base_xi_id) + '\n')
+    file.write("list_weight_strategy,"+','.join(x for x in list_weight_strategy) + '\n')
+    file.write("list_global_xi,"+','.join(str(x) for x in list_global_std))
 
 # Generate all combinations
 all_combinations = list(itertools.product(
     list_n_psi_added,
     list_n_traj,
-    list_stds,
+    list_local_std,     # NOTE: in Test_distance.py we use FIRST local_std THEN global_std, so alway use this notation!!
+    list_global_std,
     list_n_traj_points,
     list_phi_id,
     list_base_xi_id,
+    list_weight_strategy
 ))
 
 # Combinations of parameters per job
@@ -264,7 +338,7 @@ for job_id in range(n_jobs):
 #SBATCH --partition=EPYC                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (since we're using multiprocessing)
-#SBATCH --cpus-per-task=8                    # CPUs per task (for multiprocessing)
+#SBATCH --cpus-per-task=64                   # CPUs per task (for multiprocessing)
 #SBATCH --mem-per-cpu=2G                     # Memory per CPU
 #SBATCH --time=2:00:00                       # Time limit (2 hours)
 #SBATCH --output=output_{test_name}_{job_id}.log         # Standard output log

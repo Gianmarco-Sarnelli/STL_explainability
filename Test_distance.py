@@ -16,6 +16,12 @@ import sqlite3
 import re
 import pickle
 
+# Removing the warnings when we use pickle
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=UserWarning, module="torch.serialization")
+
+
 """
 Evaluates the transformation of kernels when three parameters are varied:
 1) The number of trajectories used
@@ -76,11 +82,13 @@ def Work_on_process(params, test_name):
     prob_unbound_time_operator = 0.1
     atom_threshold_sd = 1.0
 
+    #Parameters specific for mu_0
+    totvar_mult = 1
+    sign_ch = 2
+
     # Parameters of the process
-    n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id = params
+    n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, weight_strategy = params
     n_psi = n_traj + n_psi_added 
-    local_n_traj = n_traj
-    global_n_traj = n_traj
 
     # Checking if the test name is in the format "global_name2local_name"
     global_name, local_name = "M", "B"
@@ -93,9 +101,9 @@ def Work_on_process(params, test_name):
     # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
     match global_name:
         case "M":
-            global_distr = BaseMeasure(device=device)
+            global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
         case "E":
-            global_distr = Easy_BaseMeasure(device=device)
+            global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
         case "B":
             global_distr = Brownian(device=device)
         case "G":
@@ -105,7 +113,7 @@ def Work_on_process(params, test_name):
         case _:
             raise RuntimeError("Global distribution name is not allowed")
         
-    global_xi = global_distr.sample(samples=global_n_traj, 
+    global_xi = global_distr.sample(samples=n_traj, 
                                 varn=n_vars, 
                                 points=n_traj_points)
 
@@ -119,9 +127,9 @@ def Work_on_process(params, test_name):
     # Initializing the local trajectory distribution and sampling local_xi
     match local_name:
         case "M":
-            local_distr = BaseMeasure(base_traj=base_xi[0], sigma1=local_std, device=device)
+            local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
         case "E":
-            local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma1=local_std, device=device)
+            local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
         case "B":
             local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
         case "G":
@@ -131,7 +139,7 @@ def Work_on_process(params, test_name):
         case _:
             raise RuntimeError("Local distribution name is not allowed")
         
-    local_xi = local_distr.sample(samples=local_n_traj, 
+    local_xi = local_distr.sample(samples=n_traj, 
                                     varn=n_vars, 
                                     points=n_traj_points)
 
@@ -146,41 +154,44 @@ def Work_on_process(params, test_name):
     
     ## K_loc ##
     # Computing the robustness of each psi over the local_xi
-    rhos_psi_local = torch.empty(n_psi, local_n_traj)
+    rhos_psi_local = torch.empty(n_psi, n_traj)
     for (i, formula) in enumerate(psi_bag):
         rhos_psi_local[i, :] = torch.tanh(formula.quantitative(local_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the robustness of phi over local_xi
     rhos_phi_local = torch.tanh(phi_bag[0].quantitative(local_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the local kernels
-    K_loc = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0]) ) / (local_n_traj * math.sqrt(n_psi)) 
+    K_loc = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0]) ) / (n_traj * math.sqrt(n_psi)) 
     # Deleting used tensors
     del rhos_psi_local
 
     ## K_glob ##
     # Computing the robustness of each psi over the global_xi
-    rhos_psi_global = torch.empty(n_psi, global_n_traj)
+    rhos_psi_global = torch.empty(n_psi, n_traj)
     for (i, formula) in enumerate(psi_bag):
         rhos_psi_global[i, :] = torch.tanh(formula.quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the robustness of phi over the global_xi
     rhos_phi_global = torch.tanh(phi_bag[0].quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the global kernel
-    K_glob = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0]) ) / (global_n_traj * math.sqrt(n_psi)) 
+    K_glob = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0]) ) / (n_traj * math.sqrt(n_psi)) 
 
     ## K_imp ##
     # Initializing the converter class
     converter = local_matrix(n_vars = n_vars, 
                                 n_formulae = n_psi, 
-                                n_traj = global_n_traj, 
+                                n_traj = n_traj, 
                                 n_traj_points = n_traj_points, 
                                 evaluate_at_all_times = evaluate_at_all_times,
                                 target_distr = local_distr,
-                                proposal_distr = global_distr)
+                                proposal_distr = global_distr,
+                                weight_strategy=weight_strategy)
     # Computing the matrix Q that converts to a local kernel around the base_xi
     if converter.compute_Q(proposal_traj = global_xi, PHI = rhos_psi_global):
         # returns if there are problems with the pseudoinverse 
-        return n_psi_added, n_traj, local_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan        
+        return weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
     # Computing the importance sampling kernel starting from the global one
     K_imp = converter.convert_to_local(K_glob).type(torch.float32)
+    
+    
     # Computing the peak memory used
     Process_mem = process.memory_info().rss / 1024 / 1024
     # Saving the goodness metric of the pseudo inverse
@@ -204,7 +215,7 @@ def Work_on_process(params, test_name):
     #Computing the matrix Dist and Cos_Dist and Dist_rho
     Dist = torch.norm(K_loc - K_imp).item()
     Cos_dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
-    Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(global_n_traj)
+    Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(n_traj)
     #print(f"The distance is: {Dist}")
     #print(f"The cosine distance is : {Cos_Dist}")
     #print(f"The robustness distance is : {Dist_rho}")
@@ -217,8 +228,8 @@ def Work_on_process(params, test_name):
     Elapsed_time = time.time() - start_time
     
     #return distances_result, norms_result, pinv_result, total_time, process_mem
-    return n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
-
+    return weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
+    
 
 
 
@@ -257,11 +268,13 @@ def Work_on_process_precomp(params, test_name):
     prob_unbound_time_operator = 0.1
     atom_threshold_sd = 1.0
 
-    # Parameters of the process
-    n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id = params
+    #Parameters specific for mu_0
+    totvar_mult = 1
+    sign_ch = 2
+
+    # Parameters of the process    
+    n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, weight_strategy = params
     n_psi = n_traj + n_psi_added 
-    local_n_traj = n_traj
-    global_n_traj = n_traj
 
     # Checking if the test name is in the format "global_name2local_name"
     global_name, local_name = "M", "B"
@@ -270,94 +283,73 @@ def Work_on_process_precomp(params, test_name):
         global_name = test_name[index - 1]
         local_name = test_name[index + 1]
 
-    # Initializing the global trajectory distribution and sampling global_xi
-    # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
-    match global_name:
-        case "M":
-            global_distr = BaseMeasure(device=device)
-        case "E":
-            global_distr = Easy_BaseMeasure(device=device)
-        case "B":
-            global_distr = Brownian(device=device)
-        case "G":
-            global_distr = Gaussian(device=device)
-        case "S":
-            global_distr = SemiBrownian(device=device)
-        case _:
-            raise RuntimeError("Global distribution name is not allowed")
         
-    # Loading the saved global tensors
-    global_xi = torch.load(os.path.join("Global_xi_dir", f"{test_name}.pt"))
-    base_xi_dict = torch.load(os.path.join("Base_xi_dir",f"{test_name}.pt"))
-    base_xi = base_xi_dict[base_xi_id]
-    del base_xi_dict
+    # Loading the saved tensors
+    global_xi_dict = torch.load(os.path.join("Global_xi_dir", f"{test_name}.pt"))
+    global_xi = global_xi_dict[(n_traj_points, global_std)][:n_traj, :, :] # Selecting only the first n_traj elements
+    del global_xi_dict
 
+    base_xi_dict = torch.load(os.path.join("Base_xi_dir",f"{test_name}.pt"))
+    base_xi = base_xi_dict[(n_traj_points, base_xi_id)][:n_traj, :, :] # Selecting only the first n_traj elements
+    del base_xi_dict
     
-    # Initializing the local trajectory distribution and sampling local_xi
-    match local_name:
-        case "M":
-            local_distr = BaseMeasure(base_traj=base_xi[0], sigma1=local_std, device=device)
-        case "E":
-            local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma1=local_std, device=device)
-        case "B":
-            local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
-        case "G":
-            local_distr = Gaussian(base_traj=base_xi[0], std=local_std, device=device)
-        case "S":
-            local_distr = SemiBrownian(base_traj=base_xi[0], std=local_std, device=device)
-        case _:
-            raise RuntimeError("Local distribution name is not allowed")
-    
-    # Loading the saved local tensors
     local_xi_dict = torch.load(os.path.join("Local_xi_dir",f"{test_name}.pt"))
-    local_xi = local_xi_dict[base_xi_id]
+    local_xi = local_xi_dict[(n_traj_points, local_std, base_xi_id)][:n_traj, :, :] # Selecting only the first n_traj elements
     del local_xi_dict
+
+    dweights_dict = torch.load(os.path.join("Dweights_dir", f"{test_name}.pt"))
+    dweights = dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)][:n_traj, :, :] # Selecting only the first n_traj elements
+    del dweights_dict
 
     # Loading the saved formulae
     with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'rb') as f:
         phi_bag_dict = pickle.load(f)
     phi_bag = phi_bag_dict[phi_id]
-    with open(os.path.join("psis_dir", f"{test_name}.pkl"), 'rb') as f:
-        psi_bag = pickle.load(f)
     del phi_bag_dict
+    with open(os.path.join("psis_dir", f"{test_name}.pkl"), 'rb') as f:
+        psi_bag_tot = pickle.load(f)
+        psi_bag = psi_bag_tot[:n_psi]
 
     
     ## K_loc ##
     # Computing the robustness of each psi over the local_xi
-    rhos_psi_local = torch.empty(n_psi, local_n_traj)
+    rhos_psi_local = torch.empty(n_psi, n_traj)
     for (i, formula) in enumerate(psi_bag):
         rhos_psi_local[i, :] = torch.tanh(formula.quantitative(local_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the robustness of phi over local_xi
     rhos_phi_local = torch.tanh(phi_bag[0].quantitative(local_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the local kernels
-    K_loc = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0]) ) / (local_n_traj * math.sqrt(n_psi)) 
+    K_loc = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0]) ) / (n_traj * math.sqrt(n_psi)) 
     # Deleting used tensors
     del rhos_psi_local
 
     ## K_glob ##
-    # Computing the robustness of each psi over the global_xi NOPE
-    # Loading PHI, the robustness of each psi over the global_xi
-    rhos_psi_global = torch.load(os.path.join("PHI_dir",f"{test_name}.pt"))
+    # Loading PHI, the robustness of each psi over the global_xi#NOPE
+    # Computing the robustness of each psi over the global_xi
+    rhos_psi_global = torch.empty(n_psi, n_traj)
+    for (i, formula) in enumerate(psi_bag):
+        rhos_psi_global[i, :] = torch.tanh(formula.quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the robustness of phi over the global_xi
     rhos_phi_global = torch.tanh(phi_bag[0].quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the global kernel
-    K_glob = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0]) ) / (global_n_traj * math.sqrt(n_psi)) 
+    K_glob = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0]) ) / (n_traj * math.sqrt(n_psi)) 
 
     ## K_imp ##
     # Initializing the converter class
     converter = local_matrix(n_vars = n_vars, 
                                 n_formulae = n_psi, 
-                                n_traj = global_n_traj, 
+                                n_traj = n_traj, 
                                 n_traj_points = n_traj_points, 
                                 evaluate_at_all_times = evaluate_at_all_times,
-                                target_distr = local_distr,
-                                proposal_distr = global_distr)
+                                )
     # Computing the matrix Q that converts to a local kernel around the base_xi
-    if converter.compute_Q(proposal_traj = global_xi, PHI = rhos_psi_global):
+    if converter.compute_Q(proposal_traj = global_xi, PHI = rhos_psi_global, dweights=dweights):
         # returns if there are problems with the pseudoinverse 
-        return n_psi_added, n_traj, local_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan        
+        return weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
     # Computing the importance sampling kernel starting from the global one
     K_imp = converter.convert_to_local(K_glob).type(torch.float32)
+    
+    
     # Computing the peak memory used
     Process_mem = process.memory_info().rss / 1024 / 1024
     # Saving the goodness metric of the pseudo inverse
@@ -381,7 +373,7 @@ def Work_on_process_precomp(params, test_name):
     #Computing the matrix Dist and Cos_Dist and Dist_rho
     Dist = torch.norm(K_loc - K_imp).item()
     Cos_dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
-    Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(global_n_traj)
+    Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(n_traj)
     #print(f"The distance is: {Dist}")
     #print(f"The cosine distance is : {Cos_Dist}")
     #print(f"The robustness distance is : {Dist_rho}")
@@ -394,8 +386,7 @@ def Work_on_process_precomp(params, test_name):
     Elapsed_time = time.time() - start_time
     
     #return distances_result, norms_result, pinv_result, total_time, process_mem
-    return n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
-
+    return weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem
 
 
 if __name__ == "__main__":
@@ -421,8 +412,8 @@ if __name__ == "__main__":
     inputs = [(param, test_name) for param in parameter_combinations]
 
     # Process work in parallel
-    #num_processes = mp.cpu_count() - 1 # Use all available CPUs except one
-    num_processes = 1  # Apply this for a single process at a time
+    num_processes = mp.cpu_count() - 1 # Use all available CPUs except one
+    #num_processes = 1  # Apply this for a single process at a time
 
     # working on the base algorithm or on the precomputed one:
     if save_all == "yes":
@@ -441,8 +432,7 @@ if __name__ == "__main__":
         if not os.path.exists(db_path):
             print(f"Database {db_path} not found")
             exit()
-        
-        n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem = result
+        weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem = result
         
         # Computing n_e
         try:
@@ -454,8 +444,8 @@ if __name__ == "__main__":
             c = conn.cursor()
             # Saving the values in the database
             c.execute('''INSERT OR REPLACE INTO results 
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                    (n_psi_added, n_traj, local_std, n_traj_points, phi_id, base_xi_id,
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                    (weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id,
                     Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp,
                     Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e))
             

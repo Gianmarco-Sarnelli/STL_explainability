@@ -32,11 +32,12 @@ class local_matrix:
                  target_distr = None,  # Target and proposal distributions (required)
                  proposal_distr = None, 
                  
-                 proposal_traj = None  # Can receive proposal trajectories is they're already computed
+                 proposal_traj = None,  # Can receive proposal trajectories is they're already computed
+                 weight_strategy = "self_norm" # Defines which kind of function to apply to the weights. Can be: ["self_norm", "standard"]
                  ):
         
-
-        self.normalize_weights = True # The diagonal elements of D will be normalized (divided by their sum)
+        # Parameter for the normalization of the weights
+        self.weight_strategy = weight_strategy
 
         # stl generator parameters
         self.prob_unbound_time_operator = prob_unbound_time_operator  # probability of a temporal operator to have a time bound o the type [0,infty]
@@ -152,10 +153,17 @@ class local_matrix:
 
             self.sum_weights = max(torch.sum(self.dweights).item(), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
             self.sum_squared_weights = torch.sum(torch.square(self.dweights)).item()
+            match self.weight_strategy:
+                case "self_norm":
+                    self.dweights /= self.sum_weights
+                    self.dweights *= self.n_traj
+                case "standard":
+                    pass
+                case _: # The default case will be the self normalization
+                    self.dweights /= self.sum_weights
+                    self.dweights *= self.n_traj
+            
             #n_e = self.sum_weights**2/self.sum_squared_weights
-            if self.normalize_weights:
-                self.dweights /= self.sum_weights
-                self.dweights *= self.n_traj
             #print(f"\n #Inside the local_matrix class#")
             #print(f"The sum of the weights is: {self.sum_weights}")
             #print(f"The sum of squares of the weights is: {self.sum_squared_weights}")
@@ -163,7 +171,7 @@ class local_matrix:
             #print(f"n/n_e = {self.n_traj / n_e}")
             
 
-    def compute_Q(self, proposal_traj=None, PHI=None):
+    def compute_Q(self, proposal_traj=None, PHI=None, dweights=None):
 
         # Generating the trajectories if not given
         if proposal_traj is not None:
@@ -189,8 +197,11 @@ class local_matrix:
         self.pinv_error = self.check_goodness_pinv()
         #print(f"The error of the pseudo inverse is: {self.pinv_error}")
     
-        # Computing dweights (weights on the diagonal of D)
-        self.compute_dweights()
+        # Computing dweights if not given
+        if dweights is not None:
+            self.dweights = dweights
+        if self.dweights is None:
+            self.compute_dweights()
 
         M = self.PHI.type(torch.float64) * self.dweights.type(torch.float64).unsqueeze(0)
         #M = torch.matmul(self.PHI.type(torch.float64), torch.diag(self.dweights).type(torch.float64)) # Old version

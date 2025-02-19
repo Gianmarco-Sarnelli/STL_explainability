@@ -192,7 +192,12 @@ class BaseMeasure(Measure):
 
                 # Computing the Bernoulli probabilities of the change of sign in the increments
                 change_sign = increments[:, :-1] * increments[:, 1:]
-                bernoulli_pdf = math.log(self.q) * (change_sign < 0) + math.log(1 - self.q) * (change_sign >= 0)
+                #bernoulli_pdf = math.log(self.q) * (change_sign < 0) + math.log(1 - self.q) * (change_sign >= 0)
+                # NOTE: I forgot the binomial component!!!!!
+                k = torch.sum((change_sign < 0), 1)
+                n = change_sign.shape[1]
+                binomial_pdf = torch.distributions.Binomial(n, self.q).log_prob(k)
+                
 
                 # The sign of the derivative at the first point is positive with probability: p = ( q0*(1-q) + (1-q0)*q )
                 # This is because we consider the case where the derivative is positive and stays positive plus the case where it changes
@@ -210,7 +215,7 @@ class BaseMeasure(Measure):
                 # Computing the log pdf
                 log_pdf[i] = torch.sum(initial_pdf)
                 log_pdf[i] += torch.sum(totvar_pdf) # Removing this decreases the performances a bit
-                log_pdf[i] += torch.sum(bernoulli_pdf)
+                log_pdf[i] += torch.sum(binomial_pdf)
                 log_pdf[i] += torch.sum(initial_bernoulli_pdf)
                 log_pdf[i] += torch.sum(uniform_spacing_pdf) # This element was never useful if I do the self norm sampling
                 log_pdf[i] += torch.sum(log_jacobian)

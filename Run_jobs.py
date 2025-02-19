@@ -54,7 +54,7 @@ for file in files:
                 try:# Run squeue command to count running jobs
                     start_safety_time = time.time() # A timer to avoid jobs that take more than 3 hors
                     result = subprocess.run(
-                        ['squeue', '-u', '$USER', '-h'],  # -h removes the header
+                        ['squeue', '-u', 'gsarne00', '-h'],  # -h removes the header
                         capture_output=True,
                         text=True,
                         check=True

@@ -50,8 +50,8 @@ class local_matrix:
         # Target and proposal distributions
         self.target_distr = target_distr
         self.proposal_distr = proposal_distr
-        self.target_distr_name = self.target_distr.name
-        self.proposal_distr_name = self.proposal_distr.name
+        #self.target_distr_name = self.target_distr.name
+        #self.proposal_distr_name = self.proposal_distr.name
 
         # Trajectories from proposal distribution
         self.proposal_traj = proposal_traj

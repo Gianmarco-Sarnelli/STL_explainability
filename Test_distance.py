@@ -18,8 +18,7 @@ import pickle
 
 # Removing the warnings when we use pickle
 import warnings
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 
 
 """

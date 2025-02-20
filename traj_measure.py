@@ -298,7 +298,7 @@ class Easy_BaseMeasure(Measure):
         None.
 
         """
-        self.name = "BaseMeasure"
+        self.name = "Easy_BaseMeasure"
         self.mu0 = mu0
         self.sigma0 = sigma0
         self.mu1 = mu1

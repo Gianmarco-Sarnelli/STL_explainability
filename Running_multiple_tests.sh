@@ -14,7 +14,7 @@ for test_name in "${test_names[@]}"; do
 
             source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
             #python3 Generate_jobs.py "$test_name" 20 "yes"
-            sbatch Slurm_Generate_jobs.sh "$test_name" 60 "yes"            
+            sbatch Slurm_Generate_jobs.sh "$test_name" 10 "yes"            
             # Additional wait to ensure file system sync
             sleep 30
             break
@@ -34,7 +34,7 @@ for test_name in "${test_names[@]}"; do
         
             source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
             
-            python3 Run_jobs.py --test_name "$test_name" --tests_num 60 --SLURM true
+            python3 Run_jobs.py --test_name "$test_name" --tests_num 10 --SLURM true
             sleep 30
                         
             break

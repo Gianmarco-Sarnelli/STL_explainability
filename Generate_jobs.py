@@ -269,13 +269,13 @@ except IndexError:
 initialize_database(test_name)
 
 # Parameters for the test
-list_weight_strategy = ["self_norm", "standard"] #["self_norm"]
-list_n_traj_points = [11, 99]
-list_local_std = [1.0, 0.6] #[1, 0.8, 0.6]
-list_global_std = [1,0, 2.5, 4.0]
+list_weight_strategy = ["self_norm"]#["self_norm", "standard"]
+list_n_traj_points = [11]
+list_local_std = [1.0] #[1, 0.8, 0.6]
+list_global_std = [1,0, 4.0]
 list_n_traj = [4000] #[1000, 2000, 3000, 4000]
 list_n_psi_added = [500] #[350, 600, 1000]
-list_phi_id = [x for x in range(5)]
+list_phi_id = [1]#[x for x in range(3)]
 list_base_xi_id = [x for x in range(5)]
 
 # If we want to save all variables we need to initialize them

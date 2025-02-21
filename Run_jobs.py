@@ -9,11 +9,13 @@ parser = argparse.ArgumentParser(description="Runs the tests for associated with
 parser.add_argument('--test_name', default="default", help="Name of the test")
 parser.add_argument('--tests_num', type=int, default=0, help="Number of tests to run. If 0 (default) runs all the available tests")
 parser.add_argument('--SLURM', type=bool, default=False, help="Decides if running the SLURM job or running the script directly")
+parser.add_argument('--iteration', type=int, default=0, help="Number of iteration of the Slurm_job_runner. It's needed only for the slurm execution")
 
 args = parser.parse_args()
 test_name = args.test_name
 tests_num = args.tests_num
 SLURM = args.SLURM
+iteration_number = args.iteration
 if tests_num == 0:
     stop = False
 else:
@@ -22,8 +24,15 @@ else:
 # Get all files in the job_files directory
 files = os.listdir("job_files")
 
+# Path of the Slurm_Job_runner slurm script:
+Slurm_Job_runner_path = "Slurm_Job_runner.sh"
+
+# Maximum time for slurm job:
+Time_for_SLURM = 1.5 * 60 * 60  # 1.30h
+
 # Starting the execution
 print("Starting the execution!")
+start_time = time.time()
 
 # Running the scripts/jobs
 for file in files:
@@ -87,35 +96,21 @@ for file in files:
 
             if (tests_num == 0) and stop:
                 break  # Breaks from the for loop if tests_num becomes 0
+                
+            total_time = time.time() - start_time
+            if (time.time() - start_time) > Time_for_SLURM:
+                # If it runs out of time we sbatch again the slurm job and break out of the for loop
+                try:
+                    command = ['sbatch', Slurm_Job_runner_path, f"{iteration_number}"]
+                    subprocess.run(command, check=True)
+                    print(f"Sbatching again Slurm_Job_runner, time passed: {total_time}")
+                except subprocess.CalledProcessError as e:
+                    print(f"Error while rerunnig the Slurm job: {e.stderr}")
+                    break # Break out of the for loop
 
 
 
 
-
-
-
-
-
-
-
-            job_path = os.path.join("job_files", f"slurm_{test_name}_{job_id}.sh")
-            # Submit the job
-            try:
-                command = ['sbatch', job_path]
-                # Run the command and capture output
-                subprocess.run(
-                    command,
-                    check=True           # Raises CalledProcessError if return code != 0
-                )
-                print(f"Submitted job {job_id}")
-
-                tests_num -= 1
-                if tests_num == 0:
-                    break # Breaks from the for loop if tests_num becomes 0
-                        # Note that if tests_num started at zero then here it 
-                        # would become negative and the loop never breaks
-            except subprocess.CalledProcessError as e:
-                print(f"Error submitting job {file}: {e.stderr}")
 
         else: # If not SLURM
             params_file = os.path.join("job_files", f"params_{test_name}_{job_id}.json")
@@ -134,4 +129,13 @@ for file in files:
                 if (tests_num == 0) and stop:
                     break  # Breaks from the for loop if tests_num becomes 0
             except subprocess.CalledProcessError as e:
-                print(f"Error submitting job {file}: {e.stderr}")        
+                print(f"Error submitting job {file}: {e.stderr}") 
+
+# At the end of the for loop this script sbatches again "Slurm_job_runner" if SLURM = True
+if SLURM:
+    try:
+        command = ['sbatch', Slurm_Job_runner_path, f"{iteration_number + 1}"]
+        subprocess.run(command, check=True)
+        print(f"Sbatching Slurm_Job_runner for the next iteration, time passed: {total_time}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error while rerunnig the Slurm job: {e.stderr}")

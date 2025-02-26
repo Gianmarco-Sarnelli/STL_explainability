@@ -1,0 +1,82 @@
+parameter combinations: [[500, 4000, 1.0, 1.0, 11, 1, 0, 'self_norm']]
+test name: focusMU0_E2B
+Begin work on process
+[('self_norm', 500, 4000, 1.0, 1.0, 11, 1, 0, 0.2981272339820862, nan, 0.8181701021912131, 0.2028578817844391, 0.2981272339820862, 0.0, 49.20695114135742, None, None, 56.00467324256897, 693.0625)]
+Completed job 0
+parameter combinations: [[500, 4000, 1.0, 1.0, 11, 1, 1, 'self_norm']]
+test name: focusMU0_E2B
+[('self_norm', 500, 4000, 1.0, 1.0, 11, 1, 1, 0.4565051794052124, 0.9459436014294624, 0.8471365168233024, 0.2028578817844391, 0.21321839094161987, 0.4153423011302948, 49.20695114135742, None, None, 52.50464129447937, 692.18359375)]
+Completed job 1
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 10
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 11
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 12
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 13
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 14
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 15
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 16
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 17
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 18
+parameter combinations: []
+test name: focusMU0_E2B
+[]
+Completed job 19
+parameter combinations: [[500, 4000, 1.0, 1.0, 11, 1, 2, 'self_norm']]
+test name: focusMU0_E2B
+[('self_norm', 500, 4000, 1.0, 1.0, 11, 1, 2, 0.7351822853088379, 1.6188141107559204, 1.2092281295419351, 0.2028578817844391, 0.4682488739490509, 0.3467913269996643, 49.20695114135742, None, None, 79.43106174468994, 694.015625)]
+Completed job 2
+parameter combinations: [[500, 4000, 1.0, 1.0, 11, 1, 3, 'self_norm']]
+test name: focusMU0_E2B
+[('self_norm', 500, 4000, 1.0, 1.0, 11, 1, 3, 0.38459616899490356, 0.8421461582183838, 1.1457419168562968, 0.2028578817844391, 0.3471764326095581, 0.2291194349527359, 49.20695114135742, None, None, 115.31201601028442, 699.52734375)]
+Completed job 3
+parameter combinations: [[500, 4000, 1.0, 1.0, 11, 1, 4, 'self_norm']]
+test name: focusMU0_E2B
+[('self_norm', 500, 4000, 1.0, 1.0, 11, 1, 4, 0.4685087203979492, nan, 1.1556865215677898, 0.2028578817844391, 0.4685087203979492, 0.0, 49.20695114135742, None, None, 70.88656949996948, 697.4453125)]
+Completed job 4
+parameter combinations: [[500, 4000, 1.0, 4.0, 11, 1, 0, 'self_norm']]
+test name: focusMU0_E2B
+[('self_norm', 500, 4000, 1.0, 4.0, 11, 1, 0, 0.2981272339820862, nan, 1.099181484600431, 0.28859150409698486, 0.2981272339820862, 0.0, 50.105159759521484, None, None, 13.073210954666138, 698.83984375)]
+Completed job 5
+parameter combinations: [[500, 4000, 1.0, 4.0, 11, 1, 1, 'self_norm']]
+test name: focusMU0_E2B
+[('self_norm', 500, 4000, 1.0, 4.0, 11, 1, 1, 0.2806294560432434, 1.3050625920295715, 1.08401342312613, 0.28859150409698486, 0.21321839094161987, 0.12866026163101196, 50.105159759521484, None, None, 46.86253809928894, 692.21875)]
+Completed job 6
+parameter combinations: [[500, 4000, 1.0, 4.0, 11, 1, 2, 'self_norm']]
+test name: focusMU0_E2B
+[('self_norm', 500, 4000, 1.0, 4.0, 11, 1, 2, 0.7323659062385559, 0.7546508610248566, 1.2525105263235037, 0.28859150409698486, 0.4682488739490509, 0.6896013617515564, 50.105159759521484, None, None, 29.337723970413208, 694.82421875)]
+Completed job 7
+parameter combinations: [[500, 4000, 1.0, 4.0, 11, 1, 3, 'self_norm']]
+test name: focusMU0_E2B
+[('self_norm', 500, 4000, 1.0, 4.0, 11, 1, 3, 1.048639178276062, 1.0352178700268269, 1.2075758423596488, 0.28859150409698486, 0.3471764326095581, 0.977350115776062, 50.105159759521484, None, None, 74.60945749282837, 696.2890625)]
+Completed job 8
+parameter combinations: [[500, 4000, 1.0, 4.0, 11, 1, 4, 'self_norm']]
+test name: focusMU0_E2B
+Begin work on process
+[('self_norm', 500, 4000, 1.0, 4.0, 11, 1, 4, 0.4685087203979492, nan, 1.2124852957979702, 0.28859150409698486, 0.4685087203979492, 0.0, 50.105159759521484, None, None, 30.4859938621521, 696.609375)]
+Completed job 9

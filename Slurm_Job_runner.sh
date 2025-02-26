@@ -30,6 +30,21 @@ fi
 test_name=${test_names[${iteration_number}]}
 
 echo "Starting job for test: $test_name"
-        
+
+# Wait until no jobs are running
+while true; do
+    # Run squeue command to check running jobs (for current user)
+    running_jobs=$(squeue -u $USER -h | wc -l)
+    
+    # If this is the only job running (count = 1 for this job itself), proceed
+    if [ "$running_jobs" -le "1" ]; then
+        echo "No other jobs running. Starting Run_jobs.py..."
+        break
+    else
+        echo "$(date): $((running_jobs - 1)) other jobs still running. Waiting 30 seconds..."
+        sleep 30
+    fi
+done
+
 # Run the Python script
 python3 Run_jobs.py --test_name "$test_name" --tests_num 10 --SLURM true --iteration $iteration_number

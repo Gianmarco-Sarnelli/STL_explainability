@@ -21,7 +21,7 @@ for test_name in "${test_names[@]}"; do
 
     echo "Generating jobs for test: $test_name"
 
-    python3 Generate_jobs.py "$test_name" 20 "yes"
+    python3 Generate_jobs.py "$test_name" 10 "yes"
 
     echo "$test_name jobs are generated"
 

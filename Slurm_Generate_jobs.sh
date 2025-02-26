@@ -15,13 +15,13 @@
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # List of test names
-test_names=("focusMU0_M2B" "focusMU0_E2B")
+test_names=("moreMU0_M2B" "moreMU0_E2B")
 
 for test_name in "${test_names[@]}"; do
 
     echo "Generating jobs for test: $test_name"
 
-    python3 Generate_jobs.py "$test_name" 10 "yes"
+    python3 Generate_jobs.py "$test_name" 40 "yes"
 
     echo "$test_name jobs are generated"
 

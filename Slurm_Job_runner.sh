@@ -11,7 +11,7 @@
 
 # This slurm job is supposed to rerun itself starting from a certain point in the list of tests name
 iteration_number="$1" # The element of the test_name to start
-test_names=("focusMU0_M2B" "focusMU0_E2B")
+test_names=("moreMU0_M2B" "moreMU0_E2B")
 
 # Activate the virtual environment
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
@@ -47,4 +47,4 @@ while true; do
 done
 
 # Run the Python script
-python3 Run_jobs.py --test_name "$test_name" --tests_num 10 --SLURM true --iteration $iteration_number
+python3 Run_jobs.py --test_name "$test_name" --tests_num 0 --SLURM true --iteration $iteration_number

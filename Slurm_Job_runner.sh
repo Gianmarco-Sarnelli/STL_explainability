@@ -47,4 +47,4 @@ while true; do
 done
 
 # Run the Python script
-python3 Run_jobs.py --test_name "$test_name" --tests_num 0 --SLURM true --iteration $iteration_number
+python3 Run_jobs.py --test_name "$test_name" --tests_num 40 --SLURM true --iteration $iteration_number

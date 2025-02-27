@@ -338,7 +338,7 @@ for job_id in range(n_jobs):
 #SBATCH --partition=EPYC                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (since we're using multiprocessing)
-#SBATCH --cpus-per-task=64                   # CPUs per task (for multiprocessing)
+#SBATCH --cpus-per-task=32                   # CPUs per task (for multiprocessing)
 #SBATCH --mem-per-cpu=2G                     # Memory per CPU
 #SBATCH --time=2:00:00                       # Time limit (2 hours)
 #SBATCH --output=output_{test_name}_{job_id}.log         # Standard output log

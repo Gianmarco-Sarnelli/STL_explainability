@@ -26,3 +26,12 @@ for test_name in "${test_names[@]}"; do
     echo "$test_name jobs are generated"
 
 done
+
+# Clear RUNTHIS.txt first
+> RUNTHIS.txt
+
+# Append each generated file to RUNTHIS.txt and then delete it
+for test_name in "${test_names[@]}"; do
+  cat "generated_${test_name}.txt" >> RUNTHIS.txt
+  rm "generated_${test_name}.txt"
+done

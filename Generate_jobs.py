@@ -355,3 +355,10 @@ python3 Test_distance.py {params_file} {test_name} {save_all}
     slurm_file = f"job_files/slurm_{test_name}_{job_id}.sh"
     with open(slurm_file, 'w') as f:
         f.write(slurm_script)
+
+# Create a file to store all slurm script paths for this test
+job_list_file = f"generated_{test_name}.txt"
+with open(job_list_file, 'w') as f:
+    for job_id in range(n_jobs):
+        slurm_file = f"job_files/slurm_{test_name}_{job_id}.sh"
+        f.write(f"{slurm_file}\n")

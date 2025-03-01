@@ -274,7 +274,7 @@ if (partition != "THIN") or (partition != "EPYC"):
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
-list_weight_strategy = ["self_norm", "standard"]
+list_weight_strategy = ["self_norm"]#, "standard"]
 list_n_traj_points = [11, 99]
 list_local_std = [1, 0.6]
 list_global_std = [1.0, 4.0]

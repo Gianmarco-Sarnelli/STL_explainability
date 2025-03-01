@@ -15,7 +15,7 @@
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # List of test names
-test_names=("moreMU0_M2B" "moreMU0_E2B")
+test_names=("someMU0_M2B" "someMU0_E2B")
 
 for test_name in "${test_names[@]}"; do
 

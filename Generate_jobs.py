@@ -270,7 +270,7 @@ except IndexError:
 initialize_database(test_name)
 
 # check for the right partition:
-if (partition != "THIN") or (partition != "EPYC"):
+if (partition != "THIN") and (partition != "EPYC"):
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test

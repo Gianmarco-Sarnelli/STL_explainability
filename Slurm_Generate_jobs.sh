@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=EPYC                     # Partition name
+#SBATCH --partition=THIN                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (for mpi, not needed now)
 #SBATCH --nodes=1                            # Use exactly one node
@@ -21,7 +21,7 @@ for test_name in "${test_names[@]}"; do
 
     echo "Generating jobs for test: $test_name"
 
-    python3 Generate_jobs.py "$test_name" 40 "yes"
+    python3 Generate_jobs.py "$test_name" 40 "yes" "THIN"
 
     echo "$test_name jobs are generated"
 

@@ -262,11 +262,16 @@ try:
     test_name = sys.argv[1]
     n_jobs = int(sys.argv[2])
     save_all = sys.argv[3]
+    partition = sys.argv[4]
 except IndexError:
-    raise ValueError("Wrong number of agrs provided. Usage: python3 Generate_jobs.py <test_name> <n_jobs> <save_all>")
+    raise ValueError("Wrong number of agrs provided. Usage: python3 Generate_jobs.py <test_name> <n_jobs> <save_all> <partition>")
 
 # Initialize database
 initialize_database(test_name)
+
+# check for the right partition:
+if (partition != "THIN") or (partition != "EPYC"):
+    raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
 list_weight_strategy = ["self_norm", "standard"]
@@ -335,10 +340,10 @@ for job_id in range(n_jobs):
     
     # Create SLURM script
     slurm_script = f"""#!/bin/bash
-#SBATCH --partition=EPYC                     # Partition name
+#SBATCH --partition={partition}                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (since we're using multiprocessing)
-#SBATCH --cpus-per-task=32                   # CPUs per task (for multiprocessing)
+#SBATCH --cpus-per-task=8                    # CPUs per task (for multiprocessing)
 #SBATCH --mem-per-cpu=2G                     # Memory per CPU
 #SBATCH --time=2:00:00                       # Time limit (2 hours)
 #SBATCH --output=output_{test_name}_{job_id}.log         # Standard output log

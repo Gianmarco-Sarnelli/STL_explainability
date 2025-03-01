@@ -5,6 +5,8 @@ import argparse
 import re
 import time
 
+# NOTE: We don't use this anymore for testing on slurm!! check Simple_Job_Runner.sh
+
 parser = argparse.ArgumentParser(description="Runs the tests for associated with each parameter file in 'job_files/params_..'\n Aguments: --test_name, --tests_num, --SLURM")
 parser.add_argument('--test_name', default="default", help="Name of the test")
 parser.add_argument('--tests_num', type=int, default=0, help="Number of tests to run. If 0 (default) runs all the available tests")

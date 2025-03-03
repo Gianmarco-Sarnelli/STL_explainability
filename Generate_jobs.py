@@ -59,7 +59,7 @@ PRIMARY KEY (weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj
 
 
 
-def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global_std, list_local_std, list_n_traj, list_n_psi_added, list_phi_id, list_base_xi_id):
+def save_params(test_name, list_weight_strategy, list_n_traj_points, list_local_std, list_global_std, list_n_traj, list_n_psi_added, list_phi_id, list_base_xi_id):
 
     # Device used
     device: torch.device = torch.device("cpu")  # Force CPU usage

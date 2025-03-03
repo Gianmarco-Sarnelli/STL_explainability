@@ -300,6 +300,7 @@ def Work_on_process_precomp(params, test_name):
     true_dweights = true_dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)][:n_traj] # Selecting only the first n_traj elements
     del true_dweights_dict
 
+
     # Loading the saved formulae
     with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'rb') as f:
         phi_bag_dict = pickle.load(f)
@@ -394,10 +395,6 @@ if __name__ == "__main__":
     with open(params_file, 'r') as f:
         parameter_combinations = json.load(f)
 
-    # Some prints
-    print(f"parameter combinations: {parameter_combinations}")
-    print(f"test name: {test_name}")
-        
     # Creating the inputs to be passed to the process
     inputs = [(param, test_name) for param in parameter_combinations]
 
@@ -409,11 +406,9 @@ if __name__ == "__main__":
     if save_all == "yes":
         with mp.Pool(processes=num_processes) as pool:
             results = pool.starmap(Work_on_process_precomp, inputs)
-            print(results)
     else:
         with mp.Pool(processes=num_processes) as pool:
             results = pool.starmap(Work_on_process, inputs)
-            print(results)
 
     # Store results in database
     for result in results:
@@ -424,9 +419,7 @@ if __name__ == "__main__":
             exit()
         weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem = result
         
-        #print(f"Sum_weights: {Sum_weights}")
-        #print(f"Sum_squared_weights: {Sum_squared_weights}")
-
+        print(f"weight_strategy = {weight_strategy}, n_psi_added = {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}, global_std = {global_std}, n_traj_points = {n_traj_points}, phi_id = {phi_id}, base_xi_id = {base_xi_id}, Dist = {Dist}, Cos_dist = {Cos_dist}, Dist_rho = {Dist_rho}, Norm_glob = {Norm_glob}, Norm_loc = {Norm_loc}, Norm_imp = {Norm_imp}, Pinv_error = {Pinv_error}, Sum_weights = {Sum_weights}, Sum_squared_weights = {Sum_squared_weights}, Elapsed_time = {Elapsed_time}, Process_mem = {Process_mem}")
 
         # Computing n_e
         try:

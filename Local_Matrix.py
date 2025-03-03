@@ -115,13 +115,6 @@ class local_matrix:
         # Computing dweights (weights on the diagonal of D)
         self.dweights = torch.empty(self.n_traj, device=self.device, dtype=torch.float64)
 
-
-        # Some prints:
-        print(f"self.proposal_distr.name = {self.proposal_distr.name}")
-        print(f"self.target_distr.name = {self.target_distr.name}")
-
-
-
         # Sample the proposal trajectories if they're not given (NO! we want to specify the correct proposal_traj)
         if self.proposal_traj is None:
             raise RuntimeError("No proposal_traj found!!")
@@ -137,18 +130,10 @@ class local_matrix:
 
                 # Computing the log probability of the target distribution
                 target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                
-                
-                #print(f"The target log prob is: {target_log_prob.item()}")
-
                 log_prob += target_log_prob.item()
             
                 # Computing the log probability of the proposal distribution
                 proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                
-
-                #print(f"The proposal log prob is: {proposal_log_prob.item()}")
-                
                 log_prob -= proposal_log_prob.item()
                 
                 # Handling the possible errors
@@ -169,9 +154,7 @@ class local_matrix:
 
             self.true_dweights = self.dweights.clone() # Saving a copy of the unnormalized weights for later
             self.sum_weights = max(torch.sum(self.dweights).item(), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
-            print(f"self.sum_weights = {self.sum_weights}")
             self.sum_squared_weights = torch.sum(torch.square(self.dweights)).item()
-            print(f"self.sum_squared_weights = {self.sum_squared_weights}")
             match self.weight_strategy:
                 case "self_norm":
                     self.dweights /= self.sum_weights
@@ -214,7 +197,6 @@ class local_matrix:
 
         # Computing the error of the pseudo inverse
         self.pinv_error = self.check_goodness_pinv()
-        #print(f"The error of the pseudo inverse is: {self.pinv_error}")
     
         # Computing dweights if not given
         if dweights is not None:

@@ -300,10 +300,6 @@ def Work_on_process_precomp(params, test_name):
     true_dweights = true_dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)][:n_traj] # Selecting only the first n_traj elements
     del true_dweights_dict
 
-    print(f"true_dweights: {true_dweights}")
-    print(f"dweights: {dweights}")
-
-
     # Loading the saved formulae
     with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'rb') as f:
         phi_bag_dict = pickle.load(f)

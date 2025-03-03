@@ -122,6 +122,9 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
                                             points=n_traj_points)
             global_xi_dict[(n_traj_points, global_std)] = global_xi
 
+            #some print:
+            print(f"Keys in global_xi_dict: {global_xi_dict.keys()}")
+
         ## Iteration on base_xi_id
         for base_xi_id in list_base_xi_id:
             # Initializing the base_distr
@@ -146,6 +149,9 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
                                         points=n_traj_points)
             base_xi_dict[(n_traj_points, base_xi_id)] = base_xi
 
+            #some print
+            print(f"Keys in base_xi_dict: {base_xi_dict.keys()}")
+
             ## Iteration on local_std ##
             for local_std in list_local_std:
                 # Inizializing the local_distr
@@ -169,6 +175,9 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
                                                 varn=n_vars, 
                                                 points=n_traj_points)
                 local_xi_dict[(n_traj_points, local_std, base_xi_id)] = local_xi
+
+                #some print:
+                print(f"Keys in local_xi_dict: {local_xi_dict.keys()}")
 
                 ## Iteration on weight_strategy ##
                 for weight_strategy in list_weight_strategy:
@@ -197,7 +206,7 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
                         converter = local_matrix(n_vars = n_vars, 
                                                 n_formulae = n_psi, 
                                                 n_traj = n_traj, 
-                                                n_traj_points = n_traj_points, 
+                                                n_traj_points = n_traj_points,
                                                 evaluate_at_all_times = evaluate_at_all_times,
                                                 target_distr = local_distr,
                                                 proposal_distr = global_distr,
@@ -207,14 +216,9 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
                         dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)] = converter.dweights
                         true_dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)] = converter.true_dweights
 
-                        # Some prints:
-                        print(f"true_dweights: {converter.true_dweights}")
-                        print(f"global_xi = {global_xi}")
-                        print(f"base_xi = {base_xi}")
-
-
-
-
+                        #some prints:
+                        print(f"Keys in dweights_dict: {dweights_dict.keys()}")
+                        print(f"Keys in true_dweights_dict: {true_dweights_dict.keys()}")
 
 
     # Saving Global_xi_dict
@@ -260,13 +264,6 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
 
     print("params are saved!")
 
-    # Computing the robustness of each psi over the global_xi #NOTE: we don't precompute PHI anymore
-    #PHI = torch.empty(n_psi, global_n_traj)
-    #for (i, formula) in enumerate(psi_bag):
-    #    PHI[i, :] = torch.tanh(formula.quantitative(global_xi, evaluate_at_all_times=evaluate_at_all_times))
-    #if not os.path.exists("PHI_dir"):
-    #    os.makedirs("PHI_dir")
-    #torch.save(PHI, os.path.join("PHI_dir",f"{test_name}.pt"))
 
 
 

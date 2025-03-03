@@ -96,6 +96,7 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
     base_xi_dict = {}
     local_xi_dict = {}
     dweights_dict = {}
+    true_dweights_dict = {}
     base_std = 1  # We fix this parameter to make the sampling of the base_xi independent of the global_std
     ## Iteration on n_traj_points ##
     for n_traj_points in list_n_traj_points:
@@ -103,15 +104,11 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
         for global_std in list_global_std:
             match global_name:
                 case "M":
-                    global_distr = BaseMeasure(sigma0=global_std,
-                                               sigma1=global_std*totvar_mult*n_traj_points, 
-                                               q=sign_ch/n_traj_points, 
-                                               device=device)
+                    #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                    global_distr = BaseMeasure(sigma0=global_std, device=device)
                 case "E":
-                    global_distr = Easy_BaseMeasure(sigma0=global_std, 
-                                                    sigma1=global_std*totvar_mult*n_traj_points, 
-                                                    q=sign_ch/n_traj_points, 
-                                                    device=device)
+                    #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                    global_distr = Easy_BaseMeasure(sigma0=global_std, device=device)
                 case "B":
                     global_distr = Brownian(device=device)
                 case "G":
@@ -130,15 +127,11 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
             # Initializing the base_distr
             match global_name:
                 case "M":
-                    base_distr = BaseMeasure(sigma0=base_std,
-                                            sigma1=base_std*totvar_mult*n_traj_points, 
-                                            q=sign_ch/n_traj_points, 
-                                            device=device)
+                    base_distr = BaseMeasure(sigma0=base_std, device=device)
+                    #base_distr = BaseMeasure(sigma0=base_std, sigma1=base_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
                 case "E":
-                    base_distr = Easy_BaseMeasure(sigma0=base_std, 
-                                                    sigma1=base_std*totvar_mult*n_traj_points, 
-                                                    q=sign_ch/n_traj_points, 
-                                                    device=device)
+                    base_distr = Easy_BaseMeasure(sigma0=base_std, device=device)
+                    #base_distr = Easy_BaseMeasure(sigma0=base_std, sigma1=base_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
                 case "B":
                     base_distr = Brownian(device=device)
                 case "G":
@@ -148,7 +141,7 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
                 case _:
                     raise RuntimeError("Global distribution name is not allowed")
             
-            base_xi = base_distr.sample(samples=n_traj, 
+            base_xi = base_distr.sample(samples=1, 
                                         varn=n_vars, 
                                         points=n_traj_points)
             base_xi_dict[(n_traj_points, base_xi_id)] = base_xi
@@ -158,9 +151,11 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
                 # Inizializing the local_distr
                 match local_name:
                     case "M":
-                        local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                        local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
+                        #local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
                     case "E":
-                        local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                        local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
+                        #local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
                     case "B":
                         local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
                     case "G":
@@ -178,18 +173,17 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
                 ## Iteration on weight_strategy ##
                 for weight_strategy in list_weight_strategy:
                     ## Iteration again on global_std ##
-                    for global_std in list_global_std: # We need to reiterate on the global_std to obtain the correct global_distr
+                    for global_std in list_global_std: # We need to reiterate on the global_std to obtain the correct global_distr and global_xi
+
+                        global_xi = global_xi_dict[(n_traj_points, global_std)] # Reloading the currect global_xi
+
                         match global_name:
                             case "M":
-                                global_distr = BaseMeasure(sigma0=global_std,
-                                                        sigma1=global_std*totvar_mult*n_traj_points, 
-                                                        q=sign_ch/n_traj_points, 
-                                                        device=device)
+                                global_distr = BaseMeasure(sigma0=global_std, device=device)
+                                #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
                             case "E":
-                                global_distr = Easy_BaseMeasure(sigma0=global_std, 
-                                                                sigma1=global_std*totvar_mult*n_traj_points, 
-                                                                q=sign_ch/n_traj_points, 
-                                                                device=device)
+                                global_distr = Easy_BaseMeasure(sigma0=global_std, device=device)
+                                #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
                             case "B":
                                 global_distr = Brownian(device=device)
                             case "G":
@@ -207,9 +201,22 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
                                                 evaluate_at_all_times = evaluate_at_all_times,
                                                 target_distr = local_distr,
                                                 proposal_distr = global_distr,
-                                                weight_strategy = weight_strategy)
+                                                weight_strategy = weight_strategy,
+                                                proposal_traj = global_xi)
                         converter.compute_dweights()
                         dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)] = converter.dweights
+                        true_dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)] = converter.true_dweights
+
+                        # Some prints:
+                        print(f"true_dweights: {converter.true_dweights}")
+                        print(f"global_xi = {global_xi}")
+                        print(f"base_xi = {base_xi}")
+
+
+
+
+
+
     # Saving Global_xi_dict
     os.makedirs("Global_xi_dir", exist_ok=True)
     torch.save(global_xi_dict, os.path.join("Global_xi_dir",f"{test_name}.pt"))
@@ -222,6 +229,10 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
     # Saving Dweights
     os.makedirs("Dweights_dir", exist_ok=True)
     torch.save(dweights_dict, os.path.join("Dweights_dir",f"{test_name}.pt"))
+    # Saving True_Dweights
+    os.makedirs("True_Dweights_dir", exist_ok=True)
+    torch.save(true_dweights_dict, os.path.join("True_Dweights_dir",f"{test_name}.pt"))
+
 
 
     ## psi and phi ##
@@ -245,6 +256,9 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_global
     os.makedirs("psis_dir", exist_ok=True)
     with open(os.path.join("psis_dir", f"{test_name}.pkl"), 'wb') as f:
         pickle.dump(psi_bag, f)
+    
+
+    print("params are saved!")
 
     # Computing the robustness of each psi over the global_xi #NOTE: we don't precompute PHI anymore
     #PHI = torch.empty(n_psi, global_n_traj)
@@ -275,13 +289,13 @@ if (partition != "THIN") and (partition != "EPYC"):
 
 # Parameters for the test
 list_weight_strategy = ["self_norm"]#, "standard"]
-list_n_traj_points = [11, 99]
-list_local_std = [1, 0.6]
-list_global_std = [1.0, 4.0]
-list_n_traj = [2000, 4000]
+list_n_traj_points = [11]
+list_local_std = [1]
+list_global_std = [1]
+list_n_traj = [2000]
 list_n_psi_added = [500] #[300, 600]
-list_phi_id = [1] #[x for x in range(3)]
-list_base_xi_id = [x for x in range(5)]
+list_phi_id = [0] #[x for x in range(3)]
+list_base_xi_id = [0] #[x for x in range(5)]
 
 # If we want to save all variables we need to initialize them
 if save_all=="yes":
@@ -289,8 +303,8 @@ if save_all=="yes":
     save_params(test_name, 
                 list_weight_strategy, 
                 list_n_traj_points, 
-                list_global_std, 
                 list_local_std, 
+                list_global_std, 
                 list_n_traj, 
                 list_n_psi_added, 
                 list_phi_id, 

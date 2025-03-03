@@ -100,9 +100,11 @@ def Work_on_process(params, test_name):
     # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
     match global_name:
         case "M":
-            global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            global_distr = BaseMeasure(sigma0=global_std, device=device)
         case "E":
-            global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            global_distr = Easy_BaseMeasure(sigma0=global_std, device=device)
         case "B":
             global_distr = Brownian(device=device)
         case "G":
@@ -126,9 +128,11 @@ def Work_on_process(params, test_name):
     # Initializing the local trajectory distribution and sampling local_xi
     match local_name:
         case "M":
-            local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            #local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
         case "E":
-            local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            #local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
         case "B":
             local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
         case "G":
@@ -203,22 +207,14 @@ def Work_on_process(params, test_name):
     del rhos_psi_global, converter
 
     #Testing the norms of the kernels
-    #print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
     Norm_glob = torch.norm(K_glob).item()
-    #print(f"Testing the norm of K_glob: {Norm_glob}")
     Norm_loc = torch.norm(K_loc).item()
-    #print(f"Testing the norm of K_loc: {Norm_loc}")
     Norm_imp = torch.norm(K_imp).item()
-    #print(f"Testing the norm of K_imp: {Norm_imp}")
 
     #Computing the matrix Dist and Cos_Dist and Dist_rho
     Dist = torch.norm(K_loc - K_imp).item()
     Cos_dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
     Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(n_traj)
-    #print(f"The distance is: {Dist}")
-    #print(f"The cosine distance is : {Cos_Dist}")
-    #print(f"The robustness distance is : {Dist_rho}")
-    #print(f"The pseudoinverse error is : {pinv_error}")
 
     # Deleting used tensors
     del K_glob, K_loc, K_imp, rhos_phi_global, rhos_phi_local
@@ -300,6 +296,14 @@ def Work_on_process_precomp(params, test_name):
     dweights = dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)][:n_traj] # Selecting only the first n_traj elements
     del dweights_dict
 
+    true_dweights_dict = torch.load(os.path.join("True_Dweights_dir", f"{test_name}.pt"))
+    true_dweights = true_dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)][:n_traj] # Selecting only the first n_traj elements
+    del true_dweights_dict
+
+    print(f"true_dweights: {true_dweights}")
+    print(f"dweights: {dweights}")
+
+
     # Loading the saved formulae
     with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'rb') as f:
         phi_bag_dict = pickle.load(f)
@@ -353,30 +357,22 @@ def Work_on_process_precomp(params, test_name):
     Process_mem = process.memory_info().rss / 1024 / 1024
     # Saving the goodness metric of the pseudo inverse
     Pinv_error = converter.pinv_error
-    # Saving other metrics of the local matrix transformation
-    Sum_weights = converter.sum_weights
-    Sum_squared_weights = converter.sum_squared_weights
+    # Saving other metrics that are precomputed (NOTE: this step is different here from the non precomputed part)
+    Sum_weights = max(torch.sum(true_dweights).item(), torch.finfo(true_dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
+    Sum_squared_weights = torch.sum(torch.square(true_dweights)).item()
     # Deleting used tensors
     converter.__dict__.clear()  # Removes all instance attributes
     del rhos_psi_global, converter
 
     #Testing the norms of the kernels
-    #print(f"n_psi_added: {n_psi_added}, n_traj = {n_traj}, local_std = {local_std}")
     Norm_glob = torch.norm(K_glob).item()
-    #print(f"Testing the norm of K_glob: {Norm_glob}")
     Norm_loc = torch.norm(K_loc).item()
-    #print(f"Testing the norm of K_loc: {Norm_loc}")
     Norm_imp = torch.norm(K_imp).item()
-    #print(f"Testing the norm of K_imp: {Norm_imp}")
 
     #Computing the matrix Dist and Cos_Dist and Dist_rho
     Dist = torch.norm(K_loc - K_imp).item()
     Cos_dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
     Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(n_traj)
-    #print(f"The distance is: {Dist}")
-    #print(f"The cosine distance is : {Cos_Dist}")
-    #print(f"The robustness distance is : {Dist_rho}")
-    #print(f"The pseudoinverse error is : {pinv_error}")
 
     # Deleting used tensors
     del K_glob, K_loc, K_imp, rhos_phi_global, rhos_phi_local
@@ -397,7 +393,6 @@ if __name__ == "__main__":
         # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
     except IndexError:
         raise ValueError("No test name or params file provided. Usage: python3 Test_distance_slurm.py <params_file> <test_name> <save_all>")
-        # Exemple: python3 Test_distance_slurm.py params_basic.json TESTtestTEST
 
     # Load the parameters for this job
     with open(params_file, 'r') as f:
@@ -433,6 +428,10 @@ if __name__ == "__main__":
             exit()
         weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem = result
         
+        #print(f"Sum_weights: {Sum_weights}")
+        #print(f"Sum_squared_weights: {Sum_squared_weights}")
+
+
         # Computing n_e
         try:
             n_e = (Sum_weights**2)/Sum_squared_weights

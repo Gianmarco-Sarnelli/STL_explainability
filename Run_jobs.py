@@ -118,7 +118,7 @@ for file in files:
             params_file = os.path.join("job_files", f"params_{test_name}_{job_id}.json")
             try:
                 save_all = "yes"
-                command = ['python3', 'Test_distance_slurm.py', params_file, test_name, save_all]
+                command = ['python3', 'Test_distance.py', params_file, test_name, save_all]
                 # Run the command 
                 print(f"Submitted job {job_id} without SLURM")
                 subprocess.run(

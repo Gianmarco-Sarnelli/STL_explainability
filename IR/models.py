@@ -49,11 +49,12 @@ class TimeSeriesDataset(Dataset):
                 self.data = reshaped.transpose(1,2)
             case "train":
                 self.data = self.data.unsqueeze(1)
+                # NOTE: all data must be in the format [samples, n_vars, n_traj_points]
         
         # Normalize the data if needed:
         if normalize:
-            mean = self.data.mean(dim=(0, 1), keepdim=True)
-            std = self.data.std(dim=(0, 1), keepdim=True)
+            mean = self.data.mean(dim=(0, 2), keepdim=True) # computes the standard deviation across both dimension 0 (trajectories/samples) and dimension 2 (time points)
+            std = self.data.std(dim=(0, 2), keepdim=True)
             # Avoid division by zero
             std = torch.clamp(std, min=1e-8)
             # Normalize
@@ -91,28 +92,34 @@ class SimpleRNN(nn.Module):
         self.fc = nn.Linear(hidden_dim * self.directions, 2)  # Binary classification
         
     def forward(self, x):
-            
-        # GRU returns output, hidden
-        _, hidden = self.gru(x)
-        
-        # Use the last hidden state from the last layer
-        #if self.bidirectional:
-        #    # Concatenate both directions
-        #    hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1)
-        #else:
-        #    hidden = hidden[-1]
 
-        # Get the final forward and backward hidden states
-        forward = hidden[2*self.num_layers-2]  # Last forward direction
-        backward = hidden[2*self.num_layers-1]  # Last backward direction
-        hidden = torch.cat((forward, backward), dim=1)
-            
-        # Pass through the fully connected layer
+        # Reordering the input to feed into the gru
+        x_reor = x.permute(0, 2, 1) # Now the shape is [samples, n_traj_points, n_vars]
+
+        # GRU returns output, hidden
+        _, hidden = self.gru(x_reor)
+        
+        # hidden shape: (num_layers * num_directions, batch_size, hidden_size)
+        # Need to reshape to separate layers and directions
+        hidden = hidden.view(self.num_layers, self.directions, hidden.size(1), self.hidden_dim)
+
+        # Get only the last layer's hidden states
+        hidden = hidden[-1]  # shape: (num_directions, batch_size, hidden_dim)
+        
+        # Concatenate the forward and backward directions if bidirectional
+        if self.bidirectional:
+            forward, backward = hidden[0], hidden[1]  # Each shape: (batch_size, hidden_dim)
+            hidden = torch.cat((forward, backward), dim=1)  # shape: (batch_size, 2*hidden_dim)
+        else:
+            hidden = hidden.squeeze(0)  # shape: (batch_size, hidden_dim)
+        
+        # Pass through fully connected layer
         out = self.fc(hidden)
+
         return out
 
 
-def train_model(model, train_loader, val_loader=None, epochs=50, learning_rate=0.001, weight_decay=1e-5, device='cpu'):
+def train_model(model, train_loader, val_loader=None, epochs=30, learning_rate=0.001, weight_decay=1e-5, device='cpu'):
     """
     Train the model
     
@@ -240,7 +247,7 @@ def load_and_prepare_data(dataset_name, batch_size=32, test_size=0.2):
     dataset = TimeSeriesDataset(dataset_name)
     
     # Get input dimension
-    input_dim = dataset.data.shape[2]
+    input_dim = dataset.data.shape[1] # Based on the shape: [samples, nvars, n_traj_points]
     
     # Handle special test_size cases
     if test_size == 0:
@@ -297,7 +304,7 @@ if __name__ == "__main__":
     try:
         # Getting the name of the dataset to use
         #test_name = sys.argv[1]
-        test_name = "robot5"
+        test_name = "train"
         # Training/testing phase
         phase = "full_train"
         #phase = sys.argv[2]
@@ -340,7 +347,7 @@ if __name__ == "__main__":
 
         # Create and train model
         model = SimpleRNN(input_dim=input_dim)
-        trained_model, history = train_model(model, train_loader, test_loader, epochs=50)
+        trained_model, history = train_model(model, train_loader, test_loader, epochs=30)
 
         # Saving the model
         torch.save(model.state_dict(), f'IR/data/data/{test_name}/model_state_dict.pth')

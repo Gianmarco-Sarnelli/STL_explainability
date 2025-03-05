@@ -26,7 +26,7 @@ def recover_indexes(nvar, folder_index, timespan=None, nodes=None):
 
 
 def search_from_embeddings(embeddings, nvar, folder_index, k, n_neigh, n_pc=-1, timespan=None, nodes=None):
-    print('embedding computed')
+    print(f"Starting the search of formula from embeddings")
     index_numbers = recover_indexes(nvar, folder_index, timespan=timespan, nodes=nodes)
     all_phis, n_phis, dists, ids = [[] for _ in range(4)]
     n_phis.append(0)
@@ -45,6 +45,7 @@ def search_from_embeddings(embeddings, nvar, folder_index, k, n_neigh, n_pc=-1, 
     for w in range(len(index_numbers)):
         result_heap.add_result(D=dists[w], I=ids[w] + offsets[w])
     result_heap.finalize()  # result_heap.I result_heap.D
+    print(f"Ending the search of formula from embeddings")
     return [[all_phis[j] for j in row] for row in result_heap.I], result_heap.D
 
 

@@ -280,7 +280,7 @@ list_n_traj_points = [11]
 list_local_std = [1, 0.6]
 list_global_std = [1, 4]
 list_n_traj = [2000, 4000]
-list_n_psi_added = [500]
+list_n_psi_added = [-500, 0, 500]
 list_phi_id = [0] #[x for x in range(3)]
 list_base_xi_id = [x for x in range(5)]
 

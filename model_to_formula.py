@@ -77,7 +77,7 @@ class quantitive_model:
     
 
     
-def search_from_kernel(kernels, nvar, k=5, n_neigh=32, n_pc=-1, timespan=None, nodes=None):
+def search_from_kernel(kernels, nvar, k=5, n_neigh=64, n_pc=-1, timespan=None, nodes=None):
     """
     Search for closest STL formulae based on kernel embeddings
     
@@ -91,7 +91,7 @@ def search_from_kernel(kernels, nvar, k=5, n_neigh=32, n_pc=-1, timespan=None, n
         Number of variables in the STL formulae
     k : int, default=5
         Number of closest formulae to retrieve
-    n_neigh : int, default=32
+    n_neigh : int, default=64
         Number of neighbors for FAISS search
     n_pc : int, default=-1
         Number of principal components (-1 means no PCA)
@@ -152,7 +152,7 @@ def modified_Work_on_process(params, test_name)::
         kernels=kernels,
         nvar=n_vars,
         k=5,
-        n_neigh=32
+        n_neigh=64
     )
     
     # Access results for each kernel
@@ -168,7 +168,7 @@ def modified_Work_on_process(params, test_name)::
         nvar=n_vars,
         folder_index=folder_index,
         k=5,
-        n_neigh=32
+        n_neigh=64
     )
     
     imp_formulae_list, imp_dists = search_from_kernel(
@@ -176,7 +176,7 @@ def modified_Work_on_process(params, test_name)::
         nvar=n_vars,
         folder_index=folder_index,
         k=5,
-        n_neigh=32
+        n_neigh=64
     )
     
     # ... rest of the existing code ...

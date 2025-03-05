@@ -15,6 +15,7 @@ import json
 import sqlite3
 import re
 import pickle
+from model_to_formula import search_from_kernel
 
 # Removing the warnings when we use pickle
 import warnings
@@ -88,6 +89,7 @@ def Work_on_process(params, test_name):
     # Parameters of the process
     n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, weight_strategy = params
     n_psi = n_traj + n_psi_added 
+    n_phi = 1 #how many formulae are computed at the same time (for now is one)
 
     # Checking if the test name is in the format "global_name2local_name"
     global_name, local_name = "M", "B"
@@ -216,6 +218,43 @@ def Work_on_process(params, test_name):
     Cos_dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
     Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(n_traj)
 
+    ## Using FAISS to retrieve formulae ##
+    if n_psi == 1000 and local_std == 1 and local_name == "M": 
+                      # we can only use the IR if the kernel have length 1000
+                      # We also need that the LOCAL distribution is exactly mu0!!! (no changes on std)
+                      # NOTE: We also need to check that Until is used!!
+
+        # Rescaling the kernels for the search:
+        K_loc_scaled = K_loc * n_traj * math.sqrt(n_psi)
+        K_imp_scaled = K_imp * n_traj * math.sqrt(n_psi)
+        
+        #k is the number of closest formulae to retrieve
+        k = 5
+
+        # Stack multiple kernels together
+        kernels = torch.stack([K_loc_scaled, K_imp_scaled], dim=0)
+        
+        # Search for closest formulae to both kernels at once
+        formulae_lists, distances = search_from_kernel(
+            kernels=kernels,
+            nvar=n_vars,
+            k=k,
+            n_neigh=64
+        )
+        
+        # Access results for each kernel
+        loc_formulae = formulae_lists[0:n_phi-1]
+        imp_formulae = formulae_lists[n_phi:]
+        
+        loc_dists = distances[0:n_phi-1]
+        imp_dists = distances[n_phi:]
+
+        # Computing the overlap between the formulae retrieved (easy metric)
+        common_formulae = set([str(f) for f in loc_formulae]).intersection([str(f) for f in imp_formulae])
+        overlap_form = len(common_formulae) / k
+    else:
+        overlap_form = math.nan
+
     # Deleting used tensors
     del K_glob, K_loc, K_imp, rhos_phi_global, rhos_phi_local
 
@@ -270,6 +309,7 @@ def Work_on_process_precomp(params, test_name):
     # Parameters of the process    
     n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, weight_strategy = params
     n_psi = n_traj + n_psi_added 
+    n_phi = 1 #how many formulae are computed at the same time (for now is one)
 
     # Checking if the test name is in the format "global_name2local_name"
     global_name, local_name = "M", "B"
@@ -370,6 +410,44 @@ def Work_on_process_precomp(params, test_name):
     Dist = torch.norm(K_loc - K_imp).item()
     Cos_dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
     Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(n_traj)
+
+    ## Using FAISS to retrieve formulae ##
+    if n_psi == 1000 and local_std == 1 and local_name == "M": 
+                      # we can only use the IR if the kernel have length 1000
+                      # We also need that the LOCAL distribution is exactly mu0!!! (no changes on std)
+                      # NOTE: We also need to check that Until is used!!
+
+        # Rescaling the kernels for the search:
+        K_loc_scaled = K_loc * n_traj * math.sqrt(n_psi)
+        K_imp_scaled = K_imp * n_traj * math.sqrt(n_psi)
+
+        #k is the number of closest formulae to retrieve
+        k = 5
+
+        # Stack multiple kernels together
+        kernels = torch.stack([K_loc_scaled, K_imp_scaled], dim=0)
+        
+        # Search for closest formulae to both kernels at once
+        formulae_lists, distances = search_from_kernel(
+            kernels=kernels,
+            nvar=n_vars,
+            k=5,
+            n_neigh=64
+        )
+        
+        # Access results for each kernel
+        loc_formulae = formulae_lists[0:n_phi-1]
+        imp_formulae = formulae_lists[n_phi:]
+        
+        loc_dists = distances[0:n_phi-1]
+        imp_dists = distances[n_phi:]
+        
+        # Computing the overlap between the formulae retrieved (easy metric)
+        common_formulae = set([str(f) for f in loc_formulae]).intersection([str(f) for f in imp_formulae])
+        overlap_form = len(common_formulae) / k
+    else:
+        overlap_form = math.nan
+
 
     # Deleting used tensors
     del K_glob, K_loc, K_imp, rhos_phi_global, rhos_phi_local

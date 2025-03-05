@@ -4,7 +4,7 @@ import numpy as np
 import faiss
 import time
 
-from utils import load_pickle, from_str_to_n_nodes, execution_time
+from IR.utils import load_pickle, from_str_to_n_nodes, execution_time
 from kernel import StlKernel
 from traj_measure import BaseMeasure
 from phis_generator import StlGenerator

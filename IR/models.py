@@ -304,7 +304,7 @@ if __name__ == "__main__":
     try:
         # Getting the name of the dataset to use
         #test_name = sys.argv[1]
-        test_name = "train"
+        test_name = "robot5"
         # Training/testing phase
         phase = "full_train"
         #phase = sys.argv[2]

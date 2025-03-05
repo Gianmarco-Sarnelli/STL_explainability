@@ -55,7 +55,7 @@ class SimpleRNN(nn.Module):
     
 
 
-class quantitive_model:
+class quantitative_model:
     def __init__(self, model_path=None, nvars=None): #ex: f'IR/data/data/linear/model_state_dict.pth'
         if model_path is None:
             raise RuntimeError("No model dict found!")

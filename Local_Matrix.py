@@ -161,6 +161,10 @@ class local_matrix:
                     self.dweights *= self.n_traj
                 case "standard":
                     pass
+                case "square_root":
+                    self.dweight = torch.sqrt(self.dweights)
+                    self.dweights /= self.sum_weights
+                    self.dweights *= self.n_traj
                 case _: # The default case will be the self normalization
                     self.dweights /= self.sum_weights
                     self.dweights *= self.n_traj

@@ -104,10 +104,10 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_local_
         for global_std in list_global_std:
             match global_name:
                 case "M":
-                    #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                    #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
                     global_distr = BaseMeasure(sigma0=global_std, device=device)
                 case "E":
-                    #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                    #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
                     global_distr = Easy_BaseMeasure(sigma0=global_std, device=device)
                 case "B":
                     global_distr = Brownian(device=device)
@@ -129,10 +129,10 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_local_
             match global_name:
                 case "M":
                     base_distr = BaseMeasure(sigma0=base_std, device=device)
-                    #base_distr = BaseMeasure(sigma0=base_std, sigma1=base_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                    #base_distr = BaseMeasure(sigma0=base_std, sigma1=base_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
                 case "E":
                     base_distr = Easy_BaseMeasure(sigma0=base_std, device=device)
-                    #base_distr = Easy_BaseMeasure(sigma0=base_std, sigma1=base_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                    #base_distr = Easy_BaseMeasure(sigma0=base_std, sigma1=base_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
                 case "B":
                     base_distr = Brownian(device=device)
                 case "G":
@@ -154,10 +154,10 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_local_
                 match local_name:
                     case "M":
                         local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
-                        #local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                        #local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
                     case "E":
                         local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
-                        #local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                        #local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
                     case "B":
                         local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
                     case "G":
@@ -183,10 +183,10 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_local_
                         match global_name:
                             case "M":
                                 global_distr = BaseMeasure(sigma0=global_std, device=device)
-                                #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                                #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
                             case "E":
                                 global_distr = Easy_BaseMeasure(sigma0=global_std, device=device)
-                                #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+                                #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
                             case "B":
                                 global_distr = Brownian(device=device)
                             case "G":
@@ -275,7 +275,7 @@ if (partition != "THIN") and (partition != "EPYC"):
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
-list_weight_strategy = ["square_root"]#["self_norm"]#, "standard"]
+list_weight_strategy = ["self_norm"]#, "standard"]
 list_n_traj_points = [11]
 list_local_std = [1, 0.6]
 list_global_std = [1, 4]

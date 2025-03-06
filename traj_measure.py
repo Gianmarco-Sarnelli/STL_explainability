@@ -103,7 +103,8 @@ class BaseMeasure(Measure):
         # sorting each trajectory
         signal, _ = torch.sort(signal, 2)
         # computing increments and storing them in points 1 to end
-        signal[:, :, 1:] = signal[:, :, 1:] - signal[:, :, :-1]
+        increments = signal[:, :, 1:] - signal[:, :, :-1]    # NOTE: I changed this line of code to avoid in-place operations
+        signal[:, :, 1:] = increments
         # generate initial state, according to a normal distribution
         signal[:, :, 0] = self.mu0 + self.sigma0 * torch.randn(signal[:, :, 0].size())
 
@@ -170,8 +171,6 @@ class BaseMeasure(Measure):
         if not (self.base_traj is None):
             trajectory = trajectory - self.base_traj
 
-        # Adding a stabilization constant to avoid zeros #TODO: make it better!
-
         log_pdf = torch.zeros(samples, device=self.device, dtype=torch.float64)
         for i in range(samples):
             # Computing increments
@@ -190,7 +189,7 @@ class BaseMeasure(Measure):
                 sum_normal = torch.distributions.Normal(self.mu1, self.sigma1).log_prob(sqroot_totvar).exp() + torch.distributions.Normal(self.mu1, self.sigma1).log_prob(-sqroot_totvar).exp()
                 totvar_pdf = torch.log(sum_normal / (2 * sqroot_totvar) )
 
-                # Computing the Bernoulli probabilities of the change of sign in the increments
+                # Computing the Binomial probabilities of the change of sign in the increments
                 change_sign = increments[:, :-1] * increments[:, 1:]
                 #bernoulli_pdf = math.log(self.q) * (change_sign < 0) + math.log(1 - self.q) * (change_sign >= 0)
                 # NOTE: I forgot the binomial component!!!!!
@@ -346,7 +345,8 @@ class Easy_BaseMeasure(Measure):
         # sorting each trajectory
         signal, _ = torch.sort(signal, 2)
         # computing increments and storing them in points 1 to end
-        signal[:, :, 1:] = signal[:, :, 1:] - signal[:, :, :-1]
+        increments = signal[:, :, 1:] - signal[:, :, :-1]    # NOTE: I changed this line of code to avoid in-place operations
+        signal[:, :, 1:] = increments
         # generate initial state, according to a normal distribution
         signal[:, :, 0] = self.mu0 + self.sigma0 * torch.randn(signal[:, :, 0].size())
 
@@ -577,13 +577,128 @@ class Brownian(Measure):
 
 
 
-class Gaussian(Measure):
+class GaussianShift(Measure):
     def __init__(
         self, base_traj=None, std = 1.0, device="cpu"
     ):
         """
         Applies a gaussian shift to the base trajectory (equal shift at
         every point in time)
+
+        Parameters
+        ----------
+        base_traj (torch.Tensor): A tensor of shape [varn, points]
+            - `varn` represents the number of variables in each trajectory.
+            - `points` represents the number points for each trajectory.
+        If None is passed, the base trajectory will be zeros.
+        std : standard deviation of normal around the base_traj, optional
+            The default is 1.0.
+        device : 'cpu' or 'cuda', optional
+            device on which to run the algorithm. The default is 'cpu'
+        
+        Returns
+        -------
+        None.
+
+        """
+        self.name = "GaussianShift"
+        self.device = device
+        self.base_traj = base_traj
+        self.std = std
+        if not (base_traj is None):
+            if base_traj.dim() != 2:
+                raise ValueError(f"`base_traj` must have 2 dimensions, but got {base_traj.dim()} dimensions.")
+            self.base_traj_varn = base_traj.shape[0]     
+            self.base_traj_points = base_traj.shape[1]
+
+    def sample(self, samples=100000, varn=2, points=100):
+        """
+        Samples a set of trajectories around a base trajectory, with parameters
+        passed to the sampler
+
+        Parameters
+        ----------
+        points : INT, optional
+            number of points per trajectory, including initial one. The default is 100.
+        samples : INT, optional
+            number of trajectories. The default is 100000.
+        varn : INT, optional
+            number of variables per trajectory. The default is 2.
+
+        Returns
+        -------
+        signal : samples x varn x points pytorch tensor
+            The sampled signals.
+
+        """
+        if self.device == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError("GPU card or CUDA library not available!")
+        
+        # Checking coerence if base trajectory is given, or initializing the variable in the other case
+        if self.base_traj is None:
+            self.base_traj_points = points
+            self.base_traj_varn = varn
+        else:
+            if varn != self.base_traj_varn:
+                raise RuntimeError(f"Number of variables don't match with base trajectory. Should be {self.base_traj_varn}")
+            if points != self.base_traj_points:
+                raise RuntimeError(f"Number of trajectory points don't match with base trajectory. Should be {self.base_traj_points}")
+
+        # generate normal distr of points
+        noise = self.std*torch.randn(samples, varn, 1, device=self.device)
+
+        # Adding the noise to the base trajectory if given
+        if self.base_traj is None:
+            signal = noise
+        else:
+            signal = self.base_traj + noise        
+        return signal
+    
+    def compute_pdf_trajectory(self, trajectory: torch.Tensor, 
+                               log: bool = False) -> torch.Tensor:
+        """
+        Computes the probability density function of a trajectory sampled using Gaussian Shift.
+        
+        Parameters:
+        ----------
+        trajectory (torch.Tensor): The trajectory tensor of shape [samples, varn, points]
+        log (bool): decides if the output will be the log of the pdf or the pdf itself
+        
+        Returns:
+        --------
+        log_pdf(torch.Tensor): The tensor containing the log of the pdf of the trajectories
+        pdf (torch.Tensor): The tensor containing the pdf of the trajectories
+
+        """
+        log_error = False
+
+        # Computing the shape of the trajectory
+        samples, varn, points = trajectory.shape
+
+        # Computing the noise (at the first trajectory point)
+        if self.base_traj is None:
+            noise = trajectory[:,:,0]
+        else:
+            noise = trajectory[:,:,0] - self.base_traj[:,0]
+
+        try:
+            log_pdf = torch.distributions.Normal(torch.zeros(samples, varn), self.std).log_prob(noise).type(torch.float64)
+            log_prob = torch.sum(log_pdf)
+        except ValueError: # If there's a value error then it means that the log prob is too low
+            log_error = True
+        
+        if log:    
+            return (log_prob, log_error)
+        if not log:
+            return (torch.exp(log_prob), log_error)
+        
+
+class Gaussian(Measure):
+    def __init__(
+        self, base_traj=None, std = 1.0, device="cpu"
+    ):
+        """
+        Applies a gaussian noise to the base trajectory 
 
         Parameters
         ----------
@@ -657,7 +772,7 @@ class Gaussian(Measure):
     def compute_pdf_trajectory(self, trajectory: torch.Tensor, 
                                log: bool = False) -> torch.Tensor:
         """
-        Computes the probability density function of a trajectory sampled using brownian.
+        Computes the probability density function of a trajectory sampled using Gaussian.
         
         Parameters:
         ----------
@@ -675,14 +790,14 @@ class Gaussian(Measure):
         # Computing the shape of the trajectory
         samples, varn, points = trajectory.shape
 
-        # Computing the noise (at the first trajectory point)
+        # Computing the noise
         if self.base_traj is None:
-            noise = trajectory[:,:,0]
+            noise = trajectory[:,:,:]
         else:
-            noise = trajectory[:,:,0] - self.base_traj[:,0]
+            noise = trajectory[:,:,:] - self.base_traj[:,:]
 
         try:
-            log_pdf = torch.distributions.Normal(torch.zeros(samples, varn), self.std).log_prob(noise).type(torch.float64)
+            log_pdf = torch.distributions.Normal(torch.zeros(samples, varn, points), self.std).log_prob(noise).type(torch.float64)
             log_prob = torch.sum(log_pdf)
         except ValueError: # If there's a value error then it means that the log prob is too low
             log_error = True
@@ -692,6 +807,7 @@ class Gaussian(Measure):
         if not log:
             return (torch.exp(log_prob), log_error)
         
+
 
 class SemiBrownian(Measure):
     def __init__(
@@ -741,7 +857,6 @@ class SemiBrownian(Measure):
             number of trajectories. The default is 100000.
         varn : INT, optional
             number of variables per trajectory. The default is 2.
-
 
         Returns
         -------
@@ -804,7 +919,7 @@ class SemiBrownian(Measure):
         speeds = trajectory[:, :, 1:] - trajectory[:,:,:-1]
 
         # Computing the value added to the speed tensor (resembling accelerations)
-        accs = speeds
+        accs = speeds.clone()
         accs[:,:,1:] = speeds[:,:,1:] - speeds[:,:,:-1]
 
         # From this tensor, we remove the deterministic component

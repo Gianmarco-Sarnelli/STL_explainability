@@ -103,10 +103,10 @@ def Work_on_process(params, test_name):
     # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
     match global_name:
         case "M":
-            #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
             global_distr = BaseMeasure(sigma0=global_std, device=device)
         case "E":
-            #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
             global_distr = Easy_BaseMeasure(sigma0=global_std, device=device)
         case "B":
             global_distr = Brownian(device=device)
@@ -131,10 +131,10 @@ def Work_on_process(params, test_name):
     # Initializing the local trajectory distribution and sampling local_xi
     match local_name:
         case "M":
-            #local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            #local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
             local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
         case "E":
-            #local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*n_traj_points, q=sign_ch/n_traj_points, device=device)
+            #local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
             local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
         case "B":
             local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
@@ -220,7 +220,7 @@ def Work_on_process(params, test_name):
     Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(n_traj)
 
     ## Using FAISS to retrieve formulae ##
-    if n_psi == 1000 and local_std == 1 and local_name == "M": 
+    if False:#n_psi == 1000 and local_std == 1 and local_name == "M": 
                       # we can only use the IR if the kernel have length 1000
                       # We also need that the LOCAL distribution is exactly mu0!!! (no changes on std)
                       # NOTE: We also need to check that Until is used!!
@@ -414,7 +414,7 @@ def Work_on_process_precomp(params, test_name):
     Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(n_traj)
 
     ## Using FAISS to retrieve formulae ##
-    if n_psi == 1000 and local_std == 1 and local_name == "M": 
+    if False:#n_psi == 1000 and local_std == 1 and local_name == "M": 
                       # we can only use the IR if the kernel have length 1000
                       # We also need that the LOCAL distribution is exactly mu0!!! (no changes on std)
                       # NOTE: We also need to check that Until is used!!

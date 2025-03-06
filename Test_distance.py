@@ -89,7 +89,8 @@ def Work_on_process(params, test_name):
     # Parameters of the process
     n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, weight_strategy = params
     n_psi = n_traj + n_psi_added 
-    n_phi = 1 #how many formulae are computed at the same time (for now is one)
+    n_phi = 1 # How many formulae are computed at the same time (for now is one)
+    n_traj_embedding = 10000 # Ho many trajectories are used to compute the embeddings in the database
 
     # Checking if the test name is in the format "global_name2local_name"
     global_name, local_name = "M", "B"
@@ -225,8 +226,8 @@ def Work_on_process(params, test_name):
                       # NOTE: We also need to check that Until is used!!
 
         # Rescaling the kernels for the search:
-        K_loc_scaled = K_loc * n_traj * math.sqrt(n_psi)
-        K_imp_scaled = K_imp * n_traj * math.sqrt(n_psi)
+        K_loc_scaled = K_loc * n_traj_embedding * math.sqrt(n_psi)
+        K_imp_scaled = K_imp * n_traj_embedding * math.sqrt(n_psi)
         
         #k is the number of closest formulae to retrieve
         k = 5
@@ -310,6 +311,7 @@ def Work_on_process_precomp(params, test_name):
     n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id, weight_strategy = params
     n_psi = n_traj + n_psi_added 
     n_phi = 1 #how many formulae are computed at the same time (for now is one)
+    n_traj_embedding = 10000 # Ho many trajectories are used to compute the embeddings in the database
 
     # Checking if the test name is in the format "global_name2local_name"
     global_name, local_name = "M", "B"
@@ -418,8 +420,8 @@ def Work_on_process_precomp(params, test_name):
                       # NOTE: We also need to check that Until is used!!
 
         # Rescaling the kernels for the search:
-        K_loc_scaled = K_loc * n_traj * math.sqrt(n_psi)
-        K_imp_scaled = K_imp * n_traj * math.sqrt(n_psi)
+        K_loc_scaled = K_loc * n_traj_embedding * math.sqrt(n_psi)
+        K_imp_scaled = K_imp * n_traj_embedding * math.sqrt(n_psi)
 
         #k is the number of closest formulae to retrieve
         k = 5

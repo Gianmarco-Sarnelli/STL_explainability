@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=THIN                     # Partition name
+#SBATCH --partition=EPYC                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks
 #SBATCH --cpus-per-task=1                    # CPUs needed for the runner

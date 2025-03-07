@@ -4,9 +4,10 @@ import json
 import sys
 import sqlite3
 import os
-from traj_measure import BaseMeasure, Easy_BaseMeasure, Brownian, Gaussian, SemiBrownian
+from traj_measure import BaseMeasure, Easy_BaseMeasure, Brownian, Gaussian, SemiBrownian, GaussianShift
 from phis_generator import StlGenerator
 import torch
+import math
 import pickle
 from Local_Matrix import local_matrix
 
@@ -27,16 +28,16 @@ def initialize_database(test_name):
 (weight_strategy STRING,
 n_psi_added INTEGER,
 n_traj INTEGER,
-local_std REAL,
-global_std REAL,
+target_std REAL,
+proposal_std REAL,
 n_traj_points INTEGER,
 phi_id INTEGER,
 base_xi_id INTEGER,
 Dist REAL,
 Cos_Dist REAL,
 Dist_rho REAl,
-Norm_glob REAl,
-Norm_loc REAl,
+Norm_proposal REAl,
+Norm_target REAl,
 Norm_imp REAl,
 Pinv_error REAl,
 Sum_weights REAL,
@@ -44,7 +45,9 @@ Sum_squared_weights REAL,
 Elapsed_time REAL,
 Process_mem REAL,
 n_e REAL,
-PRIMARY KEY (weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj_points, phi_id, base_xi_id))''')
+overlap_form REAL,
+dist_form REAL,
+PRIMARY KEY (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id))''')
 
         # Optimize database performance
 
@@ -57,14 +60,35 @@ PRIMARY KEY (weight_strategy, n_psi_added, n_traj, local_std, global_std, n_traj
 
         conn.commit()
 
+def get_distribution(name, std, totvar_mult, sign_ch, n_traj_points, device):
+    match name:
+        case "M":
+            distr = BaseMeasure(sigma0=std, device=device)
+        case "E":
+            distr = Easy_BaseMeasure(sigma0=std, device=device)
+        case "H": # H = High Variance
+            distr = BaseMeasure(sigma0=std, sigma1=std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
+        case "J":
+            distr = Easy_BaseMeasure(sigma0=std, sigma1=std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
+        case "B":
+            distr = Brownian(std=std, device=device)
+        case "T":
+            distr = GaussianShift(std=std, device=device)
+        case "G":
+            distr = Gaussian(std=std, device=device)
+        case "S":
+            distr = SemiBrownian(std=std, device=device)
+        case _:
+            raise RuntimeError(f"Distribution name '{name}' is not allowed")
+    return distr
 
 
-def save_params(test_name, list_weight_strategy, list_n_traj_points, list_local_std, list_global_std, list_n_traj, list_n_psi_added, list_phi_id, list_base_xi_id):
+def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target_std, list_proposal_std, list_n_traj, list_n_psi_added, list_phi_id, list_base_xi_id):
 
     # Device used
-    device: torch.device = torch.device("cpu")  # Force CPU usage
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Evaluation of formulae
-    evaluate_at_all_times = False # TODO: implement for time evaluation
+    evaluate_at_all_times = False
     n_vars = 2
     # NOTE: n_traj_points must be >= max_timespan in phis_generator
     # NOTE: max_timespan must be greater than 11 (for some reason) #TODO: find why this is the case
@@ -74,8 +98,7 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_local_
     time_bound_max_range = 10
     prob_unbound_time_operator = 0.1
     atom_threshold_sd = 1.0
-
-    #Parameters specific for mu_0
+    #Parameters specific for High_Variance_mu_0
     totvar_mult = 1
     sign_ch = 2
 
@@ -84,149 +107,79 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_local_
     n_traj = max(list_n_traj)
     n_psi = n_traj + n_psi_added 
 
-    # Checking if the test name is in the format "global_name2local_name"
-    global_name, local_name = "M", "B"
+    # Checking if the test name is in the format "proposal_name2target_name"
+    proposal_name, target_name = "B", "M"
     if "2" in test_name:
         index = test_name.index("2")
-        global_name = test_name[index - 1]
-        local_name = test_name[index + 1]
+        proposal_name = test_name[index - 1]
+        target_name = test_name[index + 1]
 
-    ## Global_xi, Base_xi, Local_xi and Dweights ##
-    global_xi_dict = {}
+    ## Proposal_xi, Target_xi and Dweights ##
+    proposal_xi_dict = {}
     base_xi_dict = {}
-    local_xi_dict = {}
+    target_xi_dict = {}
     dweights_dict = {}
     true_dweights_dict = {}
-    base_std = 1  # We fix this parameter to make the sampling of the base_xi independent of the global_std
+    base_std = 1  # We fix this parameter to make the sampling of the base_xi independent of the proposal_std
     ## Iteration on n_traj_points ##
     for n_traj_points in list_n_traj_points:
-        ## Iteration on global_std ##
-        for global_std in list_global_std:
-            match global_name:
-                case "M":
-                    #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
-                    global_distr = BaseMeasure(sigma0=global_std, device=device)
-                case "E":
-                    #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
-                    global_distr = Easy_BaseMeasure(sigma0=global_std, device=device)
-                case "B":
-                    global_distr = Brownian(device=device)
-                case "G":
-                    global_distr = Gaussian(device=device)
-                case "S":
-                    global_distr = SemiBrownian(device=device)
-                case _:
-                    raise RuntimeError("Global distribution name is not allowed")
-            global_xi = global_distr.sample(samples=n_traj, 
+        ## Iteration on proposal_std ##
+        for proposal_std in list_proposal_std:
+            
+            proposal_distr = get_distribution(proposal_name, proposal_std, totvar_mult, sign_ch, n_traj_points, device)
+            proposal_xi = proposal_distr.sample(samples=n_traj, 
                                             varn=n_vars, 
                                             points=n_traj_points)
-            global_xi_dict[(n_traj_points, global_std)] = global_xi
+            proposal_xi_dict[(n_traj_points, proposal_std)] = proposal_xi
 
 
-        ## Iteration on base_xi_id
-        for base_xi_id in list_base_xi_id:
-            # Initializing the base_distr
-            match global_name:
-                case "M":
-                    base_distr = BaseMeasure(sigma0=base_std, device=device)
-                    #base_distr = BaseMeasure(sigma0=base_std, sigma1=base_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
-                case "E":
-                    base_distr = Easy_BaseMeasure(sigma0=base_std, device=device)
-                    #base_distr = Easy_BaseMeasure(sigma0=base_std, sigma1=base_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
-                case "B":
-                    base_distr = Brownian(device=device)
-                case "G":
-                    base_distr = Gaussian(device=device)
-                case "S":
-                    base_distr = SemiBrownian(device=device)
-                case _:
-                    raise RuntimeError("Global distribution name is not allowed")
-            
-            base_xi = base_distr.sample(samples=1, 
-                                        varn=n_vars, 
-                                        points=n_traj_points)
-            base_xi_dict[(n_traj_points, base_xi_id)] = base_xi
+        ## Iteration on target_std ##
+        for target_std in list_target_std:
+            # Inizializing the target_distr
+
+            target_distr = get_distribution(target_name, target_std, totvar_mult, sign_ch, n_traj_points, device)
+            target_xi = target_distr.sample(samples=n_traj, 
+                                            varn=n_vars, 
+                                            points=n_traj_points)
+            target_xi_dict[(n_traj_points, target_std)] = target_xi
 
 
-            ## Iteration on local_std ##
-            for local_std in list_local_std:
-                # Inizializing the local_distr
-                match local_name:
-                    case "M":
-                        local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
-                        #local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
-                    case "E":
-                        local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
-                        #local_distr = Easy_BaseMeasure(base_traj=base_xi[0], sigma0=local_std, sigma1=local_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
-                    case "B":
-                        local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
-                    case "G":
-                        local_distr = Gaussian(base_traj=base_xi[0], std=local_std, device=device)
-                    case "S":
-                        local_distr = SemiBrownian(base_traj=base_xi[0], std=local_std, device=device)
-                    case _:
-                        raise RuntimeError("Local distribution name is not allowed")
-                    
-                local_xi = local_distr.sample(samples=n_traj, 
-                                                varn=n_vars, 
-                                                points=n_traj_points)
-                local_xi_dict[(n_traj_points, local_std, base_xi_id)] = local_xi
+            ## Iteration on weight_strategy ##
+            for weight_strategy in list_weight_strategy:
+                
+                ## Iteration again on proposal_std ##
+                for proposal_std in list_proposal_std: # We need to reiterate on the proposal_std to obtain the correct proposal_distr and proposal_xi
+
+                    proposal_xi = proposal_xi_dict[(n_traj_points, proposal_std)] # Reloading the currect proposal_xi
+                    proposal_distr = get_distribution(proposal_name, proposal_std, totvar_mult, sign_ch, n_traj_points, device)
+
+                    # Computing the Dweights
+                    converter = local_matrix(n_vars = n_vars, 
+                                            n_formulae = n_psi, 
+                                            n_traj = n_traj, 
+                                            n_traj_points = n_traj_points,
+                                            evaluate_at_all_times = evaluate_at_all_times,
+                                            target_distr = target_distr,
+                                            proposal_distr = proposal_distr,
+                                            weight_strategy = weight_strategy,
+                                            proposal_traj = proposal_xi)
+                    converter.compute_dweights()
+                    dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std)] = converter.dweights
+                    true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std)] = converter.true_dweights
 
 
-                ## Iteration on weight_strategy ##
-                for weight_strategy in list_weight_strategy:
-                    ## Iteration again on global_std ##
-                    for global_std in list_global_std: # We need to reiterate on the global_std to obtain the correct global_distr and global_xi
-
-                        global_xi = global_xi_dict[(n_traj_points, global_std)] # Reloading the currect global_xi
-
-                        match global_name:
-                            case "M":
-                                global_distr = BaseMeasure(sigma0=global_std, device=device)
-                                #global_distr = BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
-                            case "E":
-                                global_distr = Easy_BaseMeasure(sigma0=global_std, device=device)
-                                #global_distr = Easy_BaseMeasure(sigma0=global_std, sigma1=global_std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
-                            case "B":
-                                global_distr = Brownian(device=device)
-                            case "G":
-                                global_distr = Gaussian(device=device)
-                            case "S":
-                                global_distr = SemiBrownian(device=device)
-                            case _:
-                                raise RuntimeError("Global distribution name is not allowed")
-                            
-                        # Computing the Dweights
-                        converter = local_matrix(n_vars = n_vars, 
-                                                n_formulae = n_psi, 
-                                                n_traj = n_traj, 
-                                                n_traj_points = n_traj_points,
-                                                evaluate_at_all_times = evaluate_at_all_times,
-                                                target_distr = local_distr,
-                                                proposal_distr = global_distr,
-                                                weight_strategy = weight_strategy,
-                                                proposal_traj = global_xi)
-                        converter.compute_dweights()
-                        dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)] = converter.dweights
-                        true_dweights_dict[(weight_strategy, n_traj_points, global_std, local_std, base_xi_id)] = converter.true_dweights
-
-
-    # Saving Global_xi_dict
-    os.makedirs("Global_xi_dir", exist_ok=True)
-    torch.save(global_xi_dict, os.path.join("Global_xi_dir",f"{test_name}.pt"))
-    # Saving Base_xi_dict
-    os.makedirs("Base_xi_dir", exist_ok=True)
-    torch.save(base_xi_dict, os.path.join("Base_xi_dir",f"{test_name}.pt"))
-    # Saving local_xi_dict
-    os.makedirs("Local_xi_dir", exist_ok=True)
-    torch.save(local_xi_dict, os.path.join("Local_xi_dir",f"{test_name}.pt"))
+    # Saving proposal_xi_dict
+    os.makedirs("Proposal_xi_dir", exist_ok=True)
+    torch.save(proposal_xi_dict, os.path.join("Proposal_xi_dir",f"{test_name}.pt"))
+    # Saving target_xi_dict
+    os.makedirs("Target_xi_dir", exist_ok=True)
+    torch.save(target_xi_dict, os.path.join("Target_xi_dir",f"{test_name}.pt"))
     # Saving Dweights
     os.makedirs("Dweights_dir", exist_ok=True)
     torch.save(dweights_dict, os.path.join("Dweights_dir",f"{test_name}.pt"))
     # Saving True_Dweights
     os.makedirs("True_Dweights_dir", exist_ok=True)
     torch.save(true_dweights_dict, os.path.join("True_Dweights_dir",f"{test_name}.pt"))
-
 
 
     ## psi and phi ##
@@ -256,8 +209,6 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_local_
 
 
 
-
-
 # Getting the test name
 try:
     test_name = sys.argv[1]
@@ -277,21 +228,21 @@ if (partition != "THIN") and (partition != "EPYC"):
 # Parameters for the test
 list_weight_strategy = ["self_norm"]#, "standard"]
 list_n_traj_points = [11]
-list_local_std = [1, 0.6]
-list_global_std = [1, 4]
-list_n_traj = [2000, 4000]
-list_n_psi_added = [-500, 0, 500]
-list_phi_id = [0] #[x for x in range(3)]
-list_base_xi_id = [x for x in range(5)]
+list_target_std = [1]
+list_proposal_std = [1]
+list_n_traj = [2000]
+list_n_psi_added = [500]
+list_phi_id = [x for x in range(5)] #[x for x in range(3)]
+list_base_xi_id = [0]    #NOTE: fix this to a single value
 
 # If we want to save all variables we need to initialize them
 if save_all=="yes":
-    ##  Saving the values of psi, phi, global_xi, local_xi, base_xi and dweights ##
+    ##  Saving the params ##
     save_params(test_name, 
                 list_weight_strategy, 
                 list_n_traj_points, 
-                list_local_std, 
-                list_global_std, 
+                list_target_std, 
+                list_proposal_std, 
                 list_n_traj, 
                 list_n_psi_added, 
                 list_phi_id, 
@@ -305,19 +256,19 @@ os.makedirs("Params", exist_ok=True)  # Create directory if needed
 with open(f"Params/Params_{test_name}.txt", 'w') as file:
     file.write("list_n_psi_added,"+','.join(str(x) for x in list_n_psi_added) + '\n')
     file.write("list_n_traj,"+','.join(str(x) for x in list_n_traj) + '\n')
-    file.write("list_local_std,"+','.join(str(x) for x in list_local_std) + '\n')
+    file.write("list_target_std,"+','.join(str(x) for x in list_target_std) + '\n')
     file.write("list_n_traj_points,"+','.join(str(x) for x in list_n_traj_points) + '\n')
     file.write("list_phi_id,"+','.join(str(x) for x in list_phi_id) + '\n')
     file.write("list_base_xi_id,"+','.join(str(x) for x in list_base_xi_id) + '\n')
     file.write("list_weight_strategy,"+','.join(x for x in list_weight_strategy) + '\n')
-    file.write("list_global_xi,"+','.join(str(x) for x in list_global_std))
+    file.write("list_proposal_xi,"+','.join(str(x) for x in list_proposal_std))
 
 # Generate all combinations
 all_combinations = list(itertools.product(
     list_n_psi_added,
     list_n_traj,
-    list_local_std,     # NOTE: in Test_distance.py we use FIRST local_std THEN global_std, so alway use this notation!!
-    list_global_std,
+    list_target_std,     # NOTE: in Test_distance.py we use FIRST target_std THEN proposal_std, so alway use this notation
+    list_proposal_std,
     list_n_traj_points,
     list_phi_id,
     list_base_xi_id,

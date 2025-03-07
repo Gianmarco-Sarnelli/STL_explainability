@@ -345,7 +345,7 @@ class Easy_BaseMeasure(Measure):
         # sorting each trajectory
         signal, _ = torch.sort(signal, 2)
         # computing increments and storing them in points 1 to end
-        increments = signal[:, :, 1:] - signal[:, :, :-1]    # NOTE: I changed this line of code to avoid in-place operations
+        increment = signal[:, :, 1:] - signal[:, :, :-1]    # NOTE: I changed this line of code to avoid in-place operations
         signal[:, :, 1:] = increments
         # generate initial state, according to a normal distribution
         signal[:, :, 0] = self.mu0 + self.sigma0 * torch.randn(signal[:, :, 0].size())

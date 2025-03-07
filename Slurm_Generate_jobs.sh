@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=EPYC                     # Partition name
+#SBATCH --partition=THIN                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (for mpi, not needed now)
 #SBATCH --nodes=1                            # Use exactly one node
@@ -14,14 +14,14 @@
 # Activate the virtual environment
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
-# List of test names
-test_names=("NEWweirdMU0_M2B" "NEWweirdMU0_E2B")
+# List of test names #M E H J B T G S
+test_names=("simpleconvert_M2M" "simpleconvert_E2M" "simpleconvert_H2M" "simpleconvert_J2M" "simpleconvert_B2M" "simpleconvert_T2M" "simpleconvert_G2M" "simpleconvert_S2M")
 
 for test_name in "${test_names[@]}"; do
 
     echo "Generating jobs for test: $test_name"
 
-    python3 Generate_jobs.py "$test_name" 40 "yes" "EPYC"
+    python3 Generate_jobs.py "$test_name" 5 "yes" "THIN"
 
     echo "$test_name jobs are generated"
 

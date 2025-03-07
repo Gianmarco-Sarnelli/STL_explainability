@@ -48,7 +48,7 @@ class StlGenerator:
 
         # Address the mutability of default arguments
         if inner_node_prob is None:
-            inner_node_prob = [0.2, 0.2, 0.2, 0.2, 0.2] #[0.166, 0.166, 0.166, 0.17, 0.166, 0.166]
+            inner_node_prob = [0.166, 0.166, 0.166, 0.17, 0.166, 0.166] #[0.2, 0.2, 0.2, 0.2, 0.2]
 
         if seed is not None:
             np.random.seed(seed)
@@ -61,7 +61,7 @@ class StlGenerator:
         self.right_unbound_prob = right_unbound_prob
         self.time_bound_max_range = time_bound_max_range
         self.adaptive_unbound_temporal_ops = adaptive_unbound_temporal_ops
-        self.node_types = ["not", "and", "or", "always", "eventually"]#["not", "and", "or", "always", "eventually", "until"]
+        self.node_types = ["not", "and", "or", "always", "eventually", "until"]#["not", "and", "or", "always", "eventually"]
         self.max_timespan = max_timespan
 
     def sample(self, nvars):

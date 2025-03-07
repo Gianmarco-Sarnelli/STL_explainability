@@ -103,8 +103,8 @@ class BaseMeasure(Measure):
         # sorting each trajectory
         signal, _ = torch.sort(signal, 2)
         # computing increments and storing them in points 1 to end
-        increments = signal[:, :, 1:] - signal[:, :, :-1]    # NOTE: I changed this line of code to avoid in-place operations
-        signal[:, :, 1:] = increments
+        increment = signal[:, :, 1:] - signal[:, :, :-1]    # NOTE: I changed this line of code to avoid in-place operations
+        signal[:, :, 1:] = increment
         # generate initial state, according to a normal distribution
         signal[:, :, 0] = self.mu0 + self.sigma0 * torch.randn(signal[:, :, 0].size())
 
@@ -646,12 +646,18 @@ class GaussianShift(Measure):
 
         # generate normal distr of points
         noise = self.std*torch.randn(samples, varn, 1, device=self.device)
-
+        
+        # Expand noise to match points dimension
+        noise = noise.expand(-1, -1, points)  # Add this line
+        
         # Adding the noise to the base trajectory if given
         if self.base_traj is None:
             signal = noise
         else:
-            signal = self.base_traj + noise        
+            # Expand base_traj to match batch dimension
+            base_traj_expanded = self.base_traj.unsqueeze(0).expand(samples, -1, -1)
+            signal = base_traj_expanded + noise
+            
         return signal
     
     def compute_pdf_trajectory(self, trajectory: torch.Tensor, 

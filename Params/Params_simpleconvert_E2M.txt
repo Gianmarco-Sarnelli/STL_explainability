@@ -1,5 +1,5 @@
 list_n_psi_added,500
-list_n_traj,2000
+list_n_traj,1000,2000
 list_target_std,1
 list_n_traj_points,11
 list_phi_id,0,1,2,3,4

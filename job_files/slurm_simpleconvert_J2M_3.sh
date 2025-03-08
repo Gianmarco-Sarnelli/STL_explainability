@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=THIN                     # Partition name
+#SBATCH --partition=EPYC                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (since we're using multiprocessing)
 #SBATCH --cpus-per-task=8                    # CPUs per task (for multiprocessing)

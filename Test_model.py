@@ -2,7 +2,11 @@ import torch
 import multiprocessing as mp
 from itertools import product
 import numpy as np
+from Local_Matrix import local_matrix
+from traj_measure import BaseMeasure, Easy_BaseMeasure, Brownian, Gaussian, SemiBrownian
+from phis_generator import StlGenerator
 import math
+from typing import List, Any, Tuple
 import time
 import psutil
 import os
@@ -11,322 +15,298 @@ import json
 import sqlite3
 import re
 import pickle
-from model_to_formula import search_from_kernel, quantitative_model
-from Local_Matrix import local_matrix
-from traj_measure import BaseMeasure, Easy_BaseMeasure, Brownian, Gaussian, SemiBrownian
+from model_to_formula import search_from_kernel
+from IR.phisearch import similarity_based_relevance
 
 # Removing the warnings when we use pickle
 import warnings
 warnings.filterwarnings("ignore")
 
-"""
-Evaluates the transformation of kernels when using a model's robustness function:
-1) The local kernel is obtained by sampling from a local distribution
-2) The global kernel is obtained by sampling from a global distribution
-3) The importance sampling kernel is created by transforming the global kernel
 
-The script then measures the Euclidean and cosine distance between the local and 
-importance sampling kernels. It also uses FAISS to find similar formulae to both kernels.
+#NOTE: This script is similar to Test_distance.py but additionally uses search_from_kernel 
+# to find the closest STL formulae to the target and importance sampling kernels
+# and computes overlap and similarity metrics between these sets of formulae.
+
+"""
+Evaluates the transformation of kernels when three parameters are varied:
+1) The number of trajectories used
+2) The number of formulae used (in particoular the number of formulae minus the number of trajectories)
+3) The standard deviation of the distributions
+
+In addition to the distances computed in Test_distance.py, this script:
+1) Finds the k closest STL formulae to both K_target and K_imp kernels
+2) Computes the overlap between these two sets of formulae
+3) Computes a distance metric between the formulae using similarity_based_relevance
+
+The results are stored in the same database structure with additional columns for the 
+formula overlap and distance metrics.
 """
 
-def Work_on_process(params, test_name, model_path):
+
+def Work_on_process_precomp(params, test_name):
     """
-    Process a single parameter combination and return the results
-    
+    Process a single parameter combination and returns the results
+
     Parameters
     ----------
-    params = (n_psi, n_traj, local_std, global_std, n_traj_points, weight_strategy): tuple of parameters
-    test_name: string indicating the distributions to use (format "global_name2local_name")
-    model_path: path to the saved model state dict
+    params = (n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, weight_strategy): tuple of parameters used by the iteration
     
     Returns
     ---------
-    (various measurements including distances, norms, and timing information)
+    weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form
     """
     # Timing each process
     start_time = time.time()
 
-    # Begin work on process
-    print("Begin work on process")
-
     ## Parameters ##
+
     # Process ID
     process = psutil.Process(os.getpid())
     # Device used
-    device = torch.device("cpu")  # Force CPU usage
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Evaluation of formulae
-    evaluate_at_all_times = False 
-    n_vars = 2  # Number of variables in trajectories
-
+    evaluate_at_all_times = False
+    n_vars = 2
+    # Parameters for the sampling of the formulae
+    leaf_probability = 0.5
+    time_bound_max_range = 10
+    prob_unbound_time_operator = 0.1
+    atom_threshold_sd = 1.0
+    #Parameters specific for High_Variance_mu_0
+    totvar_mult = 1
+    sign_ch = 2
     # Parameters of the process
-    n_psi, n_traj, local_std, global_std, n_traj_points, weight_strategy = params
+    n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, weight_strategy = params
+    n_psi = n_traj + n_psi_added 
+    n_phi = 1 #how many formulae are computed at the same time (for now is one)
+    n_traj_embedding = 10000 # Ho many trajectories are used to compute the embeddings in the database
+    # Number of closest formulae to retrieve
+    k = 5
 
-    # Checking if the test name is in the format "global_name2local_name"
-    global_name, local_name = "M", "B"  # Default values
+    # Checking if the test name is in the format "proposal_name2target_name"
+    proposal_name, target_name = "B", "M"
     if "2" in test_name:
         index = test_name.index("2")
-        global_name = test_name[index - 1]
-        local_name = test_name[index + 1]
+        proposal_name = test_name[index - 1]
+        target_name = test_name[index + 1]
 
-    # Initializing the global trajectory distribution and sampling global_xi
-    # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
-    match global_name:
-        case "M":
-            global_distr = BaseMeasure(sigma0=global_std, device=device)
-        case "E":
-            global_distr = Easy_BaseMeasure(sigma0=global_std, device=device)
-        case "B":
-            global_distr = Brownian(device=device)
-        case "G":
-            global_distr = Gaussian(device=device)
-        case "S":
-            global_distr = SemiBrownian(device=device)
-        case _:
-            raise RuntimeError("Global distribution name is not allowed")
-        
-    global_xi = global_distr.sample(samples=n_traj, 
-                                    varn=n_vars, 
-                                    points=n_traj_points)
+    # Loading the saved tensors
+    proposal_xi_dict = torch.load(os.path.join("Proposal_xi_dir", f"{test_name}.pt"))
+    proposal_xi = proposal_xi_dict[(n_traj_points, proposal_std)][:n_traj, :, :] # Selecting only the first n_traj elements
+    del proposal_xi_dict
+    
+    target_xi_dict = torch.load(os.path.join("Target_xi_dir",f"{test_name}.pt"))
+    target_xi = target_xi_dict[(n_traj_points, target_std)][:n_traj, :, :] # Selecting only the first n_traj elements
+    del target_xi_dict
 
-    # Initializing the base trajectory and local distribution
-    base_xi = global_distr.sample(samples=1,
-                                 varn=n_vars, 
-                                 points=n_traj_points)
-    
-    # Initializing the local trajectory distribution and sampling local_xi
-    match local_name:
-        case "M":
-            local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
-        case "E":
-            local_distr = BaseMeasure(base_traj=base_xi[0], sigma0=local_std, device=device)
-        case "B":
-            local_distr = Brownian(base_traj=base_xi[0], std=local_std, device=device)
-        case "G":
-            local_distr = Gaussian(base_traj=base_xi[0], std=local_std, device=device)
-        case "S":
-            local_distr = SemiBrownian(base_traj=base_xi[0], std=local_std, device=device)
-        case _:
-            raise RuntimeError("Local distribution name is not allowed")
-        
-    local_xi = local_distr.sample(samples=n_traj, 
-                                  varn=n_vars, 
-                                  points=n_traj_points)
+    dweights_dict = torch.load(os.path.join("Dweights_dir", f"{test_name}.pt"))
+    dweights = dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std)][:n_traj] # Selecting only the first n_traj elements
+    del dweights_dict
 
-    # Initialize model for robustness computation
-    model = quantitative_model(model_path=model_path, nvars=n_vars)
+    true_dweights_dict = torch.load(os.path.join("True_Dweights_dir", f"{test_name}.pt"))
+    true_dweights = true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std)][:n_traj] # Selecting only the first n_traj elements
+    del true_dweights_dict
+
+
+    # Loading the saved formulae
+    with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'rb') as f:
+        phi_bag_dict = pickle.load(f)
+    phi_bag = phi_bag_dict[phi_id]
+    del phi_bag_dict
+    with open(os.path.join("psis_dir", f"{test_name}.pkl"), 'rb') as f:
+        psi_bag_tot = pickle.load(f)
+        psi_bag = psi_bag_tot[:n_psi]
+
     
-    # Generate random trajectories as psi features
-    psi_xi = global_distr.sample(samples=n_psi, 
-                                varn=n_vars, 
-                                points=n_traj_points)
-    
-    ## K_loc ##
-    # Computing the robustness of each psi over the local_xi
-    rhos_psi_local = torch.empty(n_psi, n_traj)
-    for i in range(n_psi):
-        rhos_psi_local[i, :] = model.robustness(local_xi)
-    
-    # Computing the robustness of model over local_xi as phi
-    rhos_phi_local = model.robustness(local_xi)
-    
-    # Computing the local kernels
-    K_loc = torch.tensordot(rhos_psi_local, rhos_phi_local, dims=([1],[0])) / (n_traj * math.sqrt(n_psi))
-    
+    ## K_target ##
+    # Computing the robustness of each psi over the target_xi
+    rhos_psi_target = torch.empty(n_psi, n_traj)
+    for (i, formula) in enumerate(psi_bag):
+        rhos_psi_target[i, :] = torch.tanh(formula.quantitative(target_xi, evaluate_at_all_times=evaluate_at_all_times))
+    # Computing the robustness of phi over target_xi
+    rhos_phi_target = torch.tanh(phi_bag[0].quantitative(target_xi, evaluate_at_all_times=evaluate_at_all_times))
+    # Computing the target kernels
+    K_target = torch.tensordot(rhos_psi_target, rhos_phi_target, dims=([1],[0]) ) / (n_traj * math.sqrt(n_psi)) 
     # Deleting used tensors
-    del rhos_psi_local
+    del rhos_psi_target
 
-    ## K_glob ##
-    # Computing the robustness of each psi over the global_xi
-    rhos_psi_global = torch.empty(n_psi, n_traj)
-    for i in range(n_psi):
-        rhos_psi_global[i, :] = model.robustness(global_xi)
-    
-    # Computing the robustness of model over global_xi as phi
-    rhos_phi_global = model.robustness(global_xi)
-    
-    # Computing the global kernel
-    K_glob = torch.tensordot(rhos_psi_global, rhos_phi_global, dims=([1],[0])) / (n_traj * math.sqrt(n_psi))
+    ## K_proposal ##
+    # Computing the robustness of each psi over the proposal_xi
+    rhos_psi_proposal = torch.empty(n_psi, n_traj)
+    for (i, formula) in enumerate(psi_bag):
+        rhos_psi_proposal[i, :] = torch.tanh(formula.quantitative(proposal_xi, evaluate_at_all_times=evaluate_at_all_times))
+    # Computing the robustness of phi over the proposal_xi
+    rhos_phi_proposal = torch.tanh(phi_bag[0].quantitative(proposal_xi, evaluate_at_all_times=evaluate_at_all_times))
+    # Computing the proposal kernel
+    K_proposal = torch.tensordot(rhos_psi_proposal, rhos_phi_proposal, dims=([1],[0]) ) / (n_traj * math.sqrt(n_psi)) 
 
     ## K_imp ##
     # Initializing the converter class
-    converter = local_matrix(n_vars=n_vars, 
-                             n_formulae=n_psi, 
-                             n_traj=n_traj, 
-                             n_traj_points=n_traj_points, 
-                             evaluate_at_all_times=evaluate_at_all_times,
-                             target_distr=local_distr,
-                             proposal_distr=global_distr,
-                             weight_strategy=weight_strategy)
+    converter = local_matrix(n_vars = n_vars, 
+                                n_formulae = n_psi, 
+                                n_traj = n_traj, 
+                                n_traj_points = n_traj_points, 
+                                evaluate_at_all_times = evaluate_at_all_times,
+                                )
+    # Computing the matrix Q that converts to a target kernel
+    if converter.compute_Q(proposal_traj = proposal_xi, PHI = rhos_psi_proposal, dweights=dweights):
+        # returns if there are problems with the pseudoinverse 
+        return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
+    # Computing the importance sampling kernel starting from the proposal one
+    K_imp = converter.convert_to_local(K_proposal).type(torch.float32)
     
-    # Computing the matrix Q that converts to a local kernel around the base_xi
-    if converter.compute_Q(proposal_traj=global_xi, PHI=rhos_psi_global):
-        # returns if there are problems with the pseudoinverse
-        return weight_strategy, n_psi, n_traj, local_std, global_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
-    
-    # Computing the importance sampling kernel starting from the global one
-    K_imp = converter.convert_to_local(K_glob).type(torch.float32)
-    
-    # Computing peak memory used
+    # Computing the peak memory used
     Process_mem = process.memory_info().rss / 1024 / 1024
-    
     # Saving the goodness metric of the pseudo inverse
     Pinv_error = converter.pinv_error
-    
-    # Saving other metrics of the local matrix transformation
-    Sum_weights = converter.sum_weights
-    Sum_squared_weights = converter.sum_squared_weights
-    
+    # Saving other metrics that are precomputed 
+    Sum_weights = max(torch.sum(true_dweights).item(), torch.finfo(true_dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
+    Sum_squared_weights = torch.sum(torch.square(true_dweights)).item()
     # Deleting used tensors
     converter.__dict__.clear()  # Removes all instance attributes
-    del rhos_psi_global, converter
 
-    # Testing the norms of the kernels
-    Norm_glob = torch.norm(K_glob).item()
-    Norm_loc = torch.norm(K_loc).item()
+    #Testing the norms of the kernels
+    Norm_proposal = torch.norm(K_proposal).item()
+    Norm_target = torch.norm(K_target).item()
     Norm_imp = torch.norm(K_imp).item()
 
-    # Computing the matrix Dist and Cos_Dist and Dist_rho
-    Dist = torch.norm(K_loc - K_imp).item()
-    Cos_dist = 1 - torch.dot(K_loc/Norm_loc, K_imp/Norm_imp).item()
-    Dist_rho = torch.norm(rhos_phi_global - rhos_phi_local).item()/math.sqrt(n_traj)
+    #Computing the matrix Dist and Cos_Dist and Dist_rho
+    Dist = torch.norm(K_target - K_imp).item()
+    Cos_dist = 1 - torch.dot(K_target/Norm_target, K_imp/Norm_imp).item()
+    Dist_rho = torch.norm(rhos_phi_proposal - rhos_phi_target).item()/math.sqrt(n_traj)
 
-    # Using FAISS to retrieve formulae
-    if n_psi >= 1000:  # Only use FAISS if we have enough features
-        # Rescaling the kernels for the search
-        K_loc_scaled = K_loc * n_traj * math.sqrt(n_psi)
+    try:
+        # Rescaling the kernels for the search (as per the example in model_to_formula.py)
+        K_target_scaled = K_target * n_traj * math.sqrt(n_psi)
         K_imp_scaled = K_imp * n_traj * math.sqrt(n_psi)
-        
-        # Stack multiple kernels together
-        kernels = torch.stack([K_loc_scaled, K_imp_scaled], dim=0)
-        
-        # k is the number of closest formulae to retrieve
-        k = 5
-        
-        # Search for closest formulae to both kernels at once
-        formulae_lists, distances = search_from_kernel(
-            kernels=kernels,
+
+        # Search for closest formulae to each kernel
+        target_formulae_list, target_dists = search_from_kernel(
+            kernels=K_target_scaled,
             nvar=n_vars,
             k=k,
             n_neigh=64
         )
         
-        # Access results for each kernel
-        loc_formulae = formulae_lists[0]
-        imp_formulae = formulae_lists[1]
+        imp_formulae_list, imp_dists = search_from_kernel(
+            kernels=K_imp_scaled,
+            nvar=n_vars,
+            k=k,
+            n_neigh=64
+        )
         
-        loc_dists = distances[0]
-        imp_dists = distances[1]
+        # Extract the formulae (first element is the list of formulae for the first/only kernel)
+        target_formulae = target_formulae_list[0]
+        imp_formulae = imp_formulae_list[0]
         
-        # Computing the overlap between the formulae retrieved
-        common_formulae = set([str(f) for f in loc_formulae]).intersection([str(f) for f in imp_formulae])
+        # Compute overlap between the two sets of formulae
+        common_formulae = set([str(f) for f in target_formulae]).intersection([str(f) for f in imp_formulae])
         overlap_form = len(common_formulae) / k
-    else:
+        
+        # Compute distance between the formulae using similarity_based_relevance
+        # Create a BaseMeasure for generating test trajectories (if needed)
+        mu0 = BaseMeasure(device=device, sigma0=1.0, sigma1=1.0, q=0.1)
+        test_trajectories = mu0.sample(1000, n_vars)  # Sample trajectories for comparison
+        
+        # Get the first formula from target_formulae to use as reference
+        # We could use any formula as reference, but using the top match makes sense
+        phi_reference = target_formulae[0]
+        
+        # Compute similarity between reference formula and all formulae in imp_formulae
+        cosine_similarity, sat_diff = similarity_based_relevance(
+            phi_reference, 
+            imp_formulae,
+            n_vars, 
+            device,
+            boolean=True,
+            test_trajectories=test_trajectories
+        )
+        
+        # Use the average cosine similarity as a distance metric (1 - avg_similarity)
+        dist_form = 1.0 - cosine_similarity.mean().item()
+    except Exception as e:
+        print(f"Error in formula search and comparison: {e}")
         overlap_form = math.nan
+        dist_form = math.nan
 
     # Deleting used tensors
-    del K_glob, K_loc, K_imp, rhos_phi_global, rhos_phi_local
+    del K_proposal, K_target, K_imp, rhos_psi_proposal, rhos_phi_proposal, rhos_phi_target
 
     # End timing
     Elapsed_time = time.time() - start_time
     
-    return weight_strategy, n_psi, n_traj, local_std, global_std, n_traj_points, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form
+    return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form
 
-
-def setup_database(db_path):
-    """Create the database and tables if they don't exist"""
-    with sqlite3.connect(db_path) as conn:
-        c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS model_results
-                    (weight_strategy TEXT,
-                     n_psi INTEGER,
-                     n_traj INTEGER,
-                     local_std REAL,
-                     global_std REAL,
-                     n_traj_points INTEGER,
-                     Dist REAL,
-                     Cos_dist REAL,
-                     Dist_rho REAL,
-                     Norm_glob REAL,
-                     Norm_loc REAL,
-                     Norm_imp REAL,
-                     Pinv_error REAL,
-                     Sum_weights REAL,
-                     Sum_squared_weights REAL,
-                     Elapsed_time REAL,
-                     Process_mem REAL,
-                     overlap_form REAL,
-                     n_e REAL,
-                     PRIMARY KEY (weight_strategy, n_psi, n_traj, local_std, global_std, n_traj_points))''')
-        conn.commit()
 
 
 if __name__ == "__main__":
-    # Get the parameters from command line arguments
+    # Get the parameter file and test name from command line argument
     try:
         params_file = sys.argv[1]
         test_name = sys.argv[2]
-        model_path = sys.argv[3]  # Path to the model state dict
+        save_all = sys.argv[3]
+        # BaseMeasure = M, Easy_BaseMeasure = E, Brownian = B, Gaussian = G, SemiBrownian = S.
     except IndexError:
-        raise ValueError("Missing arguments. Usage: python3 Test_model.py <params_file> <test_name> <model_path>")
-
-    # Check if model path exists
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found: {model_path}")
+        raise ValueError("No test name or params file provided. Usage: python3 Test_model.py <params_file> <test_name> <save_all>")
 
     # Load the parameters for this job
     with open(params_file, 'r') as f:
         parameter_combinations = json.load(f)
 
-    # Create database directory if it doesn't exist
-    os.makedirs("Databases", exist_ok=True)
-    
-    # Setup database
-    db_path = f"Databases/database_model_{test_name}.db"
-    setup_database(db_path)
-
     # Creating the inputs to be passed to the process
-    inputs = [(param, test_name, model_path) for param in parameter_combinations]
+    inputs = [(param, test_name) for param in parameter_combinations]
 
     # Process work in parallel
-    num_processes = mp.cpu_count() - 1  # Use all available CPUs except one
-    # num_processes = 1  # Uncomment for single process debugging
+    num_processes = mp.cpu_count() - 1 # Use all available CPUs except one
+    #num_processes = 1  # Apply this for a single process at a time
 
-    with mp.Pool(processes=num_processes) as pool:
-        results = pool.starmap(Work_on_process, inputs)
+    # working on the base algorithm or on the precomputed one:
+    if save_all == "yes":
+        with mp.Pool(processes=num_processes) as pool:
+            results = pool.starmap(Work_on_process_precomp, inputs)
+    else:
+        raise RuntimeError("This code requires to save all parameters. Set save_all='true'")
 
     # Store results in database
     for result in results:
-        weight_strategy, n_psi, n_traj, local_std, global_std, n_traj_points, Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form = result
         
-        print(f"weight_strategy = {weight_strategy}, n_psi = {n_psi}, n_traj = {n_traj}, local_std = {local_std}, global_std = {global_std}, n_traj_points = {n_traj_points}, Dist = {Dist}, Cos_dist = {Cos_dist}, Dist_rho = {Dist_rho}, Norm_glob = {Norm_glob}, Norm_loc = {Norm_loc}, Norm_imp = {Norm_imp}, Pinv_error = {Pinv_error}, Sum_weights = {Sum_weights}, Sum_squared_weights = {Sum_squared_weights}, Elapsed_time = {Elapsed_time}, Process_mem = {Process_mem}, overlap_form = {overlap_form}")
-
-        # Computing n_e (effective sample size)
+        db_path = f"Databases/database_{test_name}.db"
+        if not os.path.exists(db_path):
+            print(f"Database {db_path} not found")
+            exit()
+        weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form = result
+        
+        # Computing n_e
         try:
             n_e = (Sum_weights**2)/Sum_squared_weights
         except:
             n_e = None
 
-        with sqlite3.connect(db_path, timeout=60.0) as conn:
-            c = conn.cursor()
-            # Save values in database
-            c.execute('''INSERT OR REPLACE INTO model_results 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                      (weight_strategy, n_psi, n_traj, local_std, global_std, n_traj_points,
-                       Dist, Cos_dist, Dist_rho, Norm_glob, Norm_loc, Norm_imp,
-                       Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, 
-                       overlap_form, n_e))
-            conn.commit()
+        print(f"weight_strategy = {weight_strategy}, n_psi_added = {n_psi_added}, n_traj = {n_traj}, target_std = {target_std}, proposal_std = {proposal_std}, n_traj_points = {n_traj_points}, phi_id = {phi_id}, base_xi_id = {base_xi_id}, Dist = {Dist}, Cos_dist = {Cos_dist}, Dist_rho = {Dist_rho}, Norm_proposal = {Norm_proposal}, Norm_target = {Norm_target}, Norm_imp = {Norm_imp}, Pinv_error = {Pinv_error}, Sum_weights = {Sum_weights}, Sum_squared_weights = {Sum_squared_weights}, Elapsed_time = {Elapsed_time}, Process_mem = {Process_mem}, n_e = {n_e}, overlap_form = {overlap_form}, dist_form = {dist_form}")
 
-    # Extract information from the file name
+        with sqlite3.connect(db_path, timeout=60.0) as conn:  # Increased timeout for concurrent access
+            c = conn.cursor()
+            # Saving the values in the database
+            c.execute('''INSERT OR REPLACE INTO results 
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                    (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id,
+                    Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp,
+                    Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e, overlap_form, dist_form))
+            
+            conn.commit()
+    
+    #Extract the informations in the file name
     pattern = r"job_files/params_(.+?)_(\d+)(?:_done)?\.json"
     match = re.match(pattern, params_file)
     if match:
         test_name_file, job_id = match.groups()
-        print(f"Completed job {job_id}")
     else:
-        print("Match not valid")
+        print(f"Match not valid")
 
-    # Rename the file to indicate completion
+    print(f"Completed job {job_id}")
+
+    # Create the new filename by inserting '_done' before the extension
     base = params_file.rsplit('.', 1)[0]  # Get everything before the .json
     new_filename = f"{base}_done.json"
+    # Rename the file
     os.rename(params_file, new_filename)

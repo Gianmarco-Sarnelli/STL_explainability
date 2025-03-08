@@ -155,6 +155,7 @@ class local_matrix:
             self.true_dweights = self.dweights.clone() # Saving a copy of the unnormalized weights for later
             self.sum_weights = max(torch.sum(self.dweights).item(), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
             self.sum_squared_weights = torch.sum(torch.square(self.dweights)).item()
+            print(f"self.dweights: {self.dweights}")
             match self.weight_strategy:
                 case "self_norm":
                     self.dweights /= self.sum_weights
@@ -162,7 +163,7 @@ class local_matrix:
                 case "standard":
                     pass
                 case "square_root":
-                    self.dweight = torch.sqrt(self.dweights)
+                    self.dweights = torch.sqrt(self.dweights)
                     self.dweights /= self.sum_weights
                     self.dweights *= self.n_traj
                 case _: # The default case will be the self normalization

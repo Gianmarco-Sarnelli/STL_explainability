@@ -238,8 +238,20 @@ def Work_on_process_precomp(params, test_name):
     overlap_form = len(common_formulae) / k
     print(f"overlap_form = {overlap_form}", flush=True)
     
+
+
+
+
+
+    
     #TODO: Note that the result of the search is a string of the formula, not the formula itself, you must find a way to convert it back!!
-    :
+    
+
+
+
+
+
+
     # Compute distance between the formulae using similarity_based_relevance
     # Create a BaseMeasure for generating test trajectories (if needed)
     mu0 = BaseMeasure(device=device, sigma0=1.0, sigma1=1.0, q=0.1)

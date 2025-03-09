@@ -89,7 +89,7 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Evaluation of formulae
     evaluate_at_all_times = False
-    n_vars = 2
+    n_vars = 3
     # NOTE: n_traj_points must be >= max_timespan in phis_generator
     # NOTE: max_timespan must be greater than 11 (for some reason) #TODO: find why this is the case
     #n_traj_points = 11
@@ -215,8 +215,9 @@ try:
     n_jobs = int(sys.argv[2])
     save_all = sys.argv[3]
     partition = sys.argv[4]
+    script = sys.argv[5]
 except IndexError:
-    raise ValueError("Wrong number of agrs provided. Usage: python3 Generate_jobs.py <test_name> <n_jobs> <save_all> <partition>")
+    raise ValueError("Wrong number of agrs provided. Usage: python3 Generate_jobs.py <test_name> <n_jobs> <save_all> <partition> <script>")
 
 # Initialize database
 initialize_database(test_name)
@@ -227,12 +228,12 @@ if (partition != "THIN") and (partition != "EPYC"):
 
 # Parameters for the test
 list_weight_strategy = ["self_norm"]#, "standard"]
-list_n_traj_points = [11]
+list_n_traj_points = [100]
 list_target_std = [1]
 list_proposal_std = [1]
 list_n_traj = [1000, 2000]
 list_n_psi_added = [500]
-list_phi_id = [x for x in range(5)] #[x for x in range(3)]
+list_phi_id = [0, 1, 2, 6] #[x for x in range(5)] #[x for x in range(3)]
 list_base_xi_id = [0]    #NOTE: fix this to a single value
 
 # If we want to save all variables we need to initialize them
@@ -306,7 +307,7 @@ for job_id in range(n_jobs):
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # Run the Python script
-python3 Test_distance.py {params_file} {test_name} {save_all}
+python3 {script} {params_file} {test_name} {save_all}
 """
 
     slurm_file = f"job_files/slurm_{test_name}_{job_id}.sh"

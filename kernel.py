@@ -150,9 +150,9 @@ class StlKernel:
         length_normalizer = self._compute_trajectory_length_normalizer(len1, len2)
         kernel_matrix = kernel_matrix * length_normalizer / self.samples
         if self.normalize:
-            kernel_matrix = self._normalize(kernel_matrix, selfk1, selfk2)
+            kernel_matrix = self._normalize(kernel_matrix, selfk1, selfk2)    #NOTE: This is a problem!!!!!! It requires the computation of a square kernel matrix!!!
         if self.exp_kernel:
-            kernel_matrix = self._exponentiate(kernel_matrix, selfk1, selfk2)
+            kernel_matrix = self._exponentiate(kernel_matrix, selfk1, selfk2)  #NOTE: This is also a problem!!! It creates a gaussian kernel!!! Who told me that we were doing gaussian kernels???
         return kernel_matrix
 
     def _compute_kernel_no_time(self, rhos1, rhos2, selfk1, selfk2):

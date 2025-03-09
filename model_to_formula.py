@@ -33,9 +33,11 @@ class SimpleRNN(nn.Module):
         self.fc = nn.Linear(hidden_dim * self.directions, 2)  # Binary classification
         
     def forward(self, x):
-            
+        
+        x_reor = x.permute(0, 2, 1) # Now the shape is [samples, n_traj_points, n_vars]
+        
         # GRU returns output, hidden
-        _, hidden = self.gru(x)
+        _, hidden = self.gru(x_reor)
         
         # Use the last hidden state from the last layer
         #if self.bidirectional:
@@ -67,6 +69,9 @@ class quantitative_model:
         self.model.load_state_dict(torch.load(self.model_path))
     
     def robustness(self, traj):
+        """
+        input: traj : torch.Tensor of shape (samples, n_vars, n_traj_points)
+        """
 
         self.model.eval()  # Put in evaluation mode
         with torch.no_grad():
@@ -113,7 +118,7 @@ def search_from_kernel(kernels, nvar, k=5, n_neigh=64, n_pc=-1, timespan=None, n
     # Check if we have a single kernel or multiple kernels
     if len(kernels.shape) == 2:
         # Single kernel, add a dimension to make it [1, n_formulae, n_formulae]
-        kernels = kernels.unsqueeze(0)
+        kernels = kernels.unsqueeze(0)   # TODO; Rivedi, forse non funziona
     
     # Convert kernel matrices to flattened embeddings
     # Each kernel becomes a row vector

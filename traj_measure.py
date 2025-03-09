@@ -24,7 +24,7 @@ class Measure:
 
 class BaseMeasure(Measure):
     def __init__(
-        self, mu0=0.0, sigma0=1.0, mu1=0.0, sigma1=1.0, q=0.02, q0=0.5, device="cpu", density=1, base_traj=None
+        self, mu0=0.0, sigma0=1.0, mu1=0.0, sigma1=1.0, q=0.1, q0=0.5, device="cpu", density=1, base_traj=None
     ):
         """
 
@@ -39,7 +39,7 @@ class BaseMeasure(Measure):
         sigma1 : standard deviation of normal distribution of total variation, optional
             The default is 1.0.
         q : DOUBLE, optional
-            probability of change of sign in derivative. The default is 0.02.
+            probability of change of sign in derivative. The default is 0.1.
         q0 : DOUBLE, optional
             probability of initial sign of  derivative. The default is 0.5.
         device : 'cpu' or 'cuda', optional
@@ -265,7 +265,7 @@ class BaseMeasure(Measure):
         
 class Easy_BaseMeasure(Measure):
     def __init__(
-        self, mu0=0.0, sigma0=1.0, mu1=0.0, sigma1=1.0, q=0.02, q0=0.5, device="cpu", density=1, base_traj=None
+        self, mu0=0.0, sigma0=1.0, mu1=0.0, sigma1=1.0, q=0.1, q0=0.5, device="cpu", density=1, base_traj=None
     ):
         """
         The "Easy" version of BaseMeasure
@@ -281,7 +281,7 @@ class Easy_BaseMeasure(Measure):
         sigma1 : standard deviation of normal distribution of total variation, optional
             The default is 1.0.
         q : DOUBLE, optional
-            probability of change of sign in derivative. The default is 0.02.
+            probability of change of sign in derivative. The default is 0.1.
         q0 : DOUBLE, optional
             probability of initial sign of  derivative. The default is 0.5.
         device : 'cpu' or 'cuda', optional

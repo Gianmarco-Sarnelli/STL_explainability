@@ -3,7 +3,14 @@ import matplotlib.pyplot as plt
 import time
 from typing import Tuple, List, Optional
 
-def compute_G_matrix(N: int, s: float, max_rank: int, S_matrix: Optional[torch.Tensor] = None, 
+# TODO: instad of computing  P_{i,j}^{(n)}, compute  P_{i,j}^{(n)} * s^n
+# TODO: Save the matrix in a special folder
+# TODO: Implement the function that compresses G into G^*
+# TODO: Save G^*
+# TODO: Implement the function that multiplies a* G a'*
+# TODO: Slice the indeces x, z depending on their position relative to i, j to optimize the code!
+
+def compute_G_matrix(N: int, s: float, max_rank: int, S_matrix: Optional[torch.Tensor] = None,  
                      device: str = 'cuda' if torch.cuda.is_available() else 'cpu') -> Tuple[torch.Tensor, List[torch.Tensor]]:
     """
     Compute the G matrix using the simplified iterative formula:
@@ -103,6 +110,7 @@ def compute_G_matrix(N: int, s: float, max_rank: int, S_matrix: Optional[torch.T
     
     return G, P_list
 
+# TODO: S_S_prime_products cannot be computed! Remove it!
 
 def compute_G_matrix_optimized(N: int, s: float, max_rank: int, S_matrix: Optional[torch.Tensor] = None, 
                               device: str = 'cuda' if torch.cuda.is_available() else 'cpu') -> Tuple[torch.Tensor, List[torch.Tensor]]:
@@ -195,6 +203,10 @@ def compute_G_matrix_optimized(N: int, s: float, max_rank: int, S_matrix: Option
     return G, P_list
 
 
+
+# TODO: Remove the diagonal from the matrix visualization
+# TODO: Maybe visualize the log of the result
+
 def visualize_matrix(matrix, title="Matrix Visualization"):
     """
     Visualize a matrix as a heatmap.
@@ -217,6 +229,7 @@ def visualize_matrix(matrix, title="Matrix Visualization"):
     plt.tight_layout()
     plt.show()
 
+# TODO: Probably not useful
 
 def check_convergence(P_list, s, tolerance=1e-6):
     """

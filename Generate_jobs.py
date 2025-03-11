@@ -47,6 +47,8 @@ Process_mem REAL,
 n_e REAL,
 overlap_form REAL,
 dist_form REAL,
+dist_new_kernels REAL,
+dist_embed REAL,
 PRIMARY KEY (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id))''')
 
         # Optimize database performance
@@ -227,13 +229,13 @@ if (partition != "THIN") and (partition != "EPYC"):
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
-list_weight_strategy = ["self_norm"]#, "standard"]
+list_weight_strategy = ["self_norm"]#, "standard"] #[only_target]
 list_n_traj_points = [100]
 list_target_std = [1]
 list_proposal_std = [1]
 list_n_traj = [1000, 2000]
 list_n_psi_added = [500]
-list_phi_id = [0, 1, 2, 6] #[x for x in range(5)] #[x for x in range(3)]
+list_phi_id = [0]#[0, 1, 2, 6] #[x for x in range(5)] #[x for x in range(3)]
 list_base_xi_id = [0]    #NOTE: fix this to a single value
 
 # If we want to save all variables we need to initialize them

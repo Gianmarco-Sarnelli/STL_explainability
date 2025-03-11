@@ -80,9 +80,86 @@ class quantitative_model:
             rhos = 2 * probabilities[:,1] - 1
         return rhos
     
+    def new_robustness(self, traj):
+        """
+        input: traj : torch.Tensor of shape (samples, n_vars, n_traj_points)
+
+        Computes the new robustness vector (no tanh normalization and norm equal to 1)
+        """
+
+        rhos_unnorm = self.robustness(traj)
+        #rhos_unnorm = torch.atanh(old_rhos)
+        rhos_norm = torch.norm(rhos_unnorm).item()
+        rhos = rhos_unnorm / rhos_norm
+        return rhos
+
+
+def new_kernel_to_embedding(new_kernel, sigma2=0.44 ):
+    """
+    input: new_kernel : torch.Tensor of shape (n_vars, n_traj_points)
+    
+    This function transforms the new kernel representation into 
+    the embedding vector used inside the semantic vector database
+    """
+    if len(new_kernel.shape) != 2:
+        raise RuntimeError(f"new_kernel should have two dimensions. Got shape: {new_kernel.shape}")
+    
+    embedding = torch.exp( (2 * new_kernel -2) / (2 * sigma2))
+
+    return embedding
+    
+
+def compute_bag_bag_manual(phis1, phis2, mu0, max_n_vars, sigma2=0.44, samples=10000):
+    """
+    This is the expanded version of the funcion 'compute_bag_bag' inside kernel
+    This is substantially different from the classical way of computing the kernel
+    Differences: 
+    * No tanh normalization (!!!)
+    * Normalizes each kernel by the sqrt of the l2 norm of the robustness
+    * Gaussian kernel instead of classical one (!!!)
+    """
+    # Initialize signals (normally this would be done in StlKernel constructor)
+    signals = mu0.sample(points=100, samples=samples, varn=max_n_vars)
+    
+    # Compute robustness for both sets of formulas
+    n = samples
+    k1 = len(phis1)
+    k2 = len(phis2)
+    
+    # Compute robustness for first set
+    rhos1 = torch.zeros((k1, n), device=mu0.device)
+    selfk1 = torch.zeros((k1, 1), device=mu0.device)
+    for i, phi in enumerate(phis1):
+        rho = phi.quantitative(signals, evaluate_at_all_times=False)
+        selfk1[i] = rho.dot(rho) / n
+        rhos1[i, :] = rho
+    
+    # Compute robustness for second set
+    rhos2 = torch.zeros((k2, n), device=mu0.device)
+    selfk2 = torch.zeros((k2, 1), device=mu0.device)
+    for i, phi in enumerate(phis2):
+        rho = phi.quantitative(signals, evaluate_at_all_times=False)
+        selfk2[i] = rho.dot(rho) / n
+        rhos2[i, :] = rho
+    
+    # Compute kernel matrix
+    kernel_matrix = torch.tensordot(rhos1, rhos2, [[1], [1]])
+    kernel_matrix = kernel_matrix / n
+    
+    # Normalize
+    normalize_factor = torch.sqrt(torch.matmul(selfk1, torch.transpose(selfk2, 0, 1)))
+    kernel_matrix = kernel_matrix / normalize_factor
+    
+    # Exponentiate
+    # Apply Gaussian kernel formula: exp(-||x-y||²/(2σ²))
+    # Where ||x-y||² = ||x||² + ||y||² - 2<x,y>
+    k1 = selfk1.size()[0]
+    k2 = selfk2.size()[0]
+    selfk = 2.0  # Because we're normalized
+    return torch.exp(-(selfk - 2 * kernel_matrix) / (2 * sigma2))
 
     
-def search_from_kernel(kernels, nvar, k=5, n_neigh=64, n_pc=-1, timespan=None, nodes=None):
+#def search_from_kernel(kernels, nvar, k=5, n_neigh=64, n_pc=-1, timespan=None, nodes=None):
     """
     Search for closest STL formulae based on kernel embeddings
     
@@ -112,6 +189,7 @@ def search_from_kernel(kernels, nvar, k=5, n_neigh=64, n_pc=-1, timespan=None, n
         formulae_list: List of lists of k closest formulae for each kernel
         distances: Matrix of distances to k closest formulae for each kernel
     """
+    """
     #Path to the index forlder
     folder_index = os.path.join("IR", "index")  # Update with actual path
 
@@ -138,6 +216,7 @@ def search_from_kernel(kernels, nvar, k=5, n_neigh=64, n_pc=-1, timespan=None, n
     )
     
     return formulae_list, distances
+    """
 
 '''# Example usage within the Work_on_process function:
 def modified_Work_on_process(params, test_name)::

@@ -131,10 +131,11 @@ class local_matrix:
                 # Computing the log probability of the target distribution
                 target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
                 log_prob += target_log_prob.item()
-            
-                # Computing the log probability of the proposal distribution
-                proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                log_prob -= proposal_log_prob.item()
+
+                if self.weight_strategy != "only_target":
+                    # Computing the log probability of the proposal distribution
+                    proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                    log_prob -= proposal_log_prob.item()
                 
                 # Handling the possible errors
                 if proposal_log_error:
@@ -164,6 +165,9 @@ class local_matrix:
                     pass
                 case "square_root":
                     self.dweights = torch.sqrt(self.dweights)
+                    self.dweights /= self.sum_weights
+                    self.dweights *= self.n_traj
+                case "only_target":
                     self.dweights /= self.sum_weights
                     self.dweights *= self.n_traj
                 case _: # The default case will be the self normalization

@@ -15,9 +15,9 @@ import json
 import sqlite3
 import re
 import pickle
-from model_to_formula import search_from_kernel, quantitative_model
+from model_to_formula import search_from_kernel, quantitative_model, new_kernel_to_embedding
 from IR.phisearch import similarity_based_relevance, search_from_embeddings
-from IR.utils import load_pickle
+from IR.utils import load_pickle, from_string_to_formula
 
 # Removing the warnings when we use pickle
 import warnings
@@ -54,7 +54,7 @@ def Work_on_process_precomp(params, test_name):
     
     Returns
     ---------
-    weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form
+    weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
     """
     # Timing each process
     start_time = time.time()
@@ -114,7 +114,7 @@ def Work_on_process_precomp(params, test_name):
     model_list = ["human", "linear", "maritime", "robot2", "robot4", "robot5", "train"]
     model_name = model_list[phi_id]
 
-    print(f"model name: {model_name}", flush=True)
+    print(f"model name: {model_name}")
 
     if model_name == "maritime":
         n_vars_model = 2
@@ -136,11 +136,11 @@ def Work_on_process_precomp(params, test_name):
 
     ## K_target ##
     # Computing the robustness of each train_phis over the target_xi
-    rhos_psi_target = torch.empty(n_train_phis, n_traj)
+    rhos_psi_target = torch.zeros(n_train_phis, n_traj)
     for (i, formula) in enumerate(train_phis):
         rhos_psi_target[i, :] = torch.tanh(formula.quantitative(target_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the robustness of the model over target_xi
-    rhos_phi_target = torch.tanh(quant_model.robustness(traj=target_xi_cut))
+    rhos_phi_target = quant_model.robustness(traj=target_xi_cut)
     # Computing the target kernels
     K_target = torch.tensordot(rhos_psi_target, rhos_phi_target, dims=([1],[0]) ) / (n_traj * math.sqrt(n_train_phis)) 
     # Deleting used tensors
@@ -148,11 +148,11 @@ def Work_on_process_precomp(params, test_name):
 
     ## K_proposal ##
     # Computing the robustness of each train_phis over the proposal_xi
-    rhos_psi_proposal = torch.empty(n_train_phis, n_traj)
+    rhos_psi_proposal = torch.zeros(n_train_phis, n_traj)
     for (i, formula) in enumerate(train_phis):
         rhos_psi_proposal[i, :] = torch.tanh(formula.quantitative(proposal_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the robustness of phi over the proposal_xi
-    rhos_phi_proposal = torch.tanh(quant_model.robustness(traj=proposal_xi_cut))
+    rhos_phi_proposal = quant_model.robustness(traj=proposal_xi_cut)
     # Computing the proposal kernel
     K_proposal = torch.tensordot(rhos_psi_proposal, rhos_phi_proposal, dims=([1],[0]) ) / (n_traj * math.sqrt(n_train_phis)) 
 
@@ -181,6 +181,55 @@ def Work_on_process_precomp(params, test_name):
     # Deleting used tensors
     converter.__dict__.clear()  # Removes all instance attributes
 
+    
+    ## NEW ##
+
+
+    ## New_K_target ##
+    # Computing the new robustness of each train_phis over the target_xi
+    new_rhos_psi_target = torch.zeros(n_train_phis, n_traj)
+    for (i, formula) in enumerate(train_phis):
+        new_rhos_psi_target[i, :] = torch.tanh(formula.quantitative(target_xi, evaluate_at_all_times=evaluate_at_all_times))
+        new_rhos_psi_target_norm =  torch.norm(new_rhos_psi_target[i, :])
+        new_rhos_psi_target[i, :] = new_rhos_psi_target[i, :] / new_rhos_psi_target_norm
+    # Computing the robustness of the model over target_xi
+    new_rhos_phi_target = quant_model.new_robustness(traj=target_xi_cut)
+    # Computing the target kernels
+    New_K_target = torch.tensordot(new_rhos_psi_target, new_rhos_phi_target, dims=([1],[0]) ) 
+    # Deleting used tensors
+    del new_rhos_psi_target, new_rhos_phi_target
+
+    ## New_K_proposal ##
+    # Computing the new robustness of each train_phis over the proposal_xi
+    new_rhos_psi_proposal = torch.zeros(n_train_phis, n_traj)
+    for (i, formula) in enumerate(train_phis):
+        new_rhos_psi_proposal[i, :] = torch.tanh(formula.quantitative(proposal_xi, evaluate_at_all_times=evaluate_at_all_times))
+        new_rhos_psi_proposal_norm =  torch.norm(new_rhos_psi_proposal[i, :])
+        new_rhos_psi_proposal[i, :] = new_rhos_psi_proposal[i, :] / new_rhos_psi_proposal_norm
+    # Computing the robustness of the model over proposal_xi
+    new_rhos_phi_proposal = quant_model.new_robustness(traj=proposal_xi_cut)
+    # Computing the proposal kernels
+    New_K_proposal = torch.tensordot(new_rhos_psi_proposal, new_rhos_phi_proposal, dims=([1],[0]) ) 
+    del new_rhos_phi_proposal
+
+    ## New_K_imp ##
+    converter = local_matrix(n_vars = n_vars, 
+                                n_formulae = n_train_phis, 
+                                n_traj = n_traj, 
+                                n_traj_points = n_traj_points, 
+                                evaluate_at_all_times = evaluate_at_all_times,
+                                )
+    # Computing the matrix Q that converts to a target kernel
+    if converter.compute_Q(proposal_traj = proposal_xi, PHI = new_rhos_psi_proposal, dweights=dweights):
+        # returns if there are problems with the pseudoinverse 
+        return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
+    # Computing the importance sampling kernel starting from the proposal one
+    New_K_imp = converter.convert_to_local(New_K_proposal).type(torch.float32)
+    # Deleting used tensors
+    converter.__dict__.clear()  # Removes all instance attributes
+    del new_rhos_psi_proposal
+
+
     #Testing the norms of the kernels
     Norm_proposal = torch.norm(K_proposal).item()
     Norm_target = torch.norm(K_target).item()
@@ -191,18 +240,20 @@ def Work_on_process_precomp(params, test_name):
     Cos_dist = 1 - torch.dot(K_target/Norm_target, K_imp/Norm_imp).item()
     Dist_rho = torch.norm(rhos_phi_proposal - rhos_phi_target).item()/math.sqrt(n_traj)
 
-    #try:
+    # Computing the distance between the new kernels:
+    dist_new_kernels = torch.norm(New_K_target - New_K_imp).item()
 
     #Path to the index forlder
     folder_index = os.path.join("IR", "index")  # Update with actual path
 
-    # Rescaling the kernels for the search
-    K_target_scaled = K_target * n_traj * math.sqrt(n_train_phis)
-    K_imp_scaled = K_imp * n_traj * math.sqrt(n_train_phis)
+    # Transforming kernels into the embeddings of the database
+    target_embedding = new_kernel_to_embedding(New_K_target)
+    imp_embedding = new_kernel_to_embedding(New_K_imp)
+    dist_embed = torch.norm(target_embedding-target_embedding)
 
     start_search_time1 = time.time()
     # Search for closest formulae to each kernel
-    target_formulae_list, target_dists = search_from_embeddings(embeddings=K_target_scaled.unsqueeze(0),
+    target_formulae_list, target_dists = search_from_embeddings(embeddings=target_embedding.unsqueeze(0),
                                                                 nvar=n_vars_model,
                                                                 folder_index=folder_index,
                                                                 k=5,
@@ -210,12 +261,12 @@ def Work_on_process_precomp(params, test_name):
                                                                 n_pc=-1,
                                                                 timespan=None,
                                                                 nodes=None)
-    print(f"target dists: {target_dists}", flush=True)
+    print(f"target dists: {target_dists}")
     total_search_time1 = time.time()-start_search_time1
     print(f"total_search_time1 = {total_search_time1}")
     
     start_search_time2 = time.time()
-    imp_formulae_list, imp_dists = search_from_embeddings(embeddings=K_imp_scaled.unsqueeze(0),
+    imp_formulae_list, imp_dists = search_from_embeddings(embeddings=imp_embedding.unsqueeze(0),
                                                                 nvar=max_n_vars,
                                                                 folder_index=folder_index,
                                                                 k=5,
@@ -223,34 +274,24 @@ def Work_on_process_precomp(params, test_name):
                                                                 n_pc=-1,
                                                                 timespan=None,
                                                                 nodes=None)
-    print(f"imp dists: {imp_dists}", flush=True)
+    print(f"imp dists: {imp_dists}")
     total_search_time2 = time.time()-start_search_time2
     print(f"total_search_time2 = {total_search_time2}")
     
     # Extract the formulae (first element is the list of formulae for the first/only kernel)
-    target_formulae = target_formulae_list[0]
-    imp_formulae = imp_formulae_list[0]
-    print(f"formulae are there! There are {len(imp_formulae)} imp_formulae and {len(target_formulae)} target_formulae", flush=True)
-    print(f"imp_formulae: {imp_formulae}, target_formulae: {target_formulae}")
+    target_formulae_str = target_formulae_list[0]
+    imp_formulae_str = imp_formulae_list[0]
+    print(f"formulae are there! There are {len(imp_formulae_str)} imp_formulae and {len(target_formulae_str)} target_formulae")
+    print(f"imp_formulae: {imp_formulae_str}, target_formulae: {target_formulae_str}")
     
     # Compute overlap between the two sets of formulae
-    common_formulae = set([str(f) for f in target_formulae]).intersection([str(f) for f in imp_formulae])
+    common_formulae = set([str(f) for f in target_formulae_str]).intersection([str(f) for f in imp_formulae_str])
     overlap_form = len(common_formulae) / k
-    print(f"overlap_form = {overlap_form}", flush=True)
-    
+    print(f"overlap_form = {overlap_form}")
 
-
-
-
-
-    
-    #TODO: Note that the result of the search is a string of the formula, not the formula itself, you must find a way to convert it back!!
-    
-
-
-
-
-
+    # Transform the formulae from string version to actual formulae
+    target_formulae = [from_string_to_formula(x) for x in target_formulae_str]
+    imp_formulae = [from_string_to_formula(x) for x in imp_formulae_str]
 
     # Compute distance between the formulae using similarity_based_relevance
     # Create a BaseMeasure for generating test trajectories (if needed)
@@ -273,11 +314,7 @@ def Work_on_process_precomp(params, test_name):
     
     # Use the average cosine similarity as a distance metric (1 - avg_similarity)
     dist_form = 1.0 - cosine_similarity.mean().item()
-    print(f"dist_form = {dist_form}", flush=True)
-    #except Exception as e:
-    #    print(f"Error in formula search and comparison: {e}", flush=True)
-    #    overlap_form = math.nan
-    #    dist_form = math.nan
+    print(f"dist_form = {dist_form}")
 
     # Deleting used tensors
     del K_proposal, K_target, K_imp, rhos_psi_proposal, rhos_phi_proposal, rhos_phi_target
@@ -285,7 +322,7 @@ def Work_on_process_precomp(params, test_name):
     # End timing
     Elapsed_time = time.time() - start_time
     
-    return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form
+    return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
 
 
 
@@ -304,7 +341,7 @@ if __name__ == "__main__":
         parameter_combinations = json.load(f)
 
     # Creating the inputs to be passed to the process
-    inputs = [(param, test_name) for param in parameter_combinations[:1]]
+    inputs = [(param, test_name) for param in parameter_combinations]
 
     # Process work in parallel
     num_processes = mp.cpu_count() - 1 # Use all available CPUs except one
@@ -324,7 +361,7 @@ if __name__ == "__main__":
         if not os.path.exists(db_path):
             print(f"Database {db_path} not found")
             exit()
-        weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form = result
+        weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed = result
         
         # Computing n_e
         try:
@@ -332,16 +369,16 @@ if __name__ == "__main__":
         except:
             n_e = None
 
-        print(f"weight_strategy = {weight_strategy}, n_psi_added = {n_psi_added}, n_traj = {n_traj}, target_std = {target_std}, proposal_std = {proposal_std}, n_traj_points = {n_traj_points}, phi_id = {phi_id}, base_xi_id = {base_xi_id}, Dist = {Dist}, Cos_dist = {Cos_dist}, Dist_rho = {Dist_rho}, Norm_proposal = {Norm_proposal}, Norm_target = {Norm_target}, Norm_imp = {Norm_imp}, Pinv_error = {Pinv_error}, Sum_weights = {Sum_weights}, Sum_squared_weights = {Sum_squared_weights}, Elapsed_time = {Elapsed_time}, Process_mem = {Process_mem}, n_e = {n_e}, overlap_form = {overlap_form}, dist_form = {dist_form}, overlap_form = {overlap_form}, dist_form = {dist_form}")
+        print(f"weight_strategy = {weight_strategy}, n_psi_added = {n_psi_added}, n_traj = {n_traj}, target_std = {target_std}, proposal_std = {proposal_std}, n_traj_points = {n_traj_points}, phi_id = {phi_id}, base_xi_id = {base_xi_id}, Dist = {Dist}, Cos_dist = {Cos_dist}, Dist_rho = {Dist_rho}, Norm_proposal = {Norm_proposal}, Norm_target = {Norm_target}, Norm_imp = {Norm_imp}, Pinv_error = {Pinv_error}, Sum_weights = {Sum_weights}, Sum_squared_weights = {Sum_squared_weights}, Elapsed_time = {Elapsed_time}, Process_mem = {Process_mem}, n_e = {n_e}, overlap_form = {overlap_form}, dist_form = {dist_form}, overlap_form = {overlap_form}, dist_form = {dist_form}, dist_new_kernels = {dist_new_kernels}, dist_embed = {dist_embed}")
 
         with sqlite3.connect(db_path, timeout=60.0) as conn:  # Increased timeout for concurrent access
             c = conn.cursor()
             # Saving the values in the database
             c.execute('''INSERT OR REPLACE INTO results 
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                     (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id,
                     Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp,
-                    Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e, overlap_form, dist_form))
+                    Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e, overlap_form, dist_form, dist_new_kernels, dist_embed ))
             
             conn.commit()
     

@@ -118,8 +118,8 @@ def compute_G_matrix_optimized(N: int, s: float, max_rank: int, S_matrix: Option
     Optimized version using PyTorch's tensor operations and broadcasting 
     for the simplified formula:
     
-    P_{i,j}^{(n)} = ∑_{k=1}^{n-1} [ P^{(k)}_{i,j} · ∑_{x,z} P^{(n-k)}_{x,z} · (1+S_{i,x} S'_{j,z}) +
-                                  + ∑_{x,z} P^{(k)}_{i,z} · P^{(n-k)}_{x,j} · (1+S_{i,x} S'_{j,z})]
+    P_{i,j}^{(n)}*s^n = s * ∑_{k=1}^{n-1} [ P^{(k)}_{i,j}*s^k · ∑_{x,z} P^{(n-k)}_{x,z}*s^(n-k) · (1+S_{i,x} S'_{j,z}) +
+                                  + ∑_{x,z} P^{(k)}_{i,z}*s^k · P^{(n-k)}_{x,j}*s^(n-k) · (1+S_{i,x} S'_{j,z})]
     """
     
     # Matrix size
@@ -203,6 +203,83 @@ def compute_G_matrix_optimized(N: int, s: float, max_rank: int, S_matrix: Option
     return G, P_list
 
 
+
+
+# NOTE: This is the correct function
+def Compute_G(N: int, s: float, max_rank: int, 
+                              device: str = 'cuda' if torch.cuda.is_available() else 'cpu') -> Tuple[torch.Tensor, List[torch.Tensor]]:
+    """
+    Optimized version using PyTorch's tensor operations and broadcasting 
+    for the simplified formula:
+    
+    P_{i,j}^{(n)} = ∑_{k=1}^{n-1} [ P^{(k)}_{i,j} · ∑_{x,z} P^{(n-k)}_{x,z} · (1+S_{i,x} S'_{j,z}) +
+                                  + ∑_{x,z} P^{(k)}_{i,z} · P^{(n-k)}_{x,j} · (1+S_{i,x} S'_{j,z})]
+    """
+    
+    # Matrix size
+    size = 2 * N
+    
+    # Set device
+    torch_device = torch.device(device)
+    
+    # Initialize list to store P matrices
+    P_list = [None]  # P^(0) is not used, so we start with None
+    
+    # P^(1) is the identity matrix
+    P1 = torch.eye(size, dtype=torch.float32, device=torch_device)
+    P_list.append(P1)
+    
+    # Precompute the S * S' terms for broadcasting
+    # Create tensors for broadcasting
+    S_expanded = S_matrix.unsqueeze(2).unsqueeze(3)  # Shape: [size, size, 1, 1]
+    S_prime_expanded = S_prime.unsqueeze(0).unsqueeze(1)  # Shape: [1, 1, size, size]
+    
+    # Compute S_{i,x} * S'_{j,z} for all combinations - Shape: [size, size, size, size]
+    S_S_prime_products = S_expanded * S_prime_expanded
+    
+    # Precompute (1 + S_{i,x} * S'_{j,z}) terms - Shape: [size, size, size, size]
+    one_plus_S_S_prime = 1 + S_S_prime_products
+    
+    # Compute P^(n) for n = 2 to max_rank
+    for n in range(2, max_rank + 1):
+        start_time = time.time()
+        P_n = torch.zeros((size, size), dtype=torch.float32, device=torch_device)
+        
+        for k in range(1, n):
+            P_k = P_list[k]
+            P_nk = P_list[n-k]
+            
+            # First term: P^(k)_{i,j} · ∑_{x,z} P^(n-k)}_{x,z} · (1+S_{i,x} S'_{j,z})
+            
+            # Sum of P_nk elements - scalar
+            P_nk_sum = P_nk.sum()
+            
+            # Compute ∑_{x,z} P^(n-k)}_{x,z} · (1+S_{i,x} S'_{j,z}) for all i,j
+            # Shape: [size, size]
+            term1_sums = torch.einsum('xy,ijxy->ij', P_nk, one_plus_S_S_prime)
+            
+            # Add contribution from first term
+            P_n += P_k * term1_sums
+            
+            # Second term: ∑_{x,z} P^{(k)}_{i,z} · P^{(n-k)}_{x,j} · (1+S_{i,x} S'_{j,z})
+            
+            # Using einsum for efficient tensor contraction
+            # This computes: ∑_{x,z} P^{(k)}_{i,z} · P^{(n-k)}_{x,j} · (1+S_{i,x} * S'_{j,z})
+            term2 = torch.einsum('iz,xj,ixjz->ij', P_k, P_nk, one_plus_S_S_prime)
+            
+            # Add contribution from second term
+            P_n += term2
+        
+        P_list.append(P_n)
+        elapsed = time.time() - start_time
+        print(f"Computed P^({n}) matrix in {elapsed:.3f} seconds (optimized)")
+    
+    # Compute G(s) using the formula G_{i,j}(s) = ∑_{n=1}^max_rank P_{i,j}^{(n)} · s^n
+    G = torch.zeros((size, size), dtype=torch.float32, device=torch_device)
+    for n in range(1, max_rank + 1):
+        G += P_list[n] * (s ** n)
+    
+    return G, P_list
 
 # TODO: Remove the diagonal from the matrix visualization
 # TODO: Maybe visualize the log of the result

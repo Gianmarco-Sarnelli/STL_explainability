@@ -296,7 +296,7 @@ def Work_on_process_precomp(params, test_name):
     # Compute distance between the formulae using similarity_based_relevance
     # Create a BaseMeasure for generating test trajectories (if needed)
     mu0 = BaseMeasure(device=device, sigma0=1.0, sigma1=1.0, q=0.1)
-    test_trajectories = mu0.sample(1000, n_vars_model)  # Sample trajectories for comparison
+    test_trajectories = mu0.sample(1000, max_n_vars)  # Sample trajectories for comparison
     
     # Get the first formula from target_formulae to use as reference
     # We could use any formula as reference, but using the top match makes sense

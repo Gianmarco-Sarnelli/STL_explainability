@@ -15,7 +15,7 @@ import json
 import sqlite3
 import re
 import pickle
-from model_to_formula import search_from_kernel, quantitative_model, new_kernel_to_embedding
+from model_to_formula import quantitative_model, new_kernel_to_embedding
 from IR.phisearch import similarity_based_relevance, search_from_embeddings
 from IR.utils import load_pickle, from_string_to_formula
 

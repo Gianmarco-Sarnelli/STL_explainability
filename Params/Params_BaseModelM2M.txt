@@ -1,0 +1,8 @@
+list_n_psi_added,500
+list_n_traj,1000,2000
+list_target_std,1
+list_n_traj_points,100
+list_phi_id,0
+list_base_xi_id,0
+list_weight_strategy,self_norm
+list_proposal_xi,1

@@ -1,0 +1,11 @@
+Processing: job_files/slurm_BaseModelM2M_0.sh
+Submitted batch job 1035451
+Processing: job_files/slurm_BaseModelM2M_1.sh
+Submitted batch job 1035452
+Processing: job_files/slurm_BaseModelM2M_2.sh
+Submitted batch job 1035453
+Processing: job_files/slurm_BaseModelM2M_3.sh
+Submitted batch job 1035454
+Processing: job_files/slurm_BaseModelM2M_4.sh
+Tue Mar 11 18:59:16 CET 2025: 4 other jobs still running. Waiting 30 seconds...
+Submitted batch job 1035455

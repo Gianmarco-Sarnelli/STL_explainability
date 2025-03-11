@@ -2,6 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 import time
 from typing import Tuple, List, Optional
+import numpy as np
 
 # TODO: instad of computing  P_{i,j}^{(n)}, compute  P_{i,j}^{(n)} * s^n
 # TODO: Save the matrix in a special folder
@@ -212,8 +213,10 @@ def Compute_G(N: int, s: float, max_rank: int,
     Optimized version using PyTorch's tensor operations and broadcasting 
     for the simplified formula:
     
-    P_{i,j}^{(n)} = ∑_{k=1}^{n-1} [ P^{(k)}_{i,j} · ∑_{x,z} P^{(n-k)}_{x,z} · (1+S_{i,x} S'_{j,z}) +
-                                  + ∑_{x,z} P^{(k)}_{i,z} · P^{(n-k)}_{x,j} · (1+S_{i,x} S'_{j,z})]
+    P_{i,j}^{(n)}*s^n = ∑_{k=1}^{n-1} [ P^{(k)}_{i,j}*s^k · ∑_{x,z} P^{(n-k)}_{x,z}*s^(n-k) · (1+S_{i,x} S'_{j,z}) +
+                                  + ∑_{x,z} P^{(k)}_{i,z}*s^k · P^{(n-k)}_{x,j}*s^(n-k) · (1+S_{i,x} S'_{j,z})]
+
+    Here the matrix P^{(n)}*s^n will just be called P_n (it contains also the multiplication by the power of s)
     """
     
     # Matrix size
@@ -225,20 +228,9 @@ def Compute_G(N: int, s: float, max_rank: int,
     # Initialize list to store P matrices
     P_list = [None]  # P^(0) is not used, so we start with None
     
-    # P^(1) is the identity matrix
-    P1 = torch.eye(size, dtype=torch.float32, device=torch_device)
+    # P^(1) is the identity matrix times s
+    P1 = torch.eye(size, dtype=torch.float32, device=torch_device) * s
     P_list.append(P1)
-    
-    # Precompute the S * S' terms for broadcasting
-    # Create tensors for broadcasting
-    S_expanded = S_matrix.unsqueeze(2).unsqueeze(3)  # Shape: [size, size, 1, 1]
-    S_prime_expanded = S_prime.unsqueeze(0).unsqueeze(1)  # Shape: [1, 1, size, size]
-    
-    # Compute S_{i,x} * S'_{j,z} for all combinations - Shape: [size, size, size, size]
-    S_S_prime_products = S_expanded * S_prime_expanded
-    
-    # Precompute (1 + S_{i,x} * S'_{j,z}) terms - Shape: [size, size, size, size]
-    one_plus_S_S_prime = 1 + S_S_prime_products
     
     # Compute P^(n) for n = 2 to max_rank
     for n in range(2, max_rank + 1):
@@ -249,23 +241,33 @@ def Compute_G(N: int, s: float, max_rank: int,
             P_k = P_list[k]
             P_nk = P_list[n-k]
             
-            # First term: P^(k)_{i,j} · ∑_{x,z} P^(n-k)}_{x,z} · (1+S_{i,x} S'_{j,z})
-            
-            # Sum of P_nk elements - scalar
-            P_nk_sum = P_nk.sum()
-            
-            # Compute ∑_{x,z} P^(n-k)}_{x,z} · (1+S_{i,x} S'_{j,z}) for all i,j
-            # Shape: [size, size]
-            term1_sums = torch.einsum('xy,ijxy->ij', P_nk, one_plus_S_S_prime)
-            
+            # First term: P^(k)_{i,j} · ∑_{x,z} P^(n-k)}_{x,z} · (1+S_{i,x} S'_{j,z}) * s
+            # NOTE: I can consider only the elements that are not zeros in the sum
+            term1_sum = torch.zeros((size, size), dtype=torch.float32, device=torch_device)
+            for i in range(size):
+                for j in range(size): # NOTE: this can be optimized
+                    term1_sum[i,j] += 2*torch.sum(P_nk[:i, :j])
+                    term1_sum[i,j] += 2*torch.sum(P_nk[i+1:, j+1:])
+                    term1_sum[i,j] += torch.sum(P_nk[i])
+                    term1_sum[i,j] += torch.sum(P_nk[:, j])
+                    term1_sum[i,j] -= P_nk[i, j]
+                
             # Add contribution from first term
-            P_n += P_k * term1_sums
+            P_n += P_k * term1_sum
             
             # Second term: ∑_{x,z} P^{(k)}_{i,z} · P^{(n-k)}_{x,j} · (1+S_{i,x} S'_{j,z})
             
-            # Using einsum for efficient tensor contraction
-            # This computes: ∑_{x,z} P^{(k)}_{i,z} · P^{(n-k)}_{x,j} · (1+S_{i,x} * S'_{j,z})
-            term2 = torch.einsum('iz,xj,ixjz->ij', P_k, P_nk, one_plus_S_S_prime)
+            # Second term: ∑_{x,z} P^{(k)}_{i,z} · P^{(n-k)}_{x,j} · (1+S_{i,x} S'_{j,z})
+            term2 = torch.zeros((size, size), dtype=torch.float32, device=torch_device)
+            # Divide the matrix term2 in blocks:
+            for i in range(size):
+                for j in range(size):
+                    for x in range(size):
+                        S_matrix = lambda x: 1 if x < i else (-1 if x > i else 0)
+                        for z in range(size):
+                            S_prime = lambda z: 1 if z < j else (-1 if z > j else 0)
+                            term2[i, j] += P_k[i, z] * P_nk[x, j] * (1 + S_matrix(x) * S_prime(z))
+        
             
             # Add contribution from second term
             P_n += term2
@@ -274,17 +276,20 @@ def Compute_G(N: int, s: float, max_rank: int,
         elapsed = time.time() - start_time
         print(f"Computed P^({n}) matrix in {elapsed:.3f} seconds (optimized)")
     
+    # Checking for convergence
+    norm = torch.norm(P_list[max_rank]).item()
+    print(f"Norm of term {n}: {norm:.10f}")
+
     # Compute G(s) using the formula G_{i,j}(s) = ∑_{n=1}^max_rank P_{i,j}^{(n)} · s^n
-    G = torch.zeros((size, size), dtype=torch.float32, device=torch_device)
-    for n in range(1, max_rank + 1):
-        G += P_list[n] * (s ** n)
+    G = P_list[1]
+    for n in range(2, max_rank + 1):
+        G += P_list[n]
     
     return G, P_list
 
-# TODO: Remove the diagonal from the matrix visualization
 # TODO: Maybe visualize the log of the result
 
-def visualize_matrix(matrix, title="Matrix Visualization"):
+def visualize_matrix(matrix, title="Matrix Visualization", zero_diagonal=True):
     """
     Visualize a matrix as a heatmap.
     
@@ -294,17 +299,27 @@ def visualize_matrix(matrix, title="Matrix Visualization"):
         The matrix to visualize
     title : str
         The title for the plot
+    zero_diagonal : bool
+        Whether to set diagonal values to 0 before visualization
     """
     # Convert to numpy if it's a torch tensor
     if torch.is_tensor(matrix):
         matrix = matrix.cpu().numpy()
+    
+    # Create a copy to avoid modifying the original
+    viz_matrix = matrix.copy()
+    
+    # Set diagonal values to 0 if requested
+    if zero_diagonal:
+        np.fill_diagonal(viz_matrix, 0)
         
     plt.figure(figsize=(8, 6))
-    plt.imshow(matrix, cmap='coolwarm')
+    plt.imshow(viz_matrix, cmap='coolwarm')
     plt.colorbar()
     plt.title(title)
     plt.tight_layout()
     plt.show()
+
 
 # TODO: Probably not useful
 
@@ -343,9 +358,9 @@ def check_convergence(P_list, s, tolerance=1e-6):
 # Example usage
 if __name__ == "__main__":
     # Parameters
-    N = 3       # Matrix size will be 2N x 2N (6x6)
-    s = 0.1     # Parameter s
-    max_rank = 7  # Maximum rank for the expansion
+    N = 4       # Matrix size will be 2N x 2N
+    s = 1/(16*N)     # Parameter s
+    max_rank = 5  # Maximum rank for the expansion
     
     # Choose device
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -353,7 +368,7 @@ if __name__ == "__main__":
     
     # Use the optimized implementation
     start_time = time.time()
-    G, P_list = compute_G_matrix_optimized(N, s, max_rank, device=device)
+    G, P_list = compute_G_matrix(N, s, max_rank, device=device)
     total_time = time.time() - start_time
     print(f"Total computation time: {total_time:.3f} seconds")
     
@@ -370,8 +385,4 @@ if __name__ == "__main__":
     print(G_cpu)
     
     # Visualize G matrix
-    visualize_matrix(G_cpu, f"G matrix for s = {s}, up to rank {max_rank}")
-    
-    # Visualize the first few P matrices
-    for n in range(1, min(4, max_rank + 1)):
-        visualize_matrix(P_list_cpu[n], f"P^({n}) matrix")
+    visualize_matrix(G_cpu, f"G matrix for s = {s}, up to rank {max_rank}", zero_diagonal=True)

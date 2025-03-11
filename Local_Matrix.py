@@ -154,6 +154,12 @@ class local_matrix:
                         print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
 
             self.true_dweights = self.dweights.clone() # Saving a copy of the unnormalized weights for later
+
+            test_sum_weights = torch.sum(self.dweights).item()
+            # Check for NaN or Inf
+            if math.isnan(test_sum_weights) or math.isinf(test_sum_weights) or (test_sum_weights == 0):
+                raise ValueError(f"sum_dweights has an invalid value: {test_sum_weights}. This indicates numerical instability in the calculation.")
+
             self.sum_weights = max(torch.sum(self.dweights).item(), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
             self.sum_squared_weights = torch.sum(torch.square(self.dweights)).item()
             match self.weight_strategy:

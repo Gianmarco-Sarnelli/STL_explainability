@@ -15,7 +15,7 @@
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # List of test names #M E H J B T G S
-test_names=("wow_ModelM2M wow_ModelE2M wow_ModelJ2M wow_ModelB2M wow_ModelT2M wow_ModelG2M wow_ModelS2M")
+test_names=("wow_ModelM2M" "wow_ModelE2M" "wow_ModelJ2M" "wow_ModelB2M" "wow_ModelT2M" "wow_ModelG2M" "wow_ModelS2M")
 
 for test_name in "${test_names[@]}"; do
 

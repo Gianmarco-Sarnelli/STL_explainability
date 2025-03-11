@@ -96,13 +96,11 @@ class quantitative_model:
 
 def new_kernel_to_embedding(new_kernel, sigma2=0.44 ):
     """
-    input: new_kernel : torch.Tensor of shape (n_vars, n_traj_points)
+    input: new_kernel : torch.Tensor
     
     This function transforms the new kernel representation into 
     the embedding vector used inside the semantic vector database
     """
-    if len(new_kernel.shape) != 2:
-        raise RuntimeError(f"new_kernel should have two dimensions. Got shape: {new_kernel.shape}")
     
     embedding = torch.exp( (2 * new_kernel -2) / (2 * sigma2))
 

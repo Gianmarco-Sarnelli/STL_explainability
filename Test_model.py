@@ -249,7 +249,7 @@ def Work_on_process_precomp(params, test_name):
     # Transforming kernels into the embeddings of the database
     target_embedding = new_kernel_to_embedding(New_K_target)
     imp_embedding = new_kernel_to_embedding(New_K_imp)
-    dist_embed = torch.norm(target_embedding-target_embedding).item()
+    dist_embed = torch.norm(target_embedding-imp_embedding).item()
 
     start_search_time1 = time.time()
     # Search for closest formulae to each kernel

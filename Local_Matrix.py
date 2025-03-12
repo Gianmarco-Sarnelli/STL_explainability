@@ -153,6 +153,7 @@ class local_matrix:
                         #print(f"target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
                         if math.isnan(self.dweights[i]):
                             print(f"self.dweights[{i}] is nan, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
+                            print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
                     except OverflowError:
                         print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
                         print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
@@ -161,6 +162,7 @@ class local_matrix:
             test_sum_weights = torch.sum(self.dweights).item()
             # Check for NaN or Inf
             if math.isnan(test_sum_weights) or math.isinf(test_sum_weights) or (test_sum_weights == 0):
+                print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
                 raise ValueError(f"sum_dweights has an invalid value: {test_sum_weights}. This indicates numerical instability in the calculation.")
 
             self.sum_weights = max(torch.sum(self.dweights).item(), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)

@@ -256,8 +256,8 @@ def Work_on_process_precomp(params, test_name):
     target_formulae_list, target_dists = search_from_embeddings(embeddings=target_embedding.unsqueeze(0),
                                                                 nvar=n_vars_model,
                                                                 folder_index=folder_index,
-                                                                k=5,
-                                                                n_neigh=32,
+                                                                k=10,
+                                                                n_neigh=64,
                                                                 n_pc=-1,
                                                                 timespan=None,
                                                                 nodes=None)
@@ -269,8 +269,8 @@ def Work_on_process_precomp(params, test_name):
     imp_formulae_list, imp_dists = search_from_embeddings(embeddings=imp_embedding.unsqueeze(0),
                                                                 nvar=max_n_vars,
                                                                 folder_index=folder_index,
-                                                                k=5,
-                                                                n_neigh=32,
+                                                                k=10,
+                                                                n_neigh=64,
                                                                 n_pc=-1,
                                                                 timespan=None,
                                                                 nodes=None)

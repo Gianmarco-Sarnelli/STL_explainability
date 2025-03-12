@@ -1,0 +1,65 @@
+model name: linear
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[0.8545816  0.8773628  0.8804475  0.88719934 0.8882306 ]]
+total_search_time1 = 0.8446230888366699
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[22070312. 22070332. 22070378. 22070586. 22070586.]]
+total_search_time2 = 1.902966022491455
+formulae are there! There are 5 imp_formulae and 5 target_formulae
+imp_formulae: ['( not ( x_0 <= 2.0 ) until[35,inf] always[0,inf] ( x_2 >= 2.0 ) )', 'always[0,35] ( ( x_0 >= 2.0 until always ( x_2 >= 2.0 ) ) )', '( not ( x_0 <= 2.0 ) until[35,70] always ( x_2 >= 2.0 ) )', '( x_0 <= 0.0 until[0,35] ( x_1 >= -2.0 until x_0 >= 2.0 ) )', '( x_1 <= -2.0 until ( x_0 >= 4.0 until[0,inf] x_2 >= 0.0 ) )'], target_formulae: ['eventually[11,58] ( ( x_0 >= -0.0 until[0,35] x_0 <= 2.6667 ) )', '( always[11,58] ( x_0 <= 2.6667 ) until[0,inf] x_0 >= -0.0 )', '( x_0 <= 2.6667 until[23,70] eventually[11,23] ( x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[23,inf] eventually[11,inf] ( x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[35,70] eventually[11,inf] ( x_0 >= -0.0 ) )']
+overlap_form = 0.0
+dist_form = 1.0480333976447582
+weight_strategy = self_norm, n_psi_added = 500, n_traj = 1000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 0, base_xi_id = 0, Dist = 1.5482462644577026, Cos_dist = 0.776649534702301, Dist_rho = 1.2508291669932339, Norm_proposal = 0.4547286927700043, Norm_target = 0.23129437863826752, Norm_imp = 1.58340322971344, Pinv_error = 17.1752986907959, Sum_weights = 7.513858356865136e-104, Sum_squared_weights = 5.645806740703195e-207, Elapsed_time = 903.4437313079834, Process_mem = 282.44921875, n_e = 1.0000000000000016, overlap_form = 0.0, dist_form = 0.9606660641729832, overlap_form = 0.0, dist_form = 0.9606660641729832, dist_new_kernels = 71.9249038696289, dist_embed = 0.0
+weight_strategy = self_norm, n_psi_added = 500, n_traj = 1000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 1, base_xi_id = 0, Dist = 1.4338842630386353, Cos_dist = 1.1082236468791962, Dist_rho = 1.2984082101103998, Norm_proposal = 0.020324910059571266, Norm_target = 0.22852526605129242, Norm_imp = 1.3910406827926636, Pinv_error = 17.1752986907959, Sum_weights = 7.513858356865136e-104, Sum_squared_weights = 5.645806740703195e-207, Elapsed_time = 920.3241605758667, Process_mem = 275.3828125, n_e = 1.0000000000000016, overlap_form = 0.0, dist_form = 1.0480333976447582, overlap_form = 0.0, dist_form = 1.0480333976447582, dist_new_kernels = 58.19867706298828, dist_embed = 0.0
+Completed job 0
+model name: train
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[1.4198586 1.4404371 1.4723864 1.4723864 1.4723864]]
+total_search_time1 = 1.7573695182800293
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[5935.018  5941.159  5941.159  5945.133  5947.5933]]
+total_search_time2 = 4.4757630825042725
+formulae are there! There are 5 imp_formulae and 5 target_formulae
+imp_formulae: ['( x_2 <= 2.6667 or always[0,inf] ( x_0 <= 1.3333 ) )', '( x_2 <= 2.6667 until[0,58] always[23,35] ( x_0 >= -4.0 ) )', '( x_2 <= 2.6667 until[0,23] always[11,23] ( x_0 >= -4.0 ) )', '( eventually[23,inf] ( x_2 <= 2.6667 ) or x_0 <= 1.3333 )', 'not ( ( x_2 >= 2.0 until eventually[0,35] ( x_0 <= -2.0 ) ) )'], target_formulae: ['( always[23,inf] ( x_0 >= -1.3333 ) until[11,70] x_0 <= 2.6667 )', '( always[23,inf] ( x_0 >= -1.3333 ) until[0,inf] x_0 <= 2.6667 )', '( always[11,inf] ( x_0 >= -1.3333 ) until x_0 <= 2.6667 )', '( always[0,inf] ( x_0 >= -1.3333 ) until[0,46] x_0 <= 2.6667 )', '( always[11,inf] ( x_0 >= -1.3333 ) until[11,70] x_0 <= 2.6667 )']
+overlap_form = 0.0
+dist_form = 0.23394787311553955
+weight_strategy = self_norm, n_psi_added = 500, n_traj = 1000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 2, base_xi_id = 0, Dist = 1.0537242889404297, Cos_dist = 0.35110926628112793, Dist_rho = 0.6466779645949343, Norm_proposal = 0.7302857041358948, Norm_target = 0.4253236651420593, Norm_imp = 1.2787867784500122, Pinv_error = 17.1752986907959, Sum_weights = 7.513858356865136e-104, Sum_squared_weights = 5.645806740703195e-207, Elapsed_time = 1131.7220067977905, Process_mem = 260.00390625, n_e = 1.0000000000000016, overlap_form = 0.0, dist_form = 0.07845813035964966, overlap_form = 0.0, dist_form = 0.07845813035964966, dist_new_kernels = 40.73164367675781, dist_embed = 0.0
+weight_strategy = self_norm, n_psi_added = 500, n_traj = 1000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 6, base_xi_id = 0, Dist = 0.8785654902458191, Cos_dist = 0.38424670696258545, Dist_rho = 0.8327628125874739, Norm_proposal = 0.6771040558815002, Norm_target = 0.3317996561527252, Norm_imp = 1.04307222366333, Pinv_error = 17.1752986907959, Sum_weights = 7.513858356865136e-104, Sum_squared_weights = 5.645806740703195e-207, Elapsed_time = 880.7469673156738, Process_mem = 260.87109375, n_e = 1.0000000000000016, overlap_form = 0.0, dist_form = 0.23394787311553955, overlap_form = 0.0, dist_form = 0.23394787311553955, dist_new_kernels = 37.3922119140625, dist_embed = 0.0
+Completed job 1
+weight_strategy = self_norm, n_psi_added = 500, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 0, base_xi_id = 0, Dist = 0.7164853811264038, Cos_dist = 0.7578417360782623, Dist_rho = 1.2532078396135373, Norm_proposal = 0.4571174681186676, Norm_target = 0.22830349206924438, Norm_imp = 0.7366705536842346, Pinv_error = 36.380226135253906, Sum_weights = 7.513859450770858e-104, Sum_squared_weights = 5.645806740703314e-207, Elapsed_time = 1117.2961559295654, Process_mem = 288.02734375, n_e = 1.0000002911701753, overlap_form = 0.0, dist_form = 0.933844767510891, overlap_form = 0.0, dist_form = 0.933844767510891, dist_new_kernels = 32.724246978759766, dist_embed = 0.0
+weight_strategy = self_norm, n_psi_added = 500, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 1, base_xi_id = 0, Dist = 0.775933027267456, Cos_dist = 1.12072291970253, Dist_rho = 1.292419722285683, Norm_proposal = 0.014850614592432976, Norm_target = 0.22442325949668884, Norm_imp = 0.7161701917648315, Pinv_error = 36.380226135253906, Sum_weights = 7.513859450770858e-104, Sum_squared_weights = 5.645806740703314e-207, Elapsed_time = 1115.891453742981, Process_mem = 290.0, n_e = 1.0000002911701753, overlap_form = 0.0, dist_form = 1.079718753695488, overlap_form = 0.0, dist_form = 1.079718753695488, dist_new_kernels = 34.77033615112305, dist_embed = 0.0
+Completed job 2
+model name: train
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[1.3400311 1.356854  1.3970709 1.3970709 1.3970709]]
+total_search_time1 = 0.9466469287872314
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[325.0643  325.0643  325.36853 325.41934 325.41934]]
+total_search_time2 = 2.310265302658081
+formulae are there! There are 5 imp_formulae and 5 target_formulae
+imp_formulae: ['( x_2 <= 2.6667 until[0,58] always[23,35] ( x_0 >= -4.0 ) )', '( x_2 <= 2.6667 until[0,23] always[11,23] ( x_0 >= -4.0 ) )', '( x_2 <= 2.6667 or always[0,inf] ( x_0 <= 1.3333 ) )', 'not ( ( x_2 >= 2.0 until eventually[0,35] ( x_0 <= -2.0 ) ) )', 'not ( ( x_2 >= 2.0 until[35,inf] eventually[0,inf] ( x_0 <= -2.0 ) ) )'], target_formulae: ['( always[23,inf] ( x_0 >= -1.3333 ) until[11,70] x_0 <= 2.6667 )', '( always[23,inf] ( x_0 >= -1.3333 ) until[0,inf] x_0 <= 2.6667 )', '( always[11,inf] ( x_0 >= -1.3333 ) until x_0 <= 2.6667 )', '( always[0,inf] ( x_0 >= -1.3333 ) until[0,46] x_0 <= 2.6667 )', '( always[11,inf] ( x_0 >= -1.3333 ) until[11,70] x_0 <= 2.6667 )']
+overlap_form = 0.0
+dist_form = 0.24636399745941162
+model name: maritime
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[1.533317  1.6613083 1.8273773 1.8273773 1.8273773]]
+total_search_time1 = 2.3515636920928955
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[1249.1188 1249.6493 1250.3483 1250.6141 1250.849 ]]
+total_search_time2 = 2.2129244804382324
+formulae are there! There are 5 imp_formulae and 5 target_formulae
+imp_formulae: ['( always[46,58] ( x_0 <= -1.3333 ) until[0,23] x_2 >= 2.6667 )', '( always[0,46] ( x_0 >= 1.3333 ) until[23,inf] x_2 >= 4.0 )', 'eventually[35,46] ( ( x_2 >= 4.0 and x_0 <= -2.6667 ) )', 'always ( ( x_0 >= 2.0 until[35,inf] eventually ( x_2 >= 4.0 ) ) )', 'eventually[0,inf] ( ( x_1 >= 2.0 until[70,inf] eventually[0,inf] ( x_2 >= 4.0 ) ) )'], target_formulae: ['( ( x_0 <= 0.0 until[0,35] x_2 >= 0.0 ) until[0,inf] x_2 <= 0.0 )', '( x_0 <= -2.0 or ( x_1 >= 2.0 until[35,70] x_2 <= 2.0 ) )', 'eventually[0,inf] ( ( always[35,inf] ( x_1 >= 2.0 ) or x_0 <= -2.0 ) )', 'eventually[0,inf] ( always[70,inf] ( ( x_1 >= 2.0 or x_0 <= -2.0 ) ) )', 'not ( always[0,inf] ( ( x_0 >= -2.0 until[70,inf] x_1 <= 2.0 ) ) )']
+overlap_form = 0.0
+dist_form = 0.11103248596191406
+weight_strategy = self_norm, n_psi_added = 500, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 2, base_xi_id = 0, Dist = 0.6125428676605225, Cos_dist = 0.35046619176864624, Dist_rho = 0.6685703276697795, Norm_proposal = 0.7317033410072327, Norm_target = 0.41706085205078125, Norm_imp = 0.7949687838554382, Pinv_error = 36.380226135253906, Sum_weights = 7.513859450770858e-104, Sum_squared_weights = 5.645806740703314e-207, Elapsed_time = 1138.8868083953857, Process_mem = 289.05078125, n_e = 1.0000002911701753, overlap_form = 0.0, dist_form = 0.11103248596191406, overlap_form = 0.0, dist_form = 0.11103248596191406, dist_new_kernels = 24.30570411682129, dist_embed = 0.0
+weight_strategy = self_norm, n_psi_added = 500, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 6, base_xi_id = 0, Dist = 0.5807033181190491, Cos_dist = 0.38283514976501465, Dist_rho = 0.8333515818317682, Norm_proposal = 0.6778901815414429, Norm_target = 0.33489173650741577, Norm_imp = 0.7241599559783936, Pinv_error = 36.380226135253906, Sum_weights = 7.513859450770858e-104, Sum_squared_weights = 5.645806740703314e-207, Elapsed_time = 1138.1706023216248, Process_mem = 290.296875, n_e = 1.0000002911701753, overlap_form = 0.0, dist_form = 0.24636399745941162, overlap_form = 0.0, dist_form = 0.24636399745941162, dist_new_kernels = 25.289587020874023, dist_embed = 0.0
+Completed job 3
+Completed job 4

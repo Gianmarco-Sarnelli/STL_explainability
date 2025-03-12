@@ -185,14 +185,20 @@ class BaseMeasure(Measure):
 
                 # The probability density function of the total variation is 
                 # prob(totvar) = (normal_prob(sqrt(totvar)) + normal_prob(-sqrt(totvar))) / ( 2 * sqrt(totvar) )
-                sqroot_totvar = torch.sqrt(totvar)
-                sum_normal = torch.distributions.Normal(self.mu1, self.sigma1).log_prob(sqroot_totvar).exp() + torch.distributions.Normal(self.mu1, self.sigma1).log_prob(-sqroot_totvar).exp()
-                totvar_pdf = torch.log(sum_normal / (2 * sqroot_totvar) )
+                # Add a small epsilon to prevent division by zero
+                eps = 1e-6
+                sqroot_totvar = torch.sqrt(totvar + eps)
+                # Use log_sum_exp trick for numerical stability
+                log_normal1 = torch.distributions.Normal(self.mu1, self.sigma1).log_prob(sqroot_totvar)
+                log_normal2 = torch.distributions.Normal(self.mu1, self.sigma1).log_prob(-sqroot_totvar)
+                # Stable log sum of exponentials
+                max_log = torch.max(log_normal1, log_normal2)
+                sum_normal_log = max_log + torch.log(torch.exp(log_normal1 - max_log) + torch.exp(log_normal2 - max_log))
+                # Compute log PDF in a numerically stable way
+                totvar_pdf = sum_normal_log - torch.log(2 * sqroot_totvar)
 
                 # Computing the Binomial probabilities of the change of sign in the increments
                 change_sign = increments[:, :-1] * increments[:, 1:]
-                #bernoulli_pdf = math.log(self.q) * (change_sign < 0) + math.log(1 - self.q) * (change_sign >= 0)
-                # NOTE: I forgot the binomial component!!!!!
                 k = torch.sum((change_sign < 0), 1)
                 n = change_sign.shape[1]
                 binomial_pdf = torch.distributions.Binomial(n, self.q).log_prob(k)
@@ -209,7 +215,7 @@ class BaseMeasure(Measure):
                 uniform_spacing_pdf = torch.ones(varn) * torch.lgamma(torch.tensor(points - 1, dtype=torch.float))
 
                 # Computing the log of the jacobian term
-                log_jacobian = torch.log(totvar) * (2-points)
+                log_jacobian = torch.log(totvar + eps) * (2-points)
 
                 # Computing the log pdf
                 log_pdf[i] = torch.sum(initial_pdf)
@@ -218,6 +224,15 @@ class BaseMeasure(Measure):
                 log_pdf[i] += torch.sum(initial_bernoulli_pdf)
                 log_pdf[i] += torch.sum(uniform_spacing_pdf) # This element was never useful if I do the self norm sampling
                 log_pdf[i] += torch.sum(log_jacobian)
+
+                if math.isinf(log_pdf[i]) or math.isnan(log_pdf[i]):
+                    print(f"torch.sum(initial_pdf) = {torch.sum(initial_pdf)}")
+                    print(f"torch.sum(totvar_pdf) = {torch.sum(totvar_pdf)}")
+                    print(f"torch.sum(binomial_pdf) = {torch.sum(binomial_pdf)}")
+                    print(f"torch.sum(initial_bernoulli_pdf) = {torch.sum(initial_bernoulli_pdf)}")
+                    print(f"torch.sum(uniform_spacing_pdf) = {torch.sum(uniform_spacing_pdf)}")
+                    print(f"torch.sum(log_jacobian) = {torch.sum(log_jacobian)}")
+                    raise RuntimeError(f"There's a problem inside the dweight!")
 
             except ValueError: # If there's a value error then I considere that the log prob is too low
                 log_error = True
@@ -431,9 +446,15 @@ class Easy_BaseMeasure(Measure):
                 sum_normal = torch.distributions.Normal(self.mu1, self.sigma1).log_prob(sqroot_totvar).exp() + torch.distributions.Normal(self.mu1, self.sigma1).log_prob(-sqroot_totvar).exp()
                 totvar_pdf = torch.log(sum_normal / (2 * sqroot_totvar) )
 
+                # The probability distribution of the uniform spacings is (n-2)! where n is the number of points in the
+                # trajectory. This is the same pdf of the ordered vactor of n-2 points sampled from the uniform distribution.
+                # In pytorch we can compute log(n+1) = lgamma(n)
+                uniform_spacing_pdf = torch.ones(varn) * torch.lgamma(torch.tensor(points - 1, dtype=torch.float))
+
                 # Computing the log pdf
                 log_pdf[i] = torch.sum(initial_pdf)
                 log_pdf[i] += torch.sum(totvar_pdf) # Removing this decreases the performances a bit
+                log_pdf[i] += torch.sum(uniform_spacing_pdf)
 
             except ValueError: # If there's a value error then I considere that the log prob is too low
                 log_error = True

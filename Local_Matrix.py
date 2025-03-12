@@ -150,11 +150,14 @@ class local_matrix:
                 else:
                     try:
                         self.dweights[i] = math.exp(log_prob) # standard case
+                        #print(f"target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
+                        if math.isnan(self.dweights[i]):
+                            print(f"self.dweights[{i}] is nan, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
                     except OverflowError:
                         print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
+                        print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
 
             self.true_dweights = self.dweights.clone() # Saving a copy of the unnormalized weights for later
-
             test_sum_weights = torch.sum(self.dweights).item()
             # Check for NaN or Inf
             if math.isnan(test_sum_weights) or math.isinf(test_sum_weights) or (test_sum_weights == 0):

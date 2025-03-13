@@ -132,6 +132,8 @@ def Work_on_process_precomp(params, test_name):
     # Loading the saved formulae (1000 formulae)
     folder_index = os.path.join("IR", "index")  # Update with actual path
     train_phis = load_pickle(folder_index, 'train_phis_{}_vars.pickle'.format(max_n_vars))
+    if n_train_phis != len(train_phis):
+        raise RuntimeError(f"The number of train_phis is not 1000, it's {len(train_phis)}")
     
 
     ## K_target ##
@@ -141,8 +143,13 @@ def Work_on_process_precomp(params, test_name):
         rhos_psi_target[i, :] = torch.tanh(formula.quantitative(target_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the robustness of the model over target_xi
     rhos_phi_target = quant_model.robustness(traj=target_xi_cut)
+    print(f"the norm of rhos_phi_target is : {torch.norm(rhos_phi_target).item()}")
+    out_of_range_values = rhos_phi_target[(rhos_phi_target < -1) | (rhos_phi_target > 1)] ## REMOVE
+    if len(out_of_range_values) > 0:
+        print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
     # Computing the target kernels
     K_target = torch.tensordot(rhos_psi_target, rhos_phi_target, dims=([1],[0]) ) / (n_traj * math.sqrt(n_train_phis)) 
+    print(f"the norm if K_target is : {torch.norm(K_target).item()}")
     # Deleting used tensors
     del rhos_psi_target
 
@@ -153,8 +160,13 @@ def Work_on_process_precomp(params, test_name):
         rhos_psi_proposal[i, :] = torch.tanh(formula.quantitative(proposal_xi, evaluate_at_all_times=evaluate_at_all_times))
     # Computing the robustness of phi over the proposal_xi
     rhos_phi_proposal = quant_model.robustness(traj=proposal_xi_cut)
+    print(f"the norm of rhos_phi_proposal is : {torch.norm(rhos_phi_proposal).item()}")
+    out_of_range_values = rhos_phi_proposal[(rhos_phi_proposal < -1) | (rhos_phi_proposal > 1)] ## REMOVE
+    if len(out_of_range_values) > 0:
+        print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
     # Computing the proposal kernel
-    K_proposal = torch.tensordot(rhos_psi_proposal, rhos_phi_proposal, dims=([1],[0]) ) / (n_traj * math.sqrt(n_train_phis)) 
+    K_proposal = torch.tensordot(rhos_psi_proposal, rhos_phi_proposal, dims=([1],[0]) ) / (n_traj * math.sqrt(n_train_phis))
+    print(f"the norm of K_proposal is : {torch.norm(K_proposal).item()}") 
 
     ## K_imp ##
     # Initializing the converter class
@@ -170,6 +182,7 @@ def Work_on_process_precomp(params, test_name):
         return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
     # Computing the importance sampling kernel starting from the proposal one
     K_imp = converter.convert_to_local(K_proposal).type(torch.float32)
+    print(f"The norm of K_imp is : {torch.norm(K_imp).item()}")
     
     # Computing the peak memory used
     Process_mem = process.memory_info().rss / 1024 / 1024
@@ -194,8 +207,13 @@ def Work_on_process_precomp(params, test_name):
         new_rhos_psi_target[i, :] = new_rhos_psi_target[i, :] / new_rhos_psi_target_norm
     # Computing the robustness of the model over target_xi
     new_rhos_phi_target = quant_model.new_robustness(traj=target_xi_cut)
+    print(f"the norm of new_rhos_phi_target is : {torch.norm(new_rhos_phi_target).item()}")
+    out_of_range_values = new_rhos_phi_target[(new_rhos_phi_target < -1) | (new_rhos_phi_target > 1)] ## REMOVE
+    if len(out_of_range_values) > 0:
+        print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
     # Computing the target kernels
     New_K_target = torch.tensordot(new_rhos_psi_target, new_rhos_phi_target, dims=([1],[0]) ) 
+    print(f"the norm of New_K_target is : {torch.norm(New_K_target).item()}")
     # Deleting used tensors
     del new_rhos_psi_target, new_rhos_phi_target
 
@@ -208,8 +226,13 @@ def Work_on_process_precomp(params, test_name):
         new_rhos_psi_proposal[i, :] = new_rhos_psi_proposal[i, :] / new_rhos_psi_proposal_norm
     # Computing the robustness of the model over proposal_xi
     new_rhos_phi_proposal = quant_model.new_robustness(traj=proposal_xi_cut)
+    print(f"the norm of new_rhos_phi_proposal is : {torch.norm(new_rhos_phi_proposal).item()}")
+    out_of_range_values = new_rhos_phi_proposal[(new_rhos_phi_proposal < -1) | (new_rhos_phi_proposal > 1)] ## REMOVE
+    if len(out_of_range_values) > 0:
+        print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
     # Computing the proposal kernels
     New_K_proposal = torch.tensordot(new_rhos_psi_proposal, new_rhos_phi_proposal, dims=([1],[0]) ) 
+    print(f"the norm of New_K_proposal is : {torch.norm(New_K_proposal).item()}")
     del new_rhos_phi_proposal
 
     ## New_K_imp ##
@@ -225,6 +248,7 @@ def Work_on_process_precomp(params, test_name):
         return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
     # Computing the importance sampling kernel starting from the proposal one
     New_K_imp = converter.convert_to_local(New_K_proposal).type(torch.float32)
+    print(f"the norm of New_K_imp is : {torch.norm(New_K_imp).item()}")
     # Deleting used tensors
     converter.__dict__.clear()  # Removes all instance attributes
     del new_rhos_psi_proposal
@@ -248,7 +272,9 @@ def Work_on_process_precomp(params, test_name):
 
     # Transforming kernels into the embeddings of the database
     target_embedding = new_kernel_to_embedding(New_K_target)
+    print(f"the norm of target_embedding is : {torch.norm(target_embedding).item()}")
     imp_embedding = new_kernel_to_embedding(New_K_imp)
+    print(f"the norm of imp_embedding is : {torch.norm(imp_embedding).item()}")
     dist_embed = torch.norm(target_embedding-imp_embedding).item()
 
     start_search_time1 = time.time()
@@ -313,6 +339,7 @@ def Work_on_process_precomp(params, test_name):
     )
     
     # Use the average cosine similarity as a distance metric (1 - avg_similarity)
+    print(f"cosine similarity: {cosine_similarity}")
     dist_form = 1.0 - cosine_similarity.mean().item()
     print(f"dist_form = {dist_form}")
 

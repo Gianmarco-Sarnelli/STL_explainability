@@ -229,13 +229,13 @@ if (partition != "THIN") and (partition != "EPYC"):
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
-list_weight_strategy = ["self_norm", "only_target"]
+list_weight_strategy = ["self_norm"]#, "only_target"]
 list_n_traj_points = [100]
 list_target_std = [1]#[1, 0.6]
 list_proposal_std = [1]#[1, 4]
-list_n_traj = [1000, 4000]
-list_n_psi_added = [-500, 500]
-list_phi_id = [0, 1, 2, 6]
+list_n_traj = [5000]#[1000, 4000]
+list_n_psi_added = [0]#[-500, 500]
+list_phi_id = [0]#[0, 1, 2, 6]
 list_base_xi_id = [0]    #NOTE: fix this to a single value
 
 # If we want to save all variables we need to initialize them

@@ -15,7 +15,7 @@
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # List of test names #M E H J B T G S
-test_names=("biggerB2M" "biggerH2M" "biggerB2M" "biggerG2M" "biggerS2M")
+test_names=("biggerH2M" "biggerB2M" "biggerG2M" "biggerS2M")
 
 for test_name in "${test_names[@]}"; do
 

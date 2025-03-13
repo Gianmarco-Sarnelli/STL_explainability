@@ -113,7 +113,7 @@ class local_matrix:
 
     def compute_dweights(self):
         # Computing dweights (weights on the diagonal of D)
-        self.dweights = torch.empty(self.n_traj, device=self.device, dtype=torch.float64)
+        self.dweights = torch.zeros(self.n_traj, device=self.device, dtype=torch.float64)
 
         # Sample the proposal trajectories if they're not given (NO! we want to specify the correct proposal_traj)
         if self.proposal_traj is None:
@@ -121,7 +121,7 @@ class local_matrix:
 
         if self.evaluate_at_all_times:
             raise RuntimeError("Evaluation on all time points is not built yet")  # TODO: Implementa
-        else:
+        elif self.weight_strategy != "only_target":
             # To have a more stable code, we add the log of the probabilities and then do the exponentiation
             for i in range(self.n_traj):
                 log_prob = 0
@@ -132,10 +132,9 @@ class local_matrix:
                 target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
                 log_prob += target_log_prob.item()
 
-                if self.weight_strategy != "only_target":
-                    # Computing the log probability of the proposal distribution
-                    proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                    log_prob -= proposal_log_prob.item()
+                # Computing the log probability of the proposal distribution
+                proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
+                log_prob -= proposal_log_prob.item()
                 
                 # Handling the possible errors
                 if proposal_log_error:
@@ -190,6 +189,26 @@ class local_matrix:
             #print(f"The sum of squares of the weights is: {self.sum_squared_weights}")
             #print(f"n_e is: {n_e}")
             #print(f"n/n_e = {self.n_traj / n_e}")
+
+        else: # This is the case of "only_target". Basically considers the proposal distribution to be an empirical distribution
+            target_log_prob, target_log_error = self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj, log=True)
+            mean_log_prob = torch.mean(target_log_prob)
+            target_prob = torch.exp(target_log_prob - mean_log_prob)
+            self.true_dweights = target_prob * torch.exp(mean_log_prob)
+            # Check for NaN or Inf
+            test_sum_weights = torch.sum(target_prob).item()
+            if math.isnan(test_sum_weights) or math.isinf(test_sum_weights) or (test_sum_weights == 0):
+                print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
+                raise ValueError(f"test_sum_weights has an invalid value: {test_sum_weights}. This indicates numerical instability in the calculation.")
+            self.sum_weights = max(torch.sum(self.true_dweights).item(), torch.finfo(self.true_dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
+            self.sum_squared_weights = torch.sum(torch.square(self.true_dweights)).item()
+            self.dweights = (target_prob * self.n_traj) / torch.sum(target_prob)
+            
+
+
+
+
+
             
 
     def compute_Q(self, proposal_traj=None, PHI=None, dweights=None):

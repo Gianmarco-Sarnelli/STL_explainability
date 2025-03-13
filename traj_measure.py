@@ -242,42 +242,6 @@ class BaseMeasure(Measure):
         if not log:
             return (torch.exp(log_pdf), log_error)
         
-    
-    def compute_pdf_trajectory_old(self, trajectory: torch.Tensor,
-                               log: bool = False) -> tuple[torch.Tensor, bool]:
-        """
-        Old version of the pdf
-        """
-        # Getting the shape of the trajectory
-        samples, varn, points = trajectory.shape
-        
-        # Removing the base trajectory if it's present:
-        if not (self.base_traj is None):
-            trajectory = trajectory - self.base_traj
-        
-        log_error = False
-        log_pdf = torch.zeros(samples, device=self.device, dtype=torch.float64)
-
-        for i in range(samples):
-            # computing increments
-            increments = trajectory[i, :, 1:] - trajectory[i, :, :-1]
-            # summing the absolute values of the increments
-            var_sum = torch.sum(torch.abs(increments), dim=1)
-            for j in range(varn):
-                try:
-                    log_pdf[i] += math.log(norm.pdf(trajectory[i][j][0], loc=0, scale=self.sigma0)) # probability density of the first point
-                    sqrt_var_sum = max(math.sqrt(var_sum[j]), sys.float_info.min) # Computing the sqrt of the variance and clipping it to not be zero
-                    log_pdf[i] += math.log(norm.pdf(sqrt_var_sum, loc=0, scale=self.sigma1) / sqrt_var_sum) # probability density of the total variation
-                    log_pdf[i] -= (points-1)*math.log(2) # each trajectory has one of 2^n possible combinations of direction of increments
-                except ValueError:
-                    log_error = True
-        
-        if log:    
-            return (log_pdf, log_error)
-        if not log:
-            return (torch.exp(log_pdf), log_error)
-
-        
 class Easy_BaseMeasure(Measure):
     def __init__(
         self, mu0=0.0, sigma0=1.0, mu1=0.0, sigma1=1.0, q=0.1, q0=0.5, device="cpu", density=1, base_traj=None
@@ -710,9 +674,11 @@ class GaussianShift(Measure):
 
         try:
             log_pdf = torch.distributions.Normal(torch.zeros(samples, varn), self.std).log_prob(noise).type(torch.float64)
-            log_prob = torch.sum(log_pdf)
+            log_prob = torch.sum(log_pdf, dim=1)
         except ValueError: # If there's a value error then it means that the log prob is too low
             log_error = True
+            log_prob = torch.zeros(samples)
+
         
         if log:    
             return (log_prob, log_error)
@@ -825,9 +791,10 @@ class Gaussian(Measure):
 
         try:
             log_pdf = torch.distributions.Normal(torch.zeros(samples, varn, points), self.std).log_prob(noise).type(torch.float64)
-            log_prob = torch.sum(log_pdf)
+            log_prob = torch.sum(log_pdf, dim=[1,2])
         except ValueError: # If there's a value error then it means that the log prob is too low
             log_error = True
+            log_prob = torch.zeros(samples)
         
         if log:    
             return (log_prob, log_error)

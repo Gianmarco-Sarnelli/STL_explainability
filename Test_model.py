@@ -78,9 +78,9 @@ def Work_on_process_precomp(params, test_name):
     # Parameters of the process
     n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, weight_strategy = params
     n_train_phis = 1000
-    n_traj_embedding = 10000 # Ho many trajectories are used to compute the embeddings in the database
+    n_traj_embedding = 10000 # How many trajectories are used to compute the embeddings in the database
     # Number of closest formulae to retrieve
-    k = 5
+    k = 10
     # Maximum number of variables in the saved formulae. 
     max_n_vars = 3
     # A formula can work with trajectories with higher dimension but not lower dimension, so n_vars = 3
@@ -256,7 +256,7 @@ def Work_on_process_precomp(params, test_name):
     target_formulae_list, target_dists = search_from_embeddings(embeddings=target_embedding.unsqueeze(0),
                                                                 nvar=n_vars_model,
                                                                 folder_index=folder_index,
-                                                                k=10,
+                                                                k=k,
                                                                 n_neigh=64,
                                                                 n_pc=-1,
                                                                 timespan=None,
@@ -269,7 +269,7 @@ def Work_on_process_precomp(params, test_name):
     imp_formulae_list, imp_dists = search_from_embeddings(embeddings=imp_embedding.unsqueeze(0),
                                                                 nvar=max_n_vars,
                                                                 folder_index=folder_index,
-                                                                k=10,
+                                                                k=k,
                                                                 n_neigh=64,
                                                                 n_pc=-1,
                                                                 timespan=None,

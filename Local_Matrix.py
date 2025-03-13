@@ -192,6 +192,24 @@ class local_matrix:
 
         else: # This is the case of "only_target". Basically considers the proposal distribution to be an empirical distribution
             target_log_prob, target_log_error = self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj, log=True)
+            if target_log_error:
+                raise RuntimeError("target_log_error!")
+            # Stable log-sum-exp approach
+            max_log_prob = torch.max(target_log_prob)
+            shifted_prob = torch.exp(target_log_prob - max_log_prob)
+            sum_prob = max(torch.sum(shifted_prob).item(), torch.finfo(shifted_prob.dtype).tiny)
+            if math.isnan(sum_prob) or math.isinf(sum_prob) or (sum_prob == 0):
+                print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
+                raise ValueError(f"test_sum_weights has an invalid value: {sum_prob}. This indicates numerical instability in the calculation.")
+            # Store weights and calculate stats
+            self.true_dweights = shifted_prob * torch.exp(max_log_prob)
+            self.sum_weights = torch.sum(self.true_dweights).item()
+            self.sum_squared_weights = torch.sum(torch.square(self.true_dweights)).item()
+            self.dweights = (shifted_prob * self.n_traj) / sum_prob
+
+
+
+            """
             mean_log_prob = torch.mean(target_log_prob)
             target_prob = torch.exp(target_log_prob - mean_log_prob)
             self.true_dweights = target_prob * torch.exp(mean_log_prob)
@@ -202,7 +220,7 @@ class local_matrix:
                 raise ValueError(f"test_sum_weights has an invalid value: {test_sum_weights}. This indicates numerical instability in the calculation.")
             self.sum_weights = max(torch.sum(self.true_dweights).item(), torch.finfo(self.true_dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
             self.sum_squared_weights = torch.sum(torch.square(self.true_dweights)).item()
-            self.dweights = (target_prob * self.n_traj) / torch.sum(target_prob)
+            self.dweights = (target_prob * self.n_traj) / torch.sum(target_prob)"""
             
 
 

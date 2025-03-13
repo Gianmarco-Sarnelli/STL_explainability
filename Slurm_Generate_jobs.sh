@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=EPYC                     # Partition name
+#SBATCH --partition=THIN                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (for mpi, not needed now)
 #SBATCH --nodes=1                            # Use exactly one node
@@ -15,13 +15,13 @@
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # List of test names #M E H J B T G S
-test_names=("sTrESsaToB2M") # "AModelH2M" "AModelB2M" "AModelG2M" "AModelS2M")
+test_names=("biggerB2M" "biggerH2M" "biggerB2M" "biggerG2M" "biggerS2M")
 
 for test_name in "${test_names[@]}"; do
 
     echo "Generating jobs for test: $test_name"
 
-    python3 Generate_jobs.py "$test_name" 8 "yes" "EPYC" "Test_model.py"
+    python3 Generate_jobs.py "$test_name" 8 "yes" "THIN" "Test_model.py"
 
     echo "$test_name jobs are generated"
 

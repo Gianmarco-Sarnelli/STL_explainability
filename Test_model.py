@@ -349,6 +349,9 @@ def Work_on_process_precomp(params, test_name):
     # End timing
     Elapsed_time = time.time() - start_time
     
+    # flushing output
+    sys.stdout.flush()
+    
     return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
 
 

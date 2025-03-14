@@ -120,106 +120,49 @@ class local_matrix:
             raise RuntimeError("No proposal_traj found!!")
 
         if self.evaluate_at_all_times:
-            raise RuntimeError("Evaluation on all time points is not built yet")  # TODO: Implementa
-        elif self.weight_strategy != "only_target":
-            # To have a more stable code, we add the log of the probabilities and then do the exponentiation
-            for i in range(self.n_traj):
-                log_prob = 0
-                target_log_error = False # This signals that the target probability is zero
-                proposal_log_error = False # This signals that the proposal probability is zero
-
-                # Computing the log probability of the target distribution
-                target_log_prob, target_log_error =  self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                log_prob += target_log_prob.item()
-
-                # Computing the log probability of the proposal distribution
-                proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj[i, :, :].unsqueeze(0), log=True)
-                log_prob -= proposal_log_prob.item()
-                
-                # Handling the possible errors
-                if proposal_log_error:
-                    self.dweights = torch.zeros(self.n_traj, device=self.device)
-                    # This is the case when the traj is too extreme for the proposal distr and so we get a division by zero
-                    # TODO: rivedi meglio che succede se la prob globale è zero
-                    break
-                elif target_log_error:
-                    self.dweights[i] = 0
-                    # This is the case where the traj is too extreme for the target distrib and we obtain a simple multiplication by zero
-                else:
-                    try:
-                        self.dweights[i] = math.exp(log_prob) # standard case
-                        if math.isnan(self.dweights[i]):
-                            print(f"self.dweights[{i}] is nan, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
-                            print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
-                    except OverflowError:
-                        print(f"Overflow error: log_prob = {log_prob}, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
-                        print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
-
-            self.true_dweights = self.dweights.clone() # Saving a copy of the unnormalized weights for later
-            test_sum_weights = torch.sum(self.dweights).item()
-            # Check for NaN or Inf
-            if math.isnan(test_sum_weights) or math.isinf(test_sum_weights) or (test_sum_weights == 0):
-                print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
-                raise ValueError(f"sum_dweights has an invalid value: {test_sum_weights}. This indicates numerical instability in the calculation.")
-
-            self.sum_weights = max(torch.sum(self.dweights).item(), torch.finfo(self.dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
-            self.sum_squared_weights = torch.sum(torch.square(self.dweights)).item()
-            match self.weight_strategy:
-                case "self_norm":
-                    self.dweights /= self.sum_weights
-                    self.dweights *= self.n_traj
-                case "standard":
-                    pass
-                case "square_root":
-                    self.dweights = torch.sqrt(self.dweights)
-                    self.dweights /= self.sum_weights
-                    self.dweights *= self.n_traj
-                case "only_target":
-                    self.dweights /= self.sum_weights
-                    self.dweights *= self.n_traj
-                case _: # The default case will be the self normalization
-                    self.dweights /= self.sum_weights
-                    self.dweights *= self.n_traj
+            raise RuntimeError("Evaluation on all time points is not built yet")
+        else:
+            try:
+                target_log_prob, target_log_error = self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj, log=True)
+                if target_log_error:
+                    raise RuntimeError("target_log_error! Proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
+                log_prob = target_log_prob.clone()
+                if self.weight_strategy != "only_target":
+                    proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj, log=True)
+                    if proposal_log_error:
+                        raise RuntimeError(f"proposal_log_error! Proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
+                    log_prob += proposal_log_prob
+                # Stable log-sum-exp approach
+                max_log_prob = torch.max(log_prob)
+                # Check for NaN or Inf
+                if math.isnan(max_log_prob) or math.isinf(max_log_prob) or (max_log_prob == 0):
+                    print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
+                    raise ValueError(f"max_log_prob has an invalid value: {max_log_prob}. This indicates numerical instability in the calculation.")
+                shifted_prob = torch.exp(log_prob - max_log_prob)
+                sum_shifted_prob = max(torch.sum(shifted_prob).item(), torch.finfo(shifted_prob.dtype).tiny)
+                if math.isnan(sum_shifted_prob) or math.isinf(sum_shifted_prob) or (sum_shifted_prob == 0):
+                    print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
+                    raise ValueError(f"test_sum_weights has an invalid value: {sum_shifted_prob}. This indicates numerical instability in the calculation.")
+                # Store weights and calculate stats
+                self.true_dweights = shifted_prob * torch.exp(max_log_prob)
+                self.sum_weights = torch.sum(self.true_dweights).item()
+                self.sum_squared_weights = torch.sum(torch.square(self.true_dweights)).item()
+                self.n_e = sum_shifted_prob**2/torch.sum(torch.square(shifted_prob)) #stable version of n_e
             
-            #n_e = self.sum_weights**2/self.sum_squared_weights
-            #print(f"\n #Inside the local_matrix class#")
-            #print(f"The sum of the weights is: {self.sum_weights}")
-            #print(f"The sum of squares of the weights is: {self.sum_squared_weights}")
-            #print(f"n_e is: {n_e}")
-            #print(f"n/n_e = {self.n_traj / n_e}")
-
-        else: # This is the case of "only_target". Basically considers the proposal distribution to be an empirical distribution
-            target_log_prob, target_log_error = self.target_distr.compute_pdf_trajectory(trajectory=self.proposal_traj, log=True)
-            if target_log_error:
-                raise RuntimeError("target_log_error!")
-            # Stable log-sum-exp approach
-            max_log_prob = torch.max(target_log_prob)
-            shifted_prob = torch.exp(target_log_prob - max_log_prob)
-            sum_prob = max(torch.sum(shifted_prob).item(), torch.finfo(shifted_prob.dtype).tiny)
-            if math.isnan(sum_prob) or math.isinf(sum_prob) or (sum_prob == 0):
-                print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
-                raise ValueError(f"test_sum_weights has an invalid value: {sum_prob}. This indicates numerical instability in the calculation.")
-            # Store weights and calculate stats
-            self.true_dweights = shifted_prob * torch.exp(max_log_prob)
-            self.sum_weights = torch.sum(self.true_dweights).item()
-            self.sum_squared_weights = torch.sum(torch.square(self.true_dweights)).item()
-            self.dweights = (shifted_prob * self.n_traj) / sum_prob
-
-
-
-            """
-            mean_log_prob = torch.mean(target_log_prob)
-            target_prob = torch.exp(target_log_prob - mean_log_prob)
-            self.true_dweights = target_prob * torch.exp(mean_log_prob)
-            # Check for NaN or Inf
-            test_sum_weights = torch.sum(target_prob).item()
-            if math.isnan(test_sum_weights) or math.isinf(test_sum_weights) or (test_sum_weights == 0):
-                print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
-                raise ValueError(f"test_sum_weights has an invalid value: {test_sum_weights}. This indicates numerical instability in the calculation.")
-            self.sum_weights = max(torch.sum(self.true_dweights).item(), torch.finfo(self.true_dweights.dtype).tiny) # Finding the sum of the weights (clipping it at the minimum float value)
-            self.sum_squared_weights = torch.sum(torch.square(self.true_dweights)).item()
-            self.dweights = (target_prob * self.n_traj) / torch.sum(target_prob)"""
-            
+                # weight strategy
+                match self.weight_strategy:
+                    case "self_norm":
+                        self.dweights = (shifted_prob * self.n_traj) / sum_shifted_prob
+                    case "standard":
+                        self.dweight = self.true_dweights.clone()
+                    case "square_root":
+                        self.dweights = (torch.sqrt(shifted_prob) * self.n_traj) / torch.sum(torch.sqrt(shifted_prob))
+                    case "only_target":
+                        self.dweights = (shifted_prob * self.n_traj) / sum_shifted_prob
+                    case _: # The default case will be the self normalization
+                        self.dweights = (shifted_prob * self.n_traj) / sum_shifted_prob
+            except Exception as e:
+                raise RuntimeError(f"Error inside local matrix, Proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}, error: {e}")
 
 
 

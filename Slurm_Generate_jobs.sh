@@ -15,7 +15,7 @@
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # List of test names #M E H J B T G S
-test_names=("StresserH2M" "StresserB2M")
+test_names=("Weighted_H2M" "Weighted_B2M" "Weighted_G2M" "Weighted_S2M")
 
 for test_name in "${test_names[@]}"; do
 

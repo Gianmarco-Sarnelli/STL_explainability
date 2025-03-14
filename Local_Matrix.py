@@ -138,7 +138,6 @@ class local_matrix:
                 
                 # Handling the possible errors
                 if proposal_log_error:
-                    #print("##proposal_log_error##")
                     self.dweights = torch.zeros(self.n_traj, device=self.device)
                     # This is the case when the traj is too extreme for the proposal distr and so we get a division by zero
                     # TODO: rivedi meglio che succede se la prob globale è zero
@@ -149,7 +148,6 @@ class local_matrix:
                 else:
                     try:
                         self.dweights[i] = math.exp(log_prob) # standard case
-                        #print(f"target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
                         if math.isnan(self.dweights[i]):
                             print(f"self.dweights[{i}] is nan, target_log_prob = {target_log_prob.item()}, proposal_log_prob = {proposal_log_prob.item()}")
                             print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")

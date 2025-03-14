@@ -15,7 +15,7 @@ import json
 import sqlite3
 import re
 import pickle
-from model_to_formula import quantitative_model, new_kernel_to_embedding
+from model_to_formula import quantitative_model, new_kernel_to_embedding, kernel_to_new_kernel
 from IR.phisearch import similarity_based_relevance, search_from_embeddings
 from IR.utils import load_pickle, from_string_to_formula
 
@@ -103,11 +103,11 @@ def Work_on_process_precomp(params, test_name):
     del target_xi_dict
 
     dweights_dict = torch.load(os.path.join("Dweights_dir", f"{test_name}.pt"))
-    dweights = dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std)][:n_traj] # Selecting only the first n_traj elements
+    dweights = dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, phi_id)][:n_traj] # Selecting only the first n_traj elements
     del dweights_dict
 
     true_dweights_dict = torch.load(os.path.join("True_Dweights_dir", f"{test_name}.pt"))
-    true_dweights = true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std)][:n_traj] # Selecting only the first n_traj elements
+    true_dweights = true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, phi_id)][:n_traj] # Selecting only the first n_traj elements
     del true_dweights_dict
 
     # Initializing the model
@@ -139,34 +139,48 @@ def Work_on_process_precomp(params, test_name):
     ## K_target ##
     # Computing the robustness of each train_phis over the target_xi
     rhos_psi_target = torch.zeros(n_train_phis, n_traj)
+    rhos_psi_target_norm = torch.zeros(n_train_phis)
     for (i, formula) in enumerate(train_phis):
         rhos_psi_target[i, :] = torch.tanh(formula.quantitative(target_xi, evaluate_at_all_times=evaluate_at_all_times))
+        rhos_psi_target_norm[i] = torch.norm(rhos_psi_target[i, :])
     # Computing the robustness of the model over target_xi
     rhos_phi_target = quant_model.robustness(traj=target_xi_cut)
-    print(f"the norm of rhos_phi_target is : {torch.norm(rhos_phi_target).item()}")
+    rhos_phi_target_norm = torch.norm(rhos_phi_target)
+    print(f"the norm of rhos_phi_target is : {rhos_phi_target_norm.item()}")
     out_of_range_values = rhos_phi_target[(rhos_phi_target < -1) | (rhos_phi_target > 1)] ## REMOVE
     if len(out_of_range_values) > 0:
         print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
     # Computing the target kernels
     K_target = torch.tensordot(rhos_psi_target, rhos_phi_target, dims=([1],[0]) ) / (n_traj * math.sqrt(n_train_phis)) 
-    print(f"the norm if K_target is : {torch.norm(K_target).item()}")
+    print(f"the norm of K_target is : {torch.norm(K_target).item()}")
+    # Computing the new target kernels
+    New_K_target = kernel_to_new_kernel(K_target, norm_psis=rhos_psi_target_norm, norm_phi=rhos_phi_target_norm, n_traj=n_traj, n_formulae=n_train_phis)
+    print(f"the norm of New_K_target is : {torch.norm(New_K_target).item()}")
     # Deleting used tensors
-    del rhos_psi_target
+    del rhos_psi_target, rhos_psi_target_norm, rhos_phi_target_norm
+
 
     ## K_proposal ##
     # Computing the robustness of each train_phis over the proposal_xi
     rhos_psi_proposal = torch.zeros(n_train_phis, n_traj)
+    rhos_psi_proposal_norm = torch.zeros(n_train_phis)
     for (i, formula) in enumerate(train_phis):
         rhos_psi_proposal[i, :] = torch.tanh(formula.quantitative(proposal_xi, evaluate_at_all_times=evaluate_at_all_times))
+        rhos_psi_proposal_norm[i] = torch.norm(rhos_psi_proposal[i, :])
     # Computing the robustness of phi over the proposal_xi
     rhos_phi_proposal = quant_model.robustness(traj=proposal_xi_cut)
-    print(f"the norm of rhos_phi_proposal is : {torch.norm(rhos_phi_proposal).item()}")
+    rhos_phi_proposal_norm = torch.norm(rhos_phi_proposal)
+    print(f"the norm of rhos_phi_proposal is : {rhos_phi_proposal_norm.item()}")
     out_of_range_values = rhos_phi_proposal[(rhos_phi_proposal < -1) | (rhos_phi_proposal > 1)] ## REMOVE
     if len(out_of_range_values) > 0:
         print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
     # Computing the proposal kernel
     K_proposal = torch.tensordot(rhos_psi_proposal, rhos_phi_proposal, dims=([1],[0]) ) / (n_traj * math.sqrt(n_train_phis))
     print(f"the norm of K_proposal is : {torch.norm(K_proposal).item()}") 
+    # Computing the new proposal kernels
+    New_K_proposal = kernel_to_new_kernel(K_proposal, norm_psis=rhos_psi_proposal_norm, norm_phi=rhos_phi_proposal_norm, n_traj=n_traj, n_formulae=n_train_phis)
+    print(f"the norm of New_K_proposal is : {torch.norm(New_K_proposal).item()}")
+    # Deleting used tensors
 
     ## K_imp ##
     # Initializing the converter class
@@ -183,6 +197,10 @@ def Work_on_process_precomp(params, test_name):
     # Computing the importance sampling kernel starting from the proposal one
     K_imp = converter.convert_to_local(K_proposal).type(torch.float32)
     print(f"The norm of K_imp is : {torch.norm(K_imp).item()}")
+    # TODO: check that this is correct:
+    New_K_imp = kernel_to_new_kernel(K_imp, norm_psis=rhos_psi_proposal_norm, norm_phi=rhos_phi_proposal_norm, n_traj=n_traj, n_formulae=n_train_phis)
+    print(f"the norm of New_K_imp is : {torch.norm(New_K_imp).item()}")
+
     
     # Computing the peak memory used
     Process_mem = process.memory_info().rss / 1024 / 1024
@@ -194,8 +212,11 @@ def Work_on_process_precomp(params, test_name):
     # Deleting used tensors
     converter.__dict__.clear()  # Removes all instance attributes
 
-    
+    """
     ## NEW ##
+
+    ## Consider that the trajectories must be cut also when computing the weights!! SO you need to modify Generate_jobs.py!!
+
 
 
     ## New_K_target ##
@@ -252,6 +273,7 @@ def Work_on_process_precomp(params, test_name):
     # Deleting used tensors
     converter.__dict__.clear()  # Removes all instance attributes
     del new_rhos_psi_proposal
+    """
 
 
     #Testing the norms of the kernels
@@ -259,7 +281,7 @@ def Work_on_process_precomp(params, test_name):
     Norm_target = torch.norm(K_target).item()
     Norm_imp = torch.norm(K_imp).item()
 
-    #Computing the matrix Dist and Cos_Dist and Dist_rho
+    #Computing Dist and Cos_Dist and Dist_rho
     Dist = torch.norm(K_target - K_imp).item()
     Cos_dist = 1 - torch.dot(K_target/Norm_target, K_imp/Norm_imp).item()
     Dist_rho = torch.norm(rhos_phi_proposal - rhos_phi_target).item()/math.sqrt(n_traj)
@@ -351,7 +373,7 @@ def Work_on_process_precomp(params, test_name):
     
     # flushing output
     sys.stdout.flush()
-    
+
     return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
 
 

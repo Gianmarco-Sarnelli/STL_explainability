@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from IR.phisearch import search_from_embeddings
+import math
 
 import sys
 import os
@@ -93,6 +94,23 @@ class quantitative_model:
         rhos = rhos_unnorm / rhos_norm
         return rhos
 
+
+def kernel_to_new_kernel(kernel, norm_psis, norm_phi, n_traj, n_formulae):
+    """
+    Transforms the kernel used in the kernel for the embedding
+
+    input: 
+    kernel: torch.Tensor of shape (n_formulae)
+    norm_psis: torch.Tensor of shape (n_formulae) (these are the norms of the robustnes of the psis)
+    norm_phi: norm of the robustness of phi
+
+    """
+
+    kernel_scaled = kernel * (n_traj * math.sqrt(n_formulae))
+    kernel_normalized = kernel_scaled / norm_psis
+    new_kernel = kernel_normalized / norm_phi
+
+    return new_kernel
 
 def new_kernel_to_embedding(new_kernel, sigma2=0.44 ):
     """

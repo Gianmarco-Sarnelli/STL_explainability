@@ -77,6 +77,7 @@ def Work_on_process_precomp(params, test_name):
     sign_ch = 2
     # Parameters of the process
     n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, weight_strategy, mu0, mu1, sigma1, q, q0 = params
+    print(f"n_psi_added = {n_psi_added}, n_traj = {n_traj}, target_std = {target_std}, proposal_std = {proposal_std}, n_traj_points = {n_traj_points}, phi_id = {phi_id}, base_xi_id = {base_xi_id}, weight_strategy = {weight_strategy}, mu0 = {mu0}, mu1 = {mu1}, sigma1 = {sigma1}, q = {q}, q0 = {q0}")
     n_train_phis = 1000
     n_traj_embedding = 10000 # How many trajectories are used to compute the embeddings in the database
     # Number of closest formulae to retrieve
@@ -201,7 +202,7 @@ def Work_on_process_precomp(params, test_name):
                                 evaluate_at_all_times = evaluate_at_all_times,
                                 )
     # Computing the matrix Q that converts to a target kernel
-    if converter.compute_Q(proposal_traj = proposal_xi, PHI = rhos_psi_proposal, dweights=dweights):
+    if converter.compute_Q(proposal_traj=proposal_xi, PHI=rhos_psi_proposal, dweights=dweights):
         # returns if there are problems with the pseudoinverse 
         return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
 
@@ -424,7 +425,7 @@ if __name__ == "__main__":
         if not os.path.exists(db_path):
             print(f"Database {db_path} not found")
             exit()
-        weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed = results
+        weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed = result
         
         # Computing n_e
         try:
@@ -432,7 +433,7 @@ if __name__ == "__main__":
         except:
             n_e = None
 
-        print(f"weight_strategy = {weight_strategy}, n_psi_added = {n_psi_added}, n_traj = {n_traj}, target_std = {target_std}, proposal_std = {proposal_std}, n_traj_points = {n_traj_points}, phi_id = {phi_id}, base_xi_id = {base_xi_id}, Dist = {Dist}, Cos_dist = {Cos_dist}, Dist_rho = {Dist_rho}, Norm_proposal = {Norm_proposal}, Norm_target = {Norm_target}, Norm_imp = {Norm_imp}, Pinv_error = {Pinv_error}, Sum_weights = {Sum_weights}, Sum_squared_weights = {Sum_squared_weights}, Elapsed_time = {Elapsed_time}, Process_mem = {Process_mem}, n_e = {n_e}, overlap_form = {overlap_form}, dist_form = {dist_form}, overlap_form = {overlap_form}, dist_form = {dist_form}, dist_new_kernels = {dist_new_kernels}, dist_embed = {dist_embed}")
+        print(f"weight_strategy = {weight_strategy}, n_psi_added = {n_psi_added}, n_traj = {n_traj}, target_std = {target_std}, proposal_std = {proposal_std}, n_traj_points = {n_traj_points}, phi_id = {phi_id}, base_xi_id = {base_xi_id}, mu0 = {mu0}, mu1 = {mu1}, sigma1 = {sigma1}, q = {q}, q0 = {q0}, Dist = {Dist}, Cos_dist = {Cos_dist}, Dist_rho = {Dist_rho}, Norm_proposal = {Norm_proposal}, Norm_target = {Norm_target}, Norm_imp = {Norm_imp}, Pinv_error = {Pinv_error}, Sum_weights = {Sum_weights}, Sum_squared_weights = {Sum_squared_weights}, Elapsed_time = {Elapsed_time}, Process_mem = {Process_mem}, n_e = {n_e}, overlap_form = {overlap_form}, dist_form = {dist_form}, overlap_form = {overlap_form}, dist_form = {dist_form}, dist_new_kernels = {dist_new_kernels}, dist_embed = {dist_embed}")
 
         with sqlite3.connect(db_path, timeout=60.0) as conn:  # Increased timeout for concurrent access
             c = conn.cursor()

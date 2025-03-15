@@ -11,12 +11,6 @@ import math
 import pickle
 from Local_Matrix import local_matrix
 
-# NOTE: add mu0 to the database keys!
-# NOTE: add mu1 to the database keys!
-# NOTE: add sigma1 to the database keys!
-# NOTE: add q to the database keys!
-# NOTE: add q0 to the database keys!
-
 
 def initialize_database(test_name):
     """Initialize SQLite database with the required structure"""
@@ -314,7 +308,7 @@ list_weight_strategy =  ["self_norm"] #, "only_target"] # NOTE: try to assign a 
 list_n_traj_points = [100]
 list_target_std = [1]#[1, 0.6]
 list_proposal_std = [1]#[1, 4]
-list_n_traj = [1000, 5500, 10000]#[1000, 4000]
+list_n_traj = [1000]#[1000, 10000]#[1000, 4000]
 list_n_psi_added = [0]#[-500, 500]
 list_phi_id = [0, 1, 2, 5, 6]
 list_base_xi_id = [0]    #NOTE: fix this to a single value

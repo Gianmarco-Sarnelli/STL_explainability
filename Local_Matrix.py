@@ -131,11 +131,11 @@ class local_matrix:
                     proposal_log_prob, proposal_log_error = self.proposal_distr.compute_pdf_trajectory(trajectory=self.proposal_traj, log=True)
                     if proposal_log_error:
                         raise RuntimeError(f"proposal_log_error! Proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
-                    log_prob += proposal_log_prob
+                    log_prob -= proposal_log_prob
                 # Stable log-sum-exp approach
                 max_log_prob = torch.max(log_prob)
                 # Check for NaN or Inf
-                if math.isnan(max_log_prob) or math.isinf(max_log_prob) or (max_log_prob == 0):
+                if math.isnan(max_log_prob) or math.isinf(max_log_prob):
                     print(f"proposal distr name = {self.proposal_distr.name}, target distr name = {self.target_distr.name}")
                     raise ValueError(f"max_log_prob has an invalid value: {max_log_prob}. This indicates numerical instability in the calculation.")
                 shifted_prob = torch.exp(log_prob - max_log_prob)

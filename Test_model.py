@@ -54,7 +54,7 @@ def Work_on_process_precomp(params, test_name):
    
     Returns
     ---------
-    weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
+    weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e, overlap_form, dist_form, dist_new_kernels, dist_embed,  model_to_target, model_to_imp
     """
     # Timing each process
     start_time = time.time()
@@ -112,7 +112,7 @@ def Work_on_process_precomp(params, test_name):
     del true_dweights_dict
 
     n_e_dict = torch.load(os.path.join("n_e_dir", f"{test_name}.pt"))
-    Problematic_n_e = n_e_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] # NOTE: This n_e is only correctt for the max n_traj !!!!!
+    n_e = n_e_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id, n_traj)] # NOTE: This n_e is only correctt for the max n_traj !!!!!
     del n_e_dict
 
     # Initializing the model
@@ -132,12 +132,22 @@ def Work_on_process_precomp(params, test_name):
         quant_model = quantitative_model(model_path=model_path, nvars=n_vars_model)
         # Creating the trajectories where we cut some dimensions out for the model
         target_xi_cut = target_xi[:,:n_vars_model,:] 
+        target_xi_filled = torch.zeros((target_xi.shape[0], 3, target_xi.shape[2]), device=device)
+        target_xi_filled[:, :n_vars_model, :] = target_xi_cut
+
         proposal_xi_cut = proposal_xi[:,:n_vars_model,:]
+        proposal_xi_filled = torch.zeros((proposal_xi.shape[0], 3, proposal_xi.shape[2]), device=device)
+        proposal_xi_filled[:, :n_vars_model, :] = proposal_xi_cut
     else: # If the id is greter than 6 then load a formula
         # Loading the saved formulae
         with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'rb') as f:
             phi_bag_dict = pickle.load(f)
-        phi_bag = phi_bag_dict[phi_id]    # TODO: implement later!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        phi_bag = phi_bag_dict[phi_id]
+        n_vars_model = max_n_vars
+        proposal_xi_filled = proposal_xi
+        target_xi_filled = target_xi
+        proposal_xi_cut = proposal_xi
+        target_xi_cut = target_xi
         del phi_bag_dict
 
     # Loading the saved formulae (1000 formulae)
@@ -152,15 +162,16 @@ def Work_on_process_precomp(params, test_name):
     rhos_psi_target = torch.zeros(n_train_phis, n_traj)
     rhos_psi_target_norm = torch.zeros(n_train_phis)
     for (i, formula) in enumerate(train_phis):
-        rhos_psi_target[i, :] = torch.tanh(formula.quantitative(target_xi, evaluate_at_all_times=evaluate_at_all_times))
+        rhos_psi_target[i, :] = torch.tanh(formula.quantitative(target_xi_filled, evaluate_at_all_times=evaluate_at_all_times))
         rhos_psi_target_norm[i] = torch.norm(rhos_psi_target[i, :])
-    # Computing the robustness of the model over target_xi
-    rhos_phi_target = quant_model.robustness(traj=target_xi_cut)
+    # Computing the robustness of the model (or formula) over target_xi
+    if phi_id < 7:
+        rhos_phi_target = quant_model.robustness(traj=target_xi_cut)
+    else:
+        rhos_phi_target = torch.tanh(phi_bag[0].quantitative(target_xi_filled, evaluate_at_all_times=evaluate_at_all_times))
+
     rhos_phi_target_norm = torch.norm(rhos_phi_target)
     print(f"the norm of rhos_phi_target is : {rhos_phi_target_norm.item()}")
-    out_of_range_values = rhos_phi_target[(rhos_phi_target < -1) | (rhos_phi_target > 1)] ## REMOVE
-    if len(out_of_range_values) > 0:
-        print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
     # Computing the target kernels
     K_target = torch.tensordot(rhos_psi_target, rhos_phi_target, dims=([1],[0]) ) / (n_traj * math.sqrt(n_train_phis)) 
     print(f"the norm of K_target is : {torch.norm(K_target).item()}")
@@ -176,15 +187,16 @@ def Work_on_process_precomp(params, test_name):
     rhos_psi_proposal = torch.zeros(n_train_phis, n_traj)
     rhos_psi_proposal_norm = torch.zeros(n_train_phis)
     for (i, formula) in enumerate(train_phis):
-        rhos_psi_proposal[i, :] = torch.tanh(formula.quantitative(proposal_xi, evaluate_at_all_times=evaluate_at_all_times))
+        rhos_psi_proposal[i, :] = torch.tanh(formula.quantitative(proposal_xi_filled, evaluate_at_all_times=evaluate_at_all_times))
         rhos_psi_proposal_norm[i] = torch.norm(rhos_psi_proposal[i, :])
-    # Computing the robustness of phi over the proposal_xi
-    rhos_phi_proposal = quant_model.robustness(traj=proposal_xi_cut)
+    # Computing the robustness of the model (or formula) over the proposal_xi
+    if phi_id < 7:
+        rhos_phi_proposal = quant_model.robustness(traj=proposal_xi_cut)
+    else:
+        rhos_phi_proposal = torch.tanh(phi_bag[0].quantitative(proposal_xi_filled, evaluate_at_all_times=evaluate_at_all_times))
+
     rhos_phi_proposal_norm = torch.norm(rhos_phi_proposal)
     print(f"the norm of rhos_phi_proposal is : {rhos_phi_proposal_norm.item()}")
-    out_of_range_values = rhos_phi_proposal[(rhos_phi_proposal < -1) | (rhos_phi_proposal > 1)] ## REMOVE
-    if len(out_of_range_values) > 0:
-        print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
     # Computing the proposal kernel
     K_proposal = torch.tensordot(rhos_psi_proposal, rhos_phi_proposal, dims=([1],[0]) ) / (n_traj * math.sqrt(n_train_phis))
     print(f"the norm of K_proposal is : {torch.norm(K_proposal).item()}") 
@@ -202,9 +214,9 @@ def Work_on_process_precomp(params, test_name):
                                 evaluate_at_all_times = evaluate_at_all_times,
                                 )
     # Computing the matrix Q that converts to a target kernel
-    if converter.compute_Q(proposal_traj=proposal_xi, PHI=rhos_psi_proposal, dweights=dweights):
+    if converter.compute_Q(proposal_traj=proposal_xi_cut, PHI=rhos_psi_proposal, dweights=dweights):
         # returns if there are problems with the pseudoinverse 
-        return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
+        return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
 
     # Computing the importance sampling kernel starting from the proposal one
     K_imp = converter.convert_to_local(K_proposal).type(torch.float32)
@@ -224,70 +236,8 @@ def Work_on_process_precomp(params, test_name):
     # Deleting used tensors
     converter.__dict__.clear()  # Removes all instance attributes
 
-    """
-    ## NEW ##
 
-    ## Consider that the trajectories must be cut also when computing the weights!! SO you need to modify Generate_jobs.py!!
-
-
-
-    ## New_K_target ##
-    # Computing the new robustness of each train_phis over the target_xi
-    new_rhos_psi_target = torch.zeros(n_train_phis, n_traj)
-    for (i, formula) in enumerate(train_phis):
-        new_rhos_psi_target[i, :] = torch.tanh(formula.quantitative(target_xi, evaluate_at_all_times=evaluate_at_all_times))
-        new_rhos_psi_target_norm =  torch.norm(new_rhos_psi_target[i, :])
-        new_rhos_psi_target[i, :] = new_rhos_psi_target[i, :] / new_rhos_psi_target_norm
-    # Computing the robustness of the model over target_xi
-    new_rhos_phi_target = quant_model.new_robustness(traj=target_xi_cut)
-    print(f"the norm of new_rhos_phi_target is : {torch.norm(new_rhos_phi_target).item()}")
-    out_of_range_values = new_rhos_phi_target[(new_rhos_phi_target < -1) | (new_rhos_phi_target > 1)] ## REMOVE
-    if len(out_of_range_values) > 0:
-        print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
-    # Computing the target kernels
-    New_K_target = torch.tensordot(new_rhos_psi_target, new_rhos_phi_target, dims=([1],[0]) ) 
-    print(f"the norm of New_K_target is : {torch.norm(New_K_target).item()}")
-    # Deleting used tensors
-    del new_rhos_psi_target, new_rhos_phi_target
-
-    ## New_K_proposal ##
-    # Computing the new robustness of each train_phis over the proposal_xi
-    new_rhos_psi_proposal = torch.zeros(n_train_phis, n_traj)
-    for (i, formula) in enumerate(train_phis):
-        new_rhos_psi_proposal[i, :] = torch.tanh(formula.quantitative(proposal_xi, evaluate_at_all_times=evaluate_at_all_times))
-        new_rhos_psi_proposal_norm =  torch.norm(new_rhos_psi_proposal[i, :])
-        new_rhos_psi_proposal[i, :] = new_rhos_psi_proposal[i, :] / new_rhos_psi_proposal_norm
-    # Computing the robustness of the model over proposal_xi
-    new_rhos_phi_proposal = quant_model.new_robustness(traj=proposal_xi_cut)
-    print(f"the norm of new_rhos_phi_proposal is : {torch.norm(new_rhos_phi_proposal).item()}")
-    out_of_range_values = new_rhos_phi_proposal[(new_rhos_phi_proposal < -1) | (new_rhos_phi_proposal > 1)] ## REMOVE
-    if len(out_of_range_values) > 0:
-        print(f"Example values outside range: {out_of_range_values[:5]}")  # Show first 5 out-of-range values
-    # Computing the proposal kernels
-    New_K_proposal = torch.tensordot(new_rhos_psi_proposal, new_rhos_phi_proposal, dims=([1],[0]) ) 
-    print(f"the norm of New_K_proposal is : {torch.norm(New_K_proposal).item()}")
-    del new_rhos_phi_proposal
-
-    ## New_K_imp ##
-    converter = local_matrix(n_vars = n_vars, 
-                                n_formulae = n_train_phis, 
-                                n_traj = n_traj, 
-                                n_traj_points = n_traj_points, 
-                                evaluate_at_all_times = evaluate_at_all_times,
-                                )
-    # Computing the matrix Q that converts to a target kernel
-    if converter.compute_Q(proposal_traj = proposal_xi, PHI = new_rhos_psi_proposal, dweights=dweights):
-        # returns if there are problems with the pseudoinverse 
-        return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
-    # Computing the importance sampling kernel starting from the proposal one
-    New_K_imp = converter.convert_to_local(New_K_proposal).type(torch.float32)
-    print(f"the norm of New_K_imp is : {torch.norm(New_K_imp).item()}")
-    # Deleting used tensors
-    converter.__dict__.clear()  # Removes all instance attributes
-    del new_rhos_psi_proposal
-    """
-
-
+   
     #Testing the norms of the kernels
     Norm_proposal = torch.norm(K_proposal).item()
     Norm_target = torch.norm(K_target).item()
@@ -380,13 +330,32 @@ def Work_on_process_precomp(params, test_name):
     # Deleting used tensors
     del K_proposal, K_target, K_imp, rhos_psi_proposal, rhos_phi_proposal, rhos_phi_target
 
+    # Computing the cosine distance between the model and the two retrieved formulas
+    test_trajectories_filled = torch.zeros_like(test_trajectories)
+    test_trajectories_cut = test_trajectories[:, :n_vars_model, :]
+    test_trajectories_filled[:,:n_vars_model, :] = test_trajectories_cut
+
+    if phi_id < 7:
+        rhos_model = quant_model.robustness(traj=proposal_xi_cut)
+    else: 
+        rhos_model = torch.tanh(phi_bag[0].quantitative(proposal_xi_filled, evaluate_at_all_times=evaluate_at_all_times))
+        
+    rhos_model_norm = torch.norm(rhos_model)
+    rhos_target = torch.tanh(target_formulae[0].quantitative(proposal_xi_filled, evaluate_at_all_times=evaluate_at_all_times))
+    rhos_target_norm = torch.norm(rhos_target)
+    rhos_imp = torch.tanh(imp_formulae[0].quantitative(proposal_xi_filled, evaluate_at_all_times=evaluate_at_all_times))
+    rhos_imp_norm = torch.norm(rhos_imp)
+
+    model_to_target = 1.0 - ( torch.tensordot(rhos_model, rhos_target, dims=([0],[0]))/(rhos_model_norm*rhos_target_norm) ).item()
+    model_to_imp = 1.0 - ( torch.tensordot(rhos_model, rhos_imp, dims=([0],[0]) )/(rhos_model_norm*rhos_imp_norm)).item()
+
     # End timing
     Elapsed_time = time.time() - start_time
     
     # flushing output
     sys.stdout.flush()
 
-    return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
+    return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e, overlap_form, dist_form, dist_new_kernels, dist_embed, model_to_target, model_to_imp
 
 
 
@@ -425,7 +394,7 @@ if __name__ == "__main__":
         if not os.path.exists(db_path):
             print(f"Database {db_path} not found")
             exit()
-        weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed = result
+        weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e, overlap_form, dist_form, dist_new_kernels, dist_embed, model_to_target, model_to_imp = result
         
         # Computing n_e
         try:
@@ -433,16 +402,16 @@ if __name__ == "__main__":
         except:
             n_e = None
 
-        print(f"weight_strategy = {weight_strategy}, n_psi_added = {n_psi_added}, n_traj = {n_traj}, target_std = {target_std}, proposal_std = {proposal_std}, n_traj_points = {n_traj_points}, phi_id = {phi_id}, base_xi_id = {base_xi_id}, mu0 = {mu0}, mu1 = {mu1}, sigma1 = {sigma1}, q = {q}, q0 = {q0}, Dist = {Dist}, Cos_dist = {Cos_dist}, Dist_rho = {Dist_rho}, Norm_proposal = {Norm_proposal}, Norm_target = {Norm_target}, Norm_imp = {Norm_imp}, Pinv_error = {Pinv_error}, Sum_weights = {Sum_weights}, Sum_squared_weights = {Sum_squared_weights}, Elapsed_time = {Elapsed_time}, Process_mem = {Process_mem}, n_e = {n_e}, overlap_form = {overlap_form}, dist_form = {dist_form}, overlap_form = {overlap_form}, dist_form = {dist_form}, dist_new_kernels = {dist_new_kernels}, dist_embed = {dist_embed}")
+        print(f"weight_strategy = {weight_strategy}, n_psi_added = {n_psi_added}, n_traj = {n_traj}, target_std = {target_std}, proposal_std = {proposal_std}, n_traj_points = {n_traj_points}, phi_id = {phi_id}, base_xi_id = {base_xi_id}, mu0 = {mu0}, mu1 = {mu1}, sigma1 = {sigma1}, q = {q}, q0 = {q0}, Dist = {Dist}, Cos_dist = {Cos_dist}, Dist_rho = {Dist_rho}, Norm_proposal = {Norm_proposal}, Norm_target = {Norm_target}, Norm_imp = {Norm_imp}, Pinv_error = {Pinv_error}, Sum_weights = {Sum_weights}, Sum_squared_weights = {Sum_squared_weights}, Elapsed_time = {Elapsed_time}, Process_mem = {Process_mem}, n_e = {n_e}, overlap_form = {overlap_form}, dist_form = {dist_form}, overlap_form = {overlap_form}, dist_form = {dist_form}, dist_new_kernels = {dist_new_kernels}, dist_embed = {dist_embed},  model_to_target = {model_to_target}, model_to_imp = {model_to_imp}")
 
         with sqlite3.connect(db_path, timeout=60.0) as conn:  # Increased timeout for concurrent access
             c = conn.cursor()
             # Saving the values in the database
             c.execute('''INSERT OR REPLACE INTO results 
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                     (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0,
                     Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp,
-                    Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e, overlap_form, dist_form, dist_new_kernels, dist_embed ))
+                    Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e, overlap_form, dist_form, dist_new_kernels, dist_embed, model_to_target, model_to_imp))
             
             conn.commit()
     

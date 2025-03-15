@@ -53,6 +53,8 @@ overlap_form REAL,
 dist_form REAL,
 dist_new_kernels REAL,
 dist_embed REAL,
+model_to_target REAL,
+model_to_imp REAL, 
 PRIMARY KEY (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0))''')
 
         # Optimize database performance
@@ -181,7 +183,6 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
                                 for q in list_q:
                                     ## Iteration again on q0 ##
                                     for q0 in list_q0:
-
                                         # Checking if we are running Test_model.py or not
                                         if TEST_ON_MODEL:
                                             ## Iteration on phi_id ## 
@@ -189,7 +190,7 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
                                                 
                                                 # Selecting the model
                                                 model_list = ["human", "linear", "maritime", "robot2", "robot4", "robot5", "train"]
-                                                model_name = model_list[phi_id]
+                                                model_name = model_list[phi_id] if phi_id < 7 else "not_a_model"
                                                 if model_name == "maritime":
                                                     n_vars_model = 2
                                                 elif model_name in ("robot2", "robot4", "robot5"):
@@ -218,7 +219,20 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
                                                 converter.compute_dweights()
                                                 dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.dweights
                                                 true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.true_dweights
-                                                n_e_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.n_e
+                                                ## Iteration on the actual traj_number to compute n_e ##
+                                                for actual_traj_n in list_n_traj:
+                                                    # Computing the Dweights AGAIN
+                                                    converter = local_matrix(n_vars = n_vars_model, 
+                                                                            n_formulae = n_psi, 
+                                                                            n_traj = actual_traj_n, 
+                                                                            n_traj_points = n_traj_points,
+                                                                            evaluate_at_all_times = evaluate_at_all_times,
+                                                                            target_distr = target_distr,
+                                                                            proposal_distr = proposal_distr,
+                                                                            weight_strategy = weight_strategy,
+                                                                            proposal_traj = proposal_xi_cut[:actual_traj_n])
+                                                    converter.compute_dweights()
+                                                    n_e_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id, actual_traj_n)] = converter.n_e
 
 
                                         else: # In this case we don't need to change the weights depending on the number of variables of the model
@@ -239,7 +253,20 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
                                             converter.compute_dweights()
                                             dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.dweights
                                             true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.true_dweights
-                                            n_e_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.n_e
+                                            ## Iteration on the actual traj_number to compute n_e ##
+                                            for actual_traj_n in list_n_traj:
+                                                # Computing the Dweights AGAIN
+                                                converter = local_matrix(n_vars = n_vars_model, 
+                                                                        n_formulae = n_psi, 
+                                                                        n_traj = actual_traj_n, 
+                                                                        n_traj_points = n_traj_points,
+                                                                        evaluate_at_all_times = evaluate_at_all_times,
+                                                                        target_distr = target_distr,
+                                                                        proposal_distr = proposal_distr,
+                                                                        weight_strategy = weight_strategy,
+                                                                        proposal_traj = proposal_xi_cut[:actual_traj_n])
+                                                converter.compute_dweights()
+                                                n_e_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id, actual_traj_n)] = converter.n_e
 
 
     # Saving proposal_xi_dict
@@ -286,6 +313,14 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
 
 
 
+
+
+
+
+
+
+### Start of the script ###
+
 # Getting the test name
 try:
     test_name = sys.argv[1]
@@ -304,18 +339,18 @@ if (partition != "THIN") and (partition != "EPYC"):
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
-list_weight_strategy =  ["self_norm"] #, "only_target"] # NOTE: try to assign a single weight strategy to a single job. This will avoid confusion in the results!!
+list_weight_strategy =  ["self_norm", "only_target", "square_root"] # NOTE: try to assign a single weight strategy to a single job. This will avoid confusion in the results!!
 list_n_traj_points = [100]
 list_target_std = [1]#[1, 0.6]
 list_proposal_std = [1]#[1, 4]
-list_n_traj = [1000]#[1000, 10000]#[1000, 4000]
+list_n_traj = [10000]#[1000, 10000]#[1000, 4000]
 list_n_psi_added = [0]#[-500, 500]
-list_phi_id = [0, 1, 2, 5, 6]
-list_base_xi_id = [0]    #NOTE: fix this to a single value
-list_mu0 = [0, 0.1]
-list_mu1 = [0, 0.1]
-list_sigma1 = [1, 1.1]
-list_q = [0.1, 0.2]
+list_phi_id = [0, 8]#[0, 1, 2, 5, 6]
+list_base_xi_id = [0]#    #NOTE: fix this to a single value
+list_mu0 = [0]#[0, 0.1]
+list_mu1 = [0]#[0, 0.1]
+list_sigma1 = [1]#[1, 1.1]
+list_q = [0.1]#[0.1, 0.2]
 list_q0 = [0.5]
 
 

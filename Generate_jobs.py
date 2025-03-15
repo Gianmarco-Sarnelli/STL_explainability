@@ -11,6 +11,11 @@ import math
 import pickle
 from Local_Matrix import local_matrix
 
+# NOTE: add mu0 to the database keys!
+# NOTE: add mu1 to the database keys!
+# NOTE: add sigma1 to the database keys!
+# NOTE: add q to the database keys!
+# NOTE: add q0 to the database keys!
 
 
 def initialize_database(test_name):
@@ -33,6 +38,11 @@ proposal_std REAL,
 n_traj_points INTEGER,
 phi_id INTEGER,
 base_xi_id INTEGER,
+mu0 REAL,
+mu1 REAL,
+sigma1 REAL,
+q REAL,
+q0 REAL,
 Dist REAL,
 Cos_Dist REAL,
 Dist_rho REAl,
@@ -49,7 +59,7 @@ overlap_form REAL,
 dist_form REAL,
 dist_new_kernels REAL,
 dist_embed REAL,
-PRIMARY KEY (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id))''')
+PRIMARY KEY (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0))''')
 
         # Optimize database performance
 
@@ -62,12 +72,12 @@ PRIMARY KEY (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_t
 
         conn.commit()
 
-def get_distribution(name, std, totvar_mult, sign_ch, n_traj_points, device):
+def get_distribution(name, std, totvar_mult, sign_ch, n_traj_points, device, mu0=0.0, mu1=0.0, sigma1=1.0, q=0.1, q0=0.5):
     match name:
         case "M":
-            distr = BaseMeasure(sigma0=std, device=device)
+            distr = BaseMeasure(mu0=mu0, sigma0=std, mu1=mu1, sigma1=sigma1, q=q, q0=q0, device=device)
         case "E":
-            distr = Easy_BaseMeasure(sigma0=std, device=device)
+            distr = Easy_BaseMeasure(mu0=mu0, sigma0=std, mu1=mu1, sigma1=sigma1, q=q, q0=q0, device=device)
         case "H": # H = High Variance
             distr = BaseMeasure(sigma0=std, sigma1=std*totvar_mult*math.sqrt(n_traj_points), q=sign_ch/n_traj_points, device=device)
         case "J":
@@ -85,7 +95,8 @@ def get_distribution(name, std, totvar_mult, sign_ch, n_traj_points, device):
     return distr
 
 
-def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target_std, list_proposal_std, list_n_traj, list_n_psi_added, list_phi_id, list_base_xi_id):
+def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target_std, list_proposal_std, list_n_traj, 
+                list_n_psi_added, list_phi_id, list_base_xi_id, list_mu0, list_mu1, list_sigma1, list_q, list_q0):
 
     TEST_ON_MODEL = True # This param defines if we need to generate jobs for the script Test_model.py
 
@@ -109,16 +120,15 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
     # Parameters of the process
     n_psi_added = max(list_n_psi_added)  # We will save all the psi needed and then select a subset of them for each test.
     n_traj = max(list_n_traj)
-    n_psi = n_traj + n_psi_added 
+    n_psi = 1000 if TEST_ON_MODEL else n_traj + n_psi_added
 
     # Checking if the test name is in the format "proposal_name2target_name"
-    proposal_name, target_name = "B", "M"
+    proposal_name, target_name = "M", "M"
     if "2" in test_name:
         index = test_name.index("2")
         proposal_name = test_name[index - 1]
         target_name = test_name[index + 1]
 
-    
 
     ## Proposal_xi, Target_xi and Dweights ##
     proposal_xi_dict = {}
@@ -126,17 +136,28 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
     target_xi_dict = {}
     dweights_dict = {}
     true_dweights_dict = {}
+    n_e_dict = {}
     base_std = 1  # We fix this parameter to make the sampling of the base_xi independent of the proposal_std
     ## Iteration on n_traj_points ##
     for n_traj_points in list_n_traj_points:
         ## Iteration on proposal_std ##
-        for proposal_std in list_proposal_std:
-            
-            proposal_distr = get_distribution(proposal_name, proposal_std, totvar_mult, sign_ch, n_traj_points, device)
-            proposal_xi = proposal_distr.sample(samples=n_traj, 
-                                            varn=n_vars, 
-                                            points=n_traj_points)
-            proposal_xi_dict[(n_traj_points, proposal_std)] = proposal_xi
+        for proposal_std in list_proposal_std: # list_mu0, list_mu1, list_sigma1, list_q, list_q0
+            ## Iteration on mu0 ##
+            for mu0 in list_mu0:
+                ## Iteration on mu1 ##
+                for mu1 in list_mu1:
+                    ## Iteration on sigma1 ##
+                    for sigma1 in list_sigma1:
+                        ## Iteration on q ##
+                        for q in list_q:
+                            ## Iteration on q0 ##
+                            for q0 in list_q0:
+
+                                proposal_distr = get_distribution(proposal_name, proposal_std, totvar_mult, sign_ch, n_traj_points, device, mu0=mu0, mu1=mu1, sigma1=sigma1, q=q, q0=q0)
+                                proposal_xi = proposal_distr.sample(samples=n_traj, 
+                                                                varn=n_vars, 
+                                                                points=n_traj_points)
+                                proposal_xi_dict[(n_traj_points, proposal_std, mu0, mu1, sigma1, q, q0)] = proposal_xi
 
 
         ## Iteration on target_std ##
@@ -154,58 +175,77 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
             for weight_strategy in list_weight_strategy:
                 
                 ## Iteration again on proposal_std ##
-                for proposal_std in list_proposal_std: # We need to reiterate on the proposal_std to obtain the correct proposal_distr and proposal_xi
+                for proposal_std in list_proposal_std: # We need to reiterate on the proposal_std 
+                                                        # to obtain the correct proposal_distr and proposal_xi
+                    ## Iteration again on mu0 ##
+                    for mu0 in list_mu0:
+                        ## Iteration again on mu1 ##
+                        for mu1 in list_mu1:
+                            ## Iteration again on sigma1 ##
+                            for sigma1 in list_sigma1:
+                                ## Iteration again on q ##
+                                for q in list_q:
+                                    ## Iteration again on q0 ##
+                                    for q0 in list_q0:
 
-                    if TEST_ON_MODEL:
-                        ## Iteration on phi_id ## 
-                        for phi_id in list_phi_id: ## THIS is done so that the weights consider only the first model_n_vars variables of the trajectories
-                            
-                            # Selecting the model
-                            model_list = ["human", "linear", "maritime", "robot2", "robot4", "robot5", "train"]
-                            model_name = model_list[phi_id]
-                            if model_name == "maritime":
-                                n_vars_model = 2
-                            elif model_name in ("robot2", "robot4", "robot5"):
-                                n_vars_model = 6
-                            else:
-                                n_vars_model = 1
+                                        # Checking if we are running Test_model.py or not
+                                        if TEST_ON_MODEL:
+                                            ## Iteration on phi_id ## 
+                                            for phi_id in list_phi_id: ## THIS is done so that the weights consider only the first model_n_vars variables of the trajectories
+                                                
+                                                # Selecting the model
+                                                model_list = ["human", "linear", "maritime", "robot2", "robot4", "robot5", "train"]
+                                                model_name = model_list[phi_id]
+                                                if model_name == "maritime":
+                                                    n_vars_model = 2
+                                                elif model_name in ("robot2", "robot4", "robot5"):
+                                                    n_vars_model = 3
+                                                elif model_name in ("human", "linear", "train"):
+                                                    n_vars_model = 1
+                                                else:
+                                                    n_vars_model = n_vars
+                                                    print(f"The phi_id {phi_id} won't work on a model. Defaulting to a standard test of distance")
 
-                            proposal_xi = proposal_xi_dict[(n_traj_points, proposal_std)] # Reloading the currect proposal_xi
-                            proposal_distr = get_distribution(proposal_name, proposal_std, totvar_mult, sign_ch, n_traj_points, device)
-                            # Creating the trajectories where we cut some dimensions out for the model
-                            proposal_xi_cut = proposal_xi[:,:n_vars_model,:]
+                                                proposal_xi = proposal_xi_dict[(n_traj_points, proposal_std, mu0, mu1, sigma1, q, q0)] # Reloading the currect proposal_xi
+                                                proposal_distr = get_distribution(proposal_name, proposal_std, totvar_mult, sign_ch, n_traj_points, device, mu0=mu0, mu1=mu1, sigma1=sigma1, q=q, q0=q0)
+                                                # Creating the trajectories where we cut some dimensions out for the model
+                                                proposal_xi_cut = proposal_xi[:,:n_vars_model,:]
 
-                            # Computing the Dweights
-                            converter = local_matrix(n_vars = n_vars_model, 
-                                                    n_formulae = n_psi, 
-                                                    n_traj = n_traj, 
-                                                    n_traj_points = n_traj_points,
-                                                    evaluate_at_all_times = evaluate_at_all_times,
-                                                    target_distr = target_distr,
-                                                    proposal_distr = proposal_distr,
-                                                    weight_strategy = weight_strategy,
-                                                    proposal_traj = proposal_xi_cut)
-                            converter.compute_dweights()
-                            dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, phi_id)] = converter.dweights
-                            true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, phi_id)] = converter.true_dweights
-                    else: # In this case we don't need to change the weights depending on the number of variables of the model
+                                                # Computing the Dweights
+                                                converter = local_matrix(n_vars = n_vars_model, 
+                                                                        n_formulae = n_psi, 
+                                                                        n_traj = n_traj, 
+                                                                        n_traj_points = n_traj_points,
+                                                                        evaluate_at_all_times = evaluate_at_all_times,
+                                                                        target_distr = target_distr,
+                                                                        proposal_distr = proposal_distr,
+                                                                        weight_strategy = weight_strategy,
+                                                                        proposal_traj = proposal_xi_cut)
+                                                converter.compute_dweights()
+                                                dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.dweights
+                                                true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.true_dweights
+                                                n_e_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.n_e
 
-                        proposal_xi = proposal_xi_dict[(n_traj_points, proposal_std)] # Reloading the currect proposal_xi
-                        proposal_distr = get_distribution(proposal_name, proposal_std, totvar_mult, sign_ch, n_traj_points, device)
 
-                        # Computing the Dweights
-                        converter = local_matrix(n_vars = n_vars, 
-                                                n_formulae = n_psi, 
-                                                n_traj = n_traj, 
-                                                n_traj_points = n_traj_points,
-                                                evaluate_at_all_times = evaluate_at_all_times,
-                                                target_distr = target_distr,
-                                                proposal_distr = proposal_distr,
-                                                weight_strategy = weight_strategy,
-                                                proposal_traj = proposal_xi)
-                        converter.compute_dweights()
-                        dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std)] = converter.dweights
-                        true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std)] = converter.true_dweights
+                                        else: # In this case we don't need to change the weights depending on the number of variables of the model
+
+                                            proposal_xi = proposal_xi_dict[(n_traj_points, proposal_std, mu0, mu1, sigma1, q, q0)] # Reloading the currect proposal_xi
+                                            proposal_distr = get_distribution(proposal_name, proposal_std, totvar_mult, sign_ch, n_traj_points, device, mu0=mu0, mu1=mu1, sigma1=sigma1, q=q, q0=q0)
+
+                                            # Computing the Dweights
+                                            converter = local_matrix(n_vars = n_vars, 
+                                                                    n_formulae = n_psi, 
+                                                                    n_traj = n_traj, 
+                                                                    n_traj_points = n_traj_points,
+                                                                    evaluate_at_all_times = evaluate_at_all_times,
+                                                                    target_distr = target_distr,
+                                                                    proposal_distr = proposal_distr,
+                                                                    weight_strategy = weight_strategy,
+                                                                    proposal_traj = proposal_xi)
+                                            converter.compute_dweights()
+                                            dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.dweights
+                                            true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.true_dweights
+                                            n_e_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] = converter.n_e
 
 
     # Saving proposal_xi_dict
@@ -220,6 +260,9 @@ def save_params(test_name, list_weight_strategy, list_n_traj_points, list_target
     # Saving True_Dweights
     os.makedirs("True_Dweights_dir", exist_ok=True)
     torch.save(true_dweights_dict, os.path.join("True_Dweights_dir",f"{test_name}.pt"))
+    # Saving n_e
+    os.makedirs("n_e_dir", exist_ok=True)
+    torch.save(n_e_dict, os.path.join("n_e_dir",f"{test_name}.pt"))
 
 
     ## psi and phi ##
@@ -267,27 +310,39 @@ if (partition != "THIN") and (partition != "EPYC"):
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
-list_weight_strategy =  ["self_norm", "only_target"]
+list_weight_strategy =  ["self_norm"] #, "only_target"] # NOTE: try to assign a single weight strategy to a single job. This will avoid confusion in the results!!
 list_n_traj_points = [100]
 list_target_std = [1]#[1, 0.6]
 list_proposal_std = [1]#[1, 4]
-list_n_traj = [4000, 8000]#[1000, 4000]
+list_n_traj = [1000, 5500, 10000]#[1000, 4000]
 list_n_psi_added = [0]#[-500, 500]
-list_phi_id = [0, 1, 2, 6]
+list_phi_id = [0, 1, 2, 5, 6]
 list_base_xi_id = [0]    #NOTE: fix this to a single value
+list_mu0 = [0, 0.1]
+list_mu1 = [0, 0.1]
+list_sigma1 = [1, 1.1]
+list_q = [0.1, 0.2]
+list_q0 = [0.5]
+
 
 # If we want to save all variables we need to initialize them
 if save_all=="yes":
     ##  Saving the params ##
-    save_params(test_name, 
-                list_weight_strategy, 
-                list_n_traj_points, 
-                list_target_std, 
-                list_proposal_std, 
+    save_params(test_name,
+                list_weight_strategy,
+                list_n_traj_points,
+                list_target_std,
+                list_proposal_std,
                 list_n_traj, 
-                list_n_psi_added, 
-                list_phi_id, 
-                list_base_xi_id)
+                list_n_psi_added,
+                list_phi_id,
+                list_base_xi_id,
+                list_mu0, 
+                list_mu1, 
+                list_sigma1, 
+                list_q, 
+                list_q0)
+
 else:
     save_all = "no"
 
@@ -302,7 +357,13 @@ with open(f"Params/Params_{test_name}.txt", 'w') as file:
     file.write("list_phi_id,"+','.join(str(x) for x in list_phi_id) + '\n')
     file.write("list_base_xi_id,"+','.join(str(x) for x in list_base_xi_id) + '\n')
     file.write("list_weight_strategy,"+','.join(x for x in list_weight_strategy) + '\n')
-    file.write("list_proposal_xi,"+','.join(str(x) for x in list_proposal_std))
+    file.write("list_proposal_std,"+','.join(str(x) for x in list_proposal_std) + '\n')
+    file.write("list_mu0,"+','.join(str(x) for x in list_mu0) + '\n')
+    file.write("list_mu1,"+','.join(str(x) for x in list_mu1) + '\n')
+    file.write("list_sigma1,"+','.join(str(x) for x in list_sigma1) + '\n')
+    file.write("list_q,"+','.join(str(x) for x in list_q) + '\n')
+    file.write("list_q0,"+','.join(str(x) for x in list_q0))
+
 
 # Generate all combinations
 all_combinations = list(itertools.product(
@@ -313,8 +374,13 @@ all_combinations = list(itertools.product(
     list_n_traj_points,
     list_phi_id,
     list_base_xi_id,
-    list_weight_strategy
-))
+    list_weight_strategy,
+    list_mu0, 
+    list_mu1, 
+    list_sigma1, 
+    list_q, 
+    list_q0)
+)
 
 # Combinations of parameters per job
 combinations_per_job = int(np.ceil(len(all_combinations) / n_jobs))

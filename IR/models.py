@@ -46,7 +46,7 @@ class TimeSeriesDataset(Dataset):
             case "robot2" | "robot4" | "robot5":
                 datashape = self.data.shape
                 reshaped = self.data.reshape(datashape[0], datashape[1]//6, 6) 
-                self.data = reshaped.transpose(1,2)
+                self.data = reshaped.transpose(1,2)[:, :3, :] #Choosing only the first 3 components of the dataset
             case "train":
                 self.data = self.data.unsqueeze(1)
                 # NOTE: all data must be in the format [samples, n_vars, n_traj_points]
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     try:
         # Getting the name of the dataset to use
         #test_name = sys.argv[1]
-        test_name = "robot5"
+        test_name = "robot4"
         # Training/testing phase
         phase = "full_train"
         #phase = sys.argv[2]

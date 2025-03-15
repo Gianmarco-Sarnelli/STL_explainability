@@ -50,11 +50,11 @@ def Work_on_process_precomp(params, test_name):
 
     Parameters
     ----------
-    params = (n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, weight_strategy): tuple of parameters used by the iteration
-    
+    params = (n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, weight_strategy, mu0, mu1, sigma1, q, q0): tuple of parameters used by the iteration
+   
     Returns
     ---------
-    weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
+    weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
     """
     # Timing each process
     start_time = time.time()
@@ -76,7 +76,7 @@ def Work_on_process_precomp(params, test_name):
     totvar_mult = 1
     sign_ch = 2
     # Parameters of the process
-    n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, weight_strategy = params
+    n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, weight_strategy, mu0, mu1, sigma1, q, q0 = params
     n_train_phis = 1000
     n_traj_embedding = 10000 # How many trajectories are used to compute the embeddings in the database
     # Number of closest formulae to retrieve
@@ -87,7 +87,7 @@ def Work_on_process_precomp(params, test_name):
     n_vars = 3
 
     # Checking if the test name is in the format "proposal_name2target_name"
-    proposal_name, target_name = "B", "M"
+    proposal_name, target_name = "M", "M"
     if "2" in test_name:
         index = test_name.index("2")
         proposal_name = test_name[index - 1]
@@ -95,7 +95,7 @@ def Work_on_process_precomp(params, test_name):
 
     # Loading the saved tensors
     proposal_xi_dict = torch.load(os.path.join("Proposal_xi_dir", f"{test_name}.pt"))
-    proposal_xi = proposal_xi_dict[(n_traj_points, proposal_std)][:n_traj, :, :] # Selecting only the first n_traj elements
+    proposal_xi = proposal_xi_dict[(n_traj_points, proposal_std, mu0, mu1, sigma1, q, q0)][:n_traj, :, :] # Selecting only the first n_traj elements
     del proposal_xi_dict
     
     target_xi_dict = torch.load(os.path.join("Target_xi_dir",f"{test_name}.pt"))
@@ -103,31 +103,41 @@ def Work_on_process_precomp(params, test_name):
     del target_xi_dict
 
     dweights_dict = torch.load(os.path.join("Dweights_dir", f"{test_name}.pt"))
-    dweights = dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, phi_id)][:n_traj] # Selecting only the first n_traj elements
+    dweights = dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)][:n_traj] # Selecting only the first n_traj elements
     del dweights_dict
 
     true_dweights_dict = torch.load(os.path.join("True_Dweights_dir", f"{test_name}.pt"))
-    true_dweights = true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, phi_id)][:n_traj] # Selecting only the first n_traj elements
+    true_dweights = true_dweights_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)][:n_traj] # Selecting only the first n_traj elements
     del true_dweights_dict
 
+    n_e_dict = torch.load(os.path.join("n_e_dir", f"{test_name}.pt"))
+    Problematic_n_e = n_e_dict[(weight_strategy, n_traj_points, proposal_std, target_std, mu0, mu1, sigma1, q, q0, phi_id)] # NOTE: This n_e is only correctt for the max n_traj !!!!!
+    del n_e_dict
+
     # Initializing the model
-    model_list = ["human", "linear", "maritime", "robot2", "robot4", "robot5", "train"]
-    model_name = model_list[phi_id]
+    if phi_id < 7:
+        model_list = ["human", "linear", "maritime", "robot2", "robot4", "robot5", "train"]
+        model_name = model_list[phi_id]
 
-    print(f"model name: {model_name}")
+        print(f"model name: {model_name}")
 
-    if model_name == "maritime":
-        n_vars_model = 2
-    elif model_name in ("robot2", "robot4", "robot5"):
-        n_vars_model = 6
-    else:
-        n_vars_model = 1
-    model_path  = f'IR/data/data/{model_name}/model_state_dict.pth'
-    quant_model = quantitative_model(model_path=model_path, nvars=n_vars_model)
-    # Creating the trajectories where we cut some dimensions out for the model
-    target_xi_cut = target_xi[:,:n_vars_model,:] 
-    proposal_xi_cut = proposal_xi[:,:n_vars_model,:]
-
+        if model_name == "maritime":
+            n_vars_model = 2
+        elif model_name in ("robot2", "robot4", "robot5"):
+            n_vars_model = 3
+        else:
+            n_vars_model = 1
+        model_path  = f'IR/data/data/{model_name}/model_state_dict.pth'
+        quant_model = quantitative_model(model_path=model_path, nvars=n_vars_model)
+        # Creating the trajectories where we cut some dimensions out for the model
+        target_xi_cut = target_xi[:,:n_vars_model,:] 
+        proposal_xi_cut = proposal_xi[:,:n_vars_model,:]
+    else: # If the id is greter than 6 then load a formula
+        # Loading the saved formulae
+        with open(os.path.join("phis_dir", f"{test_name}.pkl"), 'rb') as f:
+            phi_bag_dict = pickle.load(f)
+        phi_bag = phi_bag_dict[phi_id]    # TODO: implement later!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        del phi_bag_dict
 
     # Loading the saved formulae (1000 formulae)
     folder_index = os.path.join("IR", "index")  # Update with actual path
@@ -193,7 +203,8 @@ def Work_on_process_precomp(params, test_name):
     # Computing the matrix Q that converts to a target kernel
     if converter.compute_Q(proposal_traj = proposal_xi, PHI = rhos_psi_proposal, dweights=dweights):
         # returns if there are problems with the pseudoinverse 
-        return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
+        return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan
+
     # Computing the importance sampling kernel starting from the proposal one
     K_imp = converter.convert_to_local(K_proposal).type(torch.float32)
     print(f"The norm of K_imp is : {torch.norm(K_imp).item()}")
@@ -343,8 +354,8 @@ def Work_on_process_precomp(params, test_name):
 
     # Compute distance between the formulae using similarity_based_relevance
     # Create a BaseMeasure for generating test trajectories (if needed)
-    mu0 = BaseMeasure(device=device, sigma0=1.0, sigma1=1.0, q=0.1)
-    test_trajectories = mu0.sample(1000, max_n_vars)  # Sample trajectories for comparison
+    Test_measure = BaseMeasure(device=device, sigma0=1.0, sigma1=1.0, q=0.1)
+    test_trajectories = Test_measure.sample(1000, max_n_vars)  # Sample trajectories for comparison
     
     # Get the first formula from target_formulae to use as reference
     # We could use any formula as reference, but using the top match makes sense
@@ -374,7 +385,7 @@ def Work_on_process_precomp(params, test_name):
     # flushing output
     sys.stdout.flush()
 
-    return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
+    return weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed
 
 
 
@@ -413,7 +424,7 @@ if __name__ == "__main__":
         if not os.path.exists(db_path):
             print(f"Database {db_path} not found")
             exit()
-        weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed = result
+        weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0, Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp, Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, overlap_form, dist_form, dist_new_kernels, dist_embed = results
         
         # Computing n_e
         try:
@@ -427,8 +438,8 @@ if __name__ == "__main__":
             c = conn.cursor()
             # Saving the values in the database
             c.execute('''INSERT OR REPLACE INTO results 
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                    (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id,
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                    (weight_strategy, n_psi_added, n_traj, target_std, proposal_std, n_traj_points, phi_id, base_xi_id, mu0, mu1, sigma1, q, q0,
                     Dist, Cos_dist, Dist_rho, Norm_proposal, Norm_target, Norm_imp,
                     Pinv_error, Sum_weights, Sum_squared_weights, Elapsed_time, Process_mem, n_e, overlap_form, dist_form, dist_new_kernels, dist_embed ))
             

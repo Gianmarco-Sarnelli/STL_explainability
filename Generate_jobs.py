@@ -335,7 +335,7 @@ except IndexError:
 initialize_database(test_name)
 
 # check for the right partition:
-if (partition != "THIN") and (partition != "EPYC"):
+if (partition != "THIN") and (partition != "EPYC") and (partition != "lovelace"):
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
@@ -427,7 +427,10 @@ for job_id in range(n_jobs):
         json.dump(job_combinations, f)
     
     # Create SLURM script
-    slurm_script = f"""#!/bin/bash
+    if partition != "lovelace": # This is the case where we run on ORFEO
+
+        slurm_script = f"""#!/bin/bash
+
 #SBATCH --partition={partition}                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (since we're using multiprocessing)
@@ -445,6 +448,25 @@ source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 python3 {script} {params_file} {test_name} {save_all}
 """
 
+
+    else:  # This is the case where we run on DEMETRA
+
+        slurm_script = f"""#!/bin/bash
+#SBATCH --partition={partition}                     # Partition name
+#SBATCH --account=ai-lab                     # Account name
+#SBATCH --ntasks=1                           # Number of tasks (since we're using multiprocessing)
+#SBATCH --cpus-per-task=16                   # CPUs per task (for multiprocessing)
+#SBATCH --mem-per-cpu=2G                     # Memory per CPU
+#SBATCH --output=output_{test_name}_{job_id}.log         # Standard output log
+#SBATCH --error=error_{test_name}_{job_id}.log           # Standard error log
+#SBATCH --get-user-env                       # Activating the environment
+
+# Run the Python script
+python3 {script} {params_file} {test_name} {save_all}
+"""
+
+
+    # Writing job file
     slurm_file = f"job_files/slurm_{test_name}_{job_id}.sh"
     with open(slurm_file, 'w') as f:
         f.write(slurm_script)

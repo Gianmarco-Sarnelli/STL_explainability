@@ -4,7 +4,7 @@
 generate_job_id=$(sbatch --parsable Demetra_Generate_jobs.sh)
 echo "Submitted Generate_jobs with job ID: $generate_job_id"
 
-sleep 2
+sleep 0.5
 
 # Wait for the job to complete using scontrol
 scontrol wait jobid=$generate_job_id
@@ -15,5 +15,5 @@ mapfile -t file_list < "RUNTHIS.txt"
 
 for current_job in "${file_list[@]}"; do
     # Runnning each job
-    sbatch "$(current_job)"
+    sbatch "$($current_job)"
 done

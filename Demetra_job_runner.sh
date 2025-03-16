@@ -5,8 +5,8 @@
 #SBATCH --nodes=1             # Use exactly one node
 #SBATCH --cpus-per-task=1     # Not meny cpus needed
 #SBATCH --mem-per-cpu=2G      # Increased memory
-#SBATCH --output=Generate_jobs_output_%j.log # Standard output with job ID
-#SBATCH --error=Generate_jobs_error_%j.log   # Standard error with job ID
+#SBATCH --output=job_runner_%j.log           # Standard output log
+#SBATCH --error=job_runner_%j.err            # Standard error log
 #SBATCH --get-user-env        # Activating the environment
 
 

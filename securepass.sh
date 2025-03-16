@@ -7,3 +7,5 @@
 
 # Secure pass to demetra:
 #scp -r IR/data/ gsarnelli@140.105.164.221:/u/gsarnelli/STL_explainability/IR
+scp -r IR/index/ gsarnelli@140.105.164.221:/u/gsarnelli/STL_explainability/IR
+

@@ -4,6 +4,8 @@
 generate_job_id=$(sbatch --parsable Demetra_Generate_jobs.sh)
 echo "Submitted Generate_jobs with job ID: $generate_job_id"
 
+sleep 5
+
 # Check if job exists in the queue, if so wait for it
 if squeue -j $generate_job_id &>/dev/null; then
     echo "Job $generate_job_id is running, waiting for completion..."

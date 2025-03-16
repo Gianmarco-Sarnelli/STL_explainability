@@ -4,7 +4,7 @@
 generate_job_id=$(sbatch --parsable Demetra_Generate_jobs.sh)
 echo "Submitted Generate_jobs with job ID: $generate_job_id"
 
-sleep 5
+sleep 2
 
 # Wait for the job to complete using scontrol
 scontrol wait jobid=$generate_job_id

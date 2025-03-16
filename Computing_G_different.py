@@ -4,7 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, List, Optional
 
-def compute_G_different_S(N: int, s: float, max_rank: int, S_matrix: torch.Tensor, S_prime: torch.Tensor,
+# TODO: Compute the compacted version of the matrix G!!
+
+
+def compute_G_different_S(N: int, s: float, max_rank: int, S_matrix: torch.Tensor, S_prime: torch.Tensor, eps: float,
                          device: str = 'cuda' if torch.cuda.is_available() else 'cpu') -> Tuple[torch.Tensor, List[torch.Tensor]]:
     """
     Compute the G matrix with different S and S' matrices while maintaining memory efficiency.
@@ -95,10 +98,10 @@ def compute_G_different_S(N: int, s: float, max_rank: int, S_matrix: torch.Tenso
     for n in range(1, max_rank + 1):
         G += P_list[n]
     
-    return G, P_list
+    return G, error
 
 
-def compute_G_different_S_optimized(N: int, s: float, max_rank: int, S_matrix: torch.Tensor, S_prime: torch.Tensor,
+def compute_G_different_S_optimized(N: int, s: float, max_rank: int, S_matrix: torch.Tensor, S_prime: torch.Tensor, eps: float,
                                   device: str = 'cuda' if torch.cuda.is_available() else 'cpu') -> Tuple[torch.Tensor, List[torch.Tensor]]:
     """
     A more optimized version for different S and S' matrices that uses batched operations
@@ -195,7 +198,7 @@ def compute_G_different_S_optimized(N: int, s: float, max_rank: int, S_matrix: t
     for n in range(1, max_rank + 1):
         G += P_list[n]
     
-    return G, P_list
+    return G, error
 
 
 def visualize_matrix(matrix, title="Matrix Visualization", zero_diagonal=True):

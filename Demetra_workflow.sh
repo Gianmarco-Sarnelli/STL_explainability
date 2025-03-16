@@ -4,22 +4,6 @@
 generate_job_id=$(sbatch --parsable Demetra_Generate_jobs.sh)
 echo "Submitted Generate_jobs with job ID: $generate_job_id"
 
-sleep 10
-
-# Wait for job to finish and for output file to exist
-while squeue -h -j $generate_job_id 2>/dev/null | grep -q .; do
-    echo "Job $generate_job_id still running, waiting..."
-    sleep 30
-done
-
-sleep 10
-
-
-echo "Job $generate_job_id completed, now processing RUNTHIS.txt"
-# Read the file line by line and add each line to the array file_list
-mapfile -t file_list < "RUNTHIS.txt"
-
-for current_job in "${file_list[@]}"; do
-    # Runnning each job
-    sbatch "${current_job}"
-done
+# Submit the job runner script with dependency on the generation script
+runner_job_id=$(sbatch --parsable --dependency=afterok:$generate_job_id Demetra_job_runner.sh)
+echo "Submitted Job_runner with job ID: $runner_job_id (will start after job $generate_job_id completes successfully)"

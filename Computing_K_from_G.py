@@ -9,6 +9,9 @@ import os
 
 def Compute_K(N, M, s_multiplier, save_G_compact=False):
 
+
+    # TODO: Multiply by the correct constant!!
+    
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     max_rank = 7
     s = s_multiplier / (16 * N) # 1/16N is the maximum value of s

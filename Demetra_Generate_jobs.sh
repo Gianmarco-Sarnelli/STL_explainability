@@ -11,7 +11,7 @@
 
 
 # List of test names #M E H J B T G S
-test_names=("selfnorm_V_mu0_M2M")
+test_names=("selfnorm_V_mu1_M2M")
 
 for test_name in "${test_names[@]}"; do
 

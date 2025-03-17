@@ -1,3 +1,6 @@
 IR/data/
 IR/index/
 __pycache__/
+Special_kernel/G_compact_dir
+Special_kernel/G_sample_dir
+Special_kernel/Special_K_dir

@@ -456,7 +456,7 @@ python3 {script} {params_file} {test_name} {save_all}
 #SBATCH --account=ai-lab                     # Account name
 #SBATCH --ntasks=1                           # Number of tasks (since we're using multiprocessing)
 #SBATCH --cpus-per-task=16                   # CPUs per task (for multiprocessing)
-#SBATCH --mem-per-cpu=2G                     # Memory per CPU
+#SBATCH --mem-per-cpu=4G                     # Memory per CPU
 #SBATCH --output=output_{test_name}_{job_id}.log         # Standard output log
 #SBATCH --error=error_{test_name}_{job_id}.log           # Standard error log
 #SBATCH --get-user-env                       # Activating the environment

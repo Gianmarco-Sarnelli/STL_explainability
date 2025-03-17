@@ -31,4 +31,4 @@ done
 rm Generate_jobs_error.log
 rm Generate_jobs_output.log
 rm RUNTHIS.txt
-rm job_runner_10*
+rm job_runner_*

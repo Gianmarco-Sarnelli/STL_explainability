@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1            # Number of tasks
 #SBATCH --nodes=1             # Use exactly one node
 #SBATCH --cpus-per-task=16    # Increased CPUs for faster job generation
-#SBATCH --mem-per-cpu=4G      # Increased memory
+#SBATCH --mem-per-cpu=32G     # Increased memory
 #SBATCH --output=Generate_jobs_output.log # Standard output with job ID
 #SBATCH --error=Generate_jobs_error.log   # Standard error with job ID
 #SBATCH --get-user-env        # Activating the environment

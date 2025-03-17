@@ -11,13 +11,13 @@
 
 
 # List of test names #M E H J B T G S
-test_names=("pure_mess_M2M" "pure_mess_B2M" "pure_mess_G2M" "pure_mess_H2M" "pure_mess_T2M" )
+test_names=("selfnorm_pure_M2M" "selfnorm_pure_B2M" "selfnorm_pure_G2M" "selfnorm_pure_H2M" "selfnorm_pure_T2M" )
 
 for test_name in "${test_names[@]}"; do
 
     echo "Generating jobs for test: $test_name"
 
-    python3 Generate_jobs.py "$test_name" 6 "yes" "lovelace" "Test_model.py"
+    python3 Generate_jobs.py "$test_name" 5 "yes" "lovelace" "Test_model.py"
 
     echo "$test_name jobs are generated"
 

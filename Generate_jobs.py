@@ -339,7 +339,7 @@ if (partition != "THIN") and (partition != "EPYC") and (partition != "lovelace")
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
-list_weight_strategy =  ["self_norm", "only_target", "square_root"] # NOTE: try to assign a single weight strategy to a single job. This will avoid confusion in the results!!
+list_weight_strategy =  ["self_norm"]#, "only_target", "square_root"] # NOTE: try to assign a single weight strategy to a single job. This will avoid confusion in the results!!
 list_n_traj_points = [100]
 list_target_std = [1] #[1, 0.6]
 list_proposal_std = [1]#[1, 1.2, 1.4, 1.6, 1.8, 2]#[1] #[1, 4]

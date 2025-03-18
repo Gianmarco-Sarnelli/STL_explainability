@@ -1,0 +1,866 @@
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 1, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: linear
+the norm of rhos_phi_target is : 44.13224792480469
+the norm of K_target is : 0.23177504539489746
+the norm of New_K_target is : 11.538575172424316
+the norm of rhos_phi_proposal is : 37.59178924560547
+the norm of K_proposal is : 0.171454057097435
+the norm of New_K_proposal is : 7.6076765060424805
+The norm of K_imp is : 2.159986734390259
+the norm of New_K_imp is : 110.35745239257812
+the norm of target_embedding is : 6.614933490753174
+the norm of imp_embedding is : 10023.2744140625
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[1.8908063 1.9046068 1.9071141 1.9105918 1.9126697 1.9190242 1.9218632
+  1.9218632 1.9218632 1.9224383]]
+total_search_time1 = 1.2499258518218994
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[1.00303584e+08 1.00304176e+08 1.00305216e+08 1.00305256e+08
+  1.00305400e+08 1.00305544e+08 1.00305544e+08 1.00305640e+08
+  1.00305808e+08 1.00305824e+08]]
+total_search_time2 = 3.2776999473571777
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_0 >= -4.0 until[35,inf] ( x_1 <= 4.0 until[0,35] x_2 >= -4.0 ) )', 'not ( always[0,inf] ( ( x_1 >= 0.0 until[0,inf] x_0 <= -4.0 ) ) )', 'eventually[0,35] ( ( x_1 <= 4.0 until[23,46] x_0 >= -4.0 ) )', '( ( x_0 >= -4.0 until[0,inf] x_2 >= -4.0 ) until[35,70] x_1 <= 4.0 )', '( eventually[11,inf] ( x_0 >= -4.0 ) until[23,35] x_1 <= 4.0 )', 'eventually ( ( eventually[35,inf] ( x_1 >= -4.0 ) until x_0 >= -4.0 ) )', '( eventually[35,70] ( x_1 >= -4.0 ) and eventually[0,35] ( x_0 >= -4.0 ) )', 'not ( ( x_1 >= 2.6667 until[11,inf] x_0 >= 1.3333 ) )', '( x_0 >= -4.0 until[70,inf] ( x_1 >= -4.0 or x_2 >= 0.0 ) )', 'not ( eventually[0,inf] ( ( x_2 <= -2.0 until[70,inf] x_0 <= -4.0 ) ) )'], target_formulae: ['always[46,inf] ( ( x_0 <= 2.6667 until[0,46] x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[23,35] eventually[11,46] ( x_0 >= -0.0 ) )', '( always[0,35] ( x_0 <= 2.6667 ) until[23,inf] x_0 >= -0.0 )', 'not ( ( x_0 >= -2.6667 until[23,inf] x_0 <= -0.0 ) )', '( eventually[35,inf] ( x_0 >= -0.0 ) until[35,46] x_0 <= 2.6667 )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[58,inf] x_0 <= 2.6667 )', 'always[23,70] ( ( x_0 <= 2.6667 until x_0 >= -0.0 ) )', 'always[23,35] ( ( x_0 <= 2.6667 until[35,inf] x_0 >= -0.0 ) )', 'always[11,46] ( ( x_0 <= 2.6667 until[23,inf] x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 <= 2.6667 ) until[23,58] x_0 >= -0.0 )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.0323, 0.0373, 0.0315, 0.0323, 0.0319, 0.0296, 0.0291, 0.0109, 0.0399,
+         0.0321]])
+dist_form = 0.9693179540336132
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 2, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: maritime
+the norm of rhos_phi_target is : 43.48523712158203
+the norm of K_target is : 0.4393080770969391
+the norm of New_K_target is : 19.497346878051758
+the norm of rhos_phi_proposal is : 40.86251449584961
+the norm of K_proposal is : 0.24578356742858887
+the norm of New_K_proposal is : 10.380433082580566
+The norm of K_imp is : 1.4518816471099854
+the norm of New_K_imp is : 62.77611541748047
+the norm of target_embedding is : 11.067164421081543
+the norm of imp_embedding is : 1105.902587890625
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[13.012478 13.314504 13.350842 13.414097 13.478871 13.48317  13.48317
+  13.48317  13.485362 13.515033]]
+total_search_time1 = 3.219263792037964
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[1216269.9 1216303.8 1216306.5 1216361.8 1216361.8 1216364.9 1216366.9
+  1216367.1 1216374.2 1216374.9]]
+total_search_time2 = 2.5835070610046387
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['eventually[0,35] ( ( x_2 <= 2.0 or always[0,inf] ( x_0 >= -2.0 ) ) )', '( ( x_1 <= 4.0 or x_2 <= 2.0 ) until[35,70] x_0 >= -2.0 )', '( x_0 >= -2.0 or eventually[70,inf] ( eventually ( x_2 >= 0.0 ) ) )', '( x_0 >= -2.0 until eventually ( always ( x_2 <= 4.0 ) ) )', '( x_0 >= -2.0 until[0,inf] always[35,inf] ( eventually[35,inf] ( x_2 <= 4.0 ) ) )', '( ( x_1 <= 4.0 until[0,inf] x_2 <= 4.0 ) until[0,35] x_0 >= -2.0 )', '( x_0 >= -2.0 until[0,inf] ( x_2 <= 4.0 until[35,inf] x_1 <= 4.0 ) )', '( ( x_1 <= 4.0 or x_2 <= 2.0 ) until[35,inf] x_0 >= -2.0 )', '( x_2 <= 4.0 until[70,inf] ( x_0 >= -2.0 or x_1 <= 0.0 ) )', '( ( x_1 <= 4.0 and x_0 >= -2.0 ) until[0,inf] x_2 <= 4.0 )'], target_formulae: ['( x_0 <= 0.0 until[70,inf] ( x_2 <= 0.0 until[0,inf] x_1 >= 0.0 ) )', '( ( x_2 <= 0.0 until[0,inf] x_1 <= 0.0 ) until[35,inf] x_0 <= 0.0 )', '( eventually[0,35] ( x_2 <= -2.0 ) or always[0,35] ( x_0 <= -2.0 ) )', '( x_0 <= -2.0 or ( x_1 >= 2.0 until[35,70] x_2 <= 2.0 ) )', '( x_0 >= -4.0 until[70,inf] ( x_0 <= -2.0 or x_2 <= -2.0 ) )', 'eventually[35,inf] ( always[35,inf] ( ( x_2 <= -2.0 or x_0 <= -2.0 ) ) )', 'always[35,inf] ( eventually[35,inf] ( ( x_0 <= -2.0 or x_2 <= -2.0 ) ) )', 'always ( eventually[70,inf] ( ( x_0 <= -2.0 or x_2 <= -2.0 ) ) )', '( x_2 <= -2.0 or always[0,inf] ( always[0,inf] ( x_0 <= -2.0 ) ) )', 'always[0,35] ( not ( ( x_2 >= -2.0 until[0,35] x_0 >= -2.0 ) ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[-0.8022, -0.8277, -0.8488, -0.8157, -0.8157, -0.8302, -0.8263, -0.8304,
+         -0.8384, -0.8286]])
+dist_form = 1.8264043927192688
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 0, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: human
+the norm of rhos_phi_target is : 43.76502990722656
+the norm of K_target is : 0.23727427423000336
+the norm of New_K_target is : 11.873652458190918
+the norm of rhos_phi_proposal is : 39.5149040222168
+the norm of K_proposal is : 0.17815116047859192
+the norm of New_K_proposal is : 7.426512718200684
+The norm of K_imp is : 3.4292855262756348
+the norm of New_K_imp is : 166.68099975585938
+the norm of target_embedding is : 6.700856685638428
+the norm of imp_embedding is : 987021.6875
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[2.323967  2.323967  2.3687007 2.3893547 2.3893547 2.3893547 2.3893547
+  2.4053314 2.412306  2.414443 ]]
+total_search_time1 = 1.4451746940612793
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[9.7419913e+11 9.7419919e+11 9.7419926e+11 9.7419926e+11 9.7419926e+11
+  9.7419926e+11 9.7419926e+11 9.7419926e+11 9.7419926e+11 9.7419926e+11]]
+total_search_time2 = 3.094419479370117
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['not ( always[0,inf] ( ( x_1 >= 0.0 until[0,inf] x_0 <= -4.0 ) ) )', '( x_0 >= -4.0 until[35,inf] ( x_1 <= 4.0 until[0,35] x_2 >= -4.0 ) )', 'eventually ( always[0,70] ( ( x_0 >= -4.0 or x_2 <= 0.0 ) ) )', 'always[23,58] ( ( x_0 >= -4.0 or x_2 <= -4.0 ) )', 'always[35,inf] ( ( x_1 <= -0.0 or x_0 >= -4.0 ) )', 'not ( ( x_1 >= 0.0 until[35,inf] eventually[0,35] ( x_0 <= -4.0 ) ) )', 'not ( ( x_1 >= 0.0 until[35,70] eventually ( x_0 <= -4.0 ) ) )', '( always[35,inf] ( x_0 >= -4.0 ) or x_1 <= -0.0 )', '( x_0 >= -4.0 until[70,inf] ( x_1 >= -4.0 or x_0 >= -4.0 ) )', 'not ( eventually[0,inf] ( ( x_1 >= 0.0 until[35,inf] x_0 <= -4.0 ) ) )'], target_formulae: ['( x_0 <= 2.6667 until[0,23] eventually ( x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[0,58] x_0 <= 2.6667 )', '( x_0 <= 2.6667 until eventually[0,46] ( x_0 >= -0.0 ) )', 'eventually[0,inf] ( ( x_0 <= 2.6667 until[0,58] x_0 >= -0.0 ) )', 'eventually[0,11] ( ( x_0 <= 2.6667 until[0,inf] x_0 >= -0.0 ) )', '( eventually[11,inf] ( x_0 <= 2.6667 ) until x_0 >= -0.0 )', '( eventually ( x_0 >= -0.0 ) until[11,inf] x_0 <= 2.6667 )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[0,46] x_0 <= 2.6667 )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[23,35] x_0 <= 2.6667 )', '( x_0 <= 2.6667 until[0,inf] not ( x_0 <= -0.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.1357, 0.1322, 0.1383, 0.1379, 0.1395, 0.1392, 0.1392, 0.1393, 0.1405,
+         0.1394]])
+dist_form = 0.8618829399347305
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 0, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 3.3415017127990723, Cos_dist = 0.6001718044281006, Dist_rho = 1.3272554988692031, Norm_proposal = 0.17815116047859192, Norm_target = 0.23727427423000336, Norm_imp = 3.4292855262756348, Pinv_error = 40.45758819580078, Sum_weights = 2.421161612306486e-48, Sum_squared_weights = 5.861243843738516e-96, Elapsed_time = 1166.1464772224426, Process_mem = 412.4921875, n_e = 1.0001330279355052, overlap_form = 0.0, dist_form = 0.8618829399347305, overlap_form = 0.0, dist_form = 0.8618829399347305, dist_new_kernels = 162.7101593017578, dist_embed = 987018.875,  model_to_target = 0.8710575997829437, model_to_imp = 0.5540355145931244
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 1, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 2.12980580329895, Cos_dist = 0.8170413076877594, Dist_rho = 1.313430030045613, Norm_proposal = 0.171454057097435, Norm_target = 0.23177504539489746, Norm_imp = 2.159986734390259, Pinv_error = 40.45758819580078, Sum_weights = 2.421161612306486e-48, Sum_squared_weights = 5.861243843738516e-96, Elapsed_time = 1163.8233165740967, Process_mem = 413.9296875, n_e = 1.0001330279355052, overlap_form = 0.0, dist_form = 0.9693179540336132, overlap_form = 0.0, dist_form = 0.9693179540336132, dist_new_kernels = 109.25672912597656, dist_embed = 10020.396484375,  model_to_target = 0.9826549235731363, model_to_imp = 0.2874149680137634
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 2, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 1.7880674600601196, Cos_dist = 1.7025715112686157, Dist_rho = 1.119630278427741, Norm_proposal = 0.24578356742858887, Norm_target = 0.4393080770969391, Norm_imp = 1.4518816471099854, Pinv_error = 36.50302505493164, Sum_weights = 3.6826999694938237e-113, Sum_squared_weights = 1.3486689311190967e-225, Elapsed_time = 1164.7362065315247, Process_mem = 410.53515625, n_e = 1.0056047672171198, overlap_form = 0.0, dist_form = 1.8264043927192688, overlap_form = 0.0, dist_form = 1.8264043927192688, dist_new_kernels = 78.0206069946289, dist_embed = 1105.5966796875,  model_to_target = 0.6244959533214569, model_to_imp = 1.3851686418056488
+Completed job 0
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 10, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 28.660303115844727
+the norm of K_target is : 0.21099764108657837
+the norm of New_K_target is : 14.058756828308105
+the norm of rhos_phi_proposal is : 36.143070220947266
+the norm of K_proposal is : 0.14884276688098907
+the norm of New_K_proposal is : 6.729257106781006
+The norm of K_imp is : 1.684569001197815
+the norm of New_K_imp is : 75.92019653320312
+the norm of target_embedding is : 6.916332721710205
+the norm of imp_embedding is : 1290.0118408203125
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[2.8886402 2.944998  2.968404  2.9761844 3.0779917 3.090043  3.0998957
+  3.12215   3.12215   3.1522946]]
+total_search_time1 = 3.3297033309936523
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[1649104.4 1649226.2 1649233.9 1649239.5 1649277.1 1649277.1 1649277.1
+  1649277.1 1649277.1 1649277.1]]
+total_search_time2 = 3.5299081802368164
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( ( x_0 >= -2.0 and x_1 <= 4.0 ) until[35,70] x_2 <= 4.0 )', '( eventually[35,70] ( x_2 <= -2.0 ) or eventually ( x_0 >= -2.0 ) )', '( x_0 >= -2.0 or not ( always[35,70] ( x_2 >= 0.0 ) ) )', '( always[35,58] ( x_0 >= -2.6667 ) or x_2 <= -4.0 )', '( x_1 >= 2.0 or eventually[0,70] ( eventually ( x_0 >= -2.0 ) ) )', 'eventually[0,inf] ( not ( ( x_0 <= -2.0 until[70,inf] x_1 >= -4.0 ) ) )', 'eventually[0,inf] ( ( eventually ( x_0 >= -2.0 ) or x_1 >= 2.0 ) )', '( eventually[0,inf] ( x_0 >= -2.0 ) or always ( x_1 <= -4.0 ) )', '( eventually ( x_0 >= -2.0 ) or always[0,35] ( x_1 >= 4.0 ) )', 'eventually[0,inf] ( ( x_1 >= 2.0 or eventually ( x_0 >= -2.0 ) ) )'], target_formulae: ['( x_0 >= -2.0 and ( x_2 >= 0.0 or x_0 <= 0.0 ) )', 'eventually[0,inf] ( ( eventually[0,inf] ( x_2 <= -2.0 ) or x_2 >= 0.0 ) )', 'eventually ( ( always[0,inf] ( x_2 <= -2.0 ) or x_2 >= 0.0 ) )', 'not ( always[35,70] ( ( x_2 <= 0.0 and x_2 >= -2.0 ) ) )', '( eventually[35,46] ( x_2 >= -0.0 ) or x_2 <= -1.3333 )', 'not ( ( x_2 >= -1.3333 until[35,70] x_2 <= -0.0 ) )', 'eventually ( not ( ( x_2 <= 0.0 and x_2 >= -2.0 ) ) )', '( eventually ( x_2 >= 0.0 ) or always ( x_2 <= -2.0 ) )', '( x_2 <= -2.0 or eventually[35,inf] ( eventually[0,35] ( x_2 >= 0.0 ) ) )', 'not ( ( always ( x_2 <= 0.0 ) until[0,inf] x_2 >= -2.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.4489, 0.4717, 0.4587, 0.4842, 0.4710, 0.4717, 0.4705, 0.4715, 0.4715,
+         0.4705]])
+dist_form = 0.5309954285621643
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 5, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: robot5
+the norm of rhos_phi_target is : 44.392147064208984
+the norm of K_target is : 0.20365798473358154
+the norm of New_K_target is : 9.744064331054688
+the norm of rhos_phi_proposal is : 41.91389465332031
+the norm of K_proposal is : 0.1845322698354721
+the norm of New_K_proposal is : 6.811928749084473
+The norm of K_imp is : 2.163161277770996
+the norm of New_K_imp is : 84.06035614013672
+the norm of target_embedding is : 5.564846038818359
+the norm of imp_embedding is : 2792.018310546875
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[0.8400456 0.8400456 0.8400456 0.8400456 0.8886811 0.937776  0.937776
+  0.937776  0.937776  0.937776 ]]
+total_search_time1 = 2.2486283779144287
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[7764832.  7764998.  7765036.5 7765041.5 7765134.5 7765134.5 7765134.5
+  7765134.5 7765134.5 7765134.5]]
+total_search_time2 = 2.313828468322754
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( ( x_0 >= -2.0 and x_1 <= 4.0 ) until[35,70] x_2 <= 4.0 )', '( eventually[35,70] ( x_2 <= -2.0 ) or eventually ( x_0 >= -2.0 ) )', '( x_0 >= -2.0 or not ( always[35,70] ( x_2 >= 0.0 ) ) )', '( always[35,58] ( x_0 >= -2.6667 ) or x_2 <= -4.0 )', '( x_1 >= 2.0 or eventually[0,70] ( eventually ( x_0 >= -2.0 ) ) )', 'eventually[0,inf] ( not ( ( x_0 <= -2.0 until[70,inf] x_1 >= -4.0 ) ) )', 'eventually[0,inf] ( ( eventually ( x_0 >= -2.0 ) or x_1 >= 2.0 ) )', '( eventually[0,inf] ( x_0 >= -2.0 ) or always ( x_1 <= -4.0 ) )', '( eventually ( x_0 >= -2.0 ) or always[0,35] ( x_1 >= 4.0 ) )', 'eventually[0,inf] ( ( x_1 >= 2.0 or eventually ( x_0 >= -2.0 ) ) )'], target_formulae: ['( eventually[0,35] ( x_2 <= 2.0 ) until eventually ( x_2 >= 0.0 ) )', 'eventually[0,inf] ( ( x_2 <= 2.0 until[0,inf] eventually[0,inf] ( x_2 >= 0.0 ) ) )', '( eventually[0,inf] ( eventually[0,inf] ( x_2 >= 0.0 ) ) until x_2 <= 2.0 )', '( x_2 <= 2.0 until[0,inf] ( x_0 <= 4.0 until x_2 >= 0.0 ) )', '( x_2 <= 2.6667 until[35,70] eventually[11,inf] ( x_2 >= -0.0 ) )', '( eventually[0,inf] ( x_2 <= 2.0 ) until eventually[0,inf] ( x_2 >= 0.0 ) )', 'eventually[0,70] ( ( eventually[0,inf] ( x_2 <= 2.0 ) until[0,inf] x_2 >= 0.0 ) )', 'eventually ( ( x_2 <= 2.0 until[0,35] eventually[0,35] ( x_2 >= 0.0 ) ) )', '( eventually[0,inf] ( x_2 >= 0.0 ) until[0,70] eventually ( x_2 <= 2.0 ) )', 'eventually ( ( eventually[0,inf] ( x_2 <= 2.0 ) until[0,70] x_2 >= 0.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[ 0.0198,  0.0226, -0.0070,  0.0208,  0.0237,  0.0237,  0.0239,  0.0235,
+          0.0235,  0.0239]])
+dist_form = 0.9801605138927698
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 6, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: train
+the norm of rhos_phi_target is : 41.007728576660156
+the norm of K_target is : 0.3821814954280853
+the norm of New_K_target is : 19.455780029296875
+the norm of rhos_phi_proposal is : 43.88896179199219
+the norm of K_proposal is : 0.18042023479938507
+the norm of New_K_proposal is : 6.735767364501953
+The norm of K_imp is : 3.037841796875
+the norm of New_K_imp is : 132.9392547607422
+the norm of target_embedding is : 9.671167373657227
+the norm of imp_embedding is : 61388.1328125
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[13.007368 13.108626 13.112481 13.120287 13.137482 13.156028 13.156028
+  13.15757  13.175699 13.192687]]
+total_search_time1 = 1.0227558612823486
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[3.7675743e+09 3.7675753e+09 3.7675835e+09 3.7675840e+09 3.7675845e+09
+  3.7675848e+09 3.7675853e+09 3.7675858e+09 3.7675858e+09 3.7675866e+09]]
+total_search_time2 = 2.206907033920288
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_0 >= -4.0 until[35,inf] ( x_1 <= 4.0 until[0,35] x_2 >= -4.0 ) )', 'not ( always[0,inf] ( ( x_1 >= 0.0 until[0,inf] x_0 <= -4.0 ) ) )', 'eventually[0,35] ( ( x_1 <= 4.0 until[23,46] x_0 >= -4.0 ) )', '( ( x_0 >= -4.0 until[0,inf] x_2 >= -4.0 ) until[35,70] x_1 <= 4.0 )', '( eventually[11,inf] ( x_0 >= -4.0 ) until[23,35] x_1 <= 4.0 )', '( x_0 >= -4.0 until[70,inf] ( x_1 >= -4.0 or x_2 >= 0.0 ) )', 'not ( eventually[0,inf] ( ( x_2 <= -2.0 until[70,inf] x_0 <= -4.0 ) ) )', 'eventually ( always[0,70] ( ( x_0 >= -4.0 or x_2 <= 0.0 ) ) )', 'always[23,58] ( ( x_0 >= -4.0 or x_2 <= -4.0 ) )', 'eventually ( ( eventually[35,inf] ( x_1 >= -4.0 ) until x_0 >= -4.0 ) )'], target_formulae: ['( x_1 >= -2.6667 until[46,58] always[35,inf] ( x_0 >= -1.3333 ) )', 'eventually[58,70] ( ( x_0 >= -1.3333 until[11,23] x_1 >= -2.6667 ) )', 'always[11,35] ( ( x_0 >= -1.3333 until[23,35] x_1 >= -2.6667 ) )', '( x_1 >= -2.6667 until[35,inf] always[35,58] ( x_0 >= -1.3333 ) )', '( x_0 >= -1.3333 until[46,58] always[11,35] ( x_1 >= -2.6667 ) )', '( always[11,58] ( x_0 >= -1.3333 ) until[23,35] x_1 >= -2.6667 )', '( x_0 >= -1.3333 until[70,inf] eventually[0,inf] ( x_1 >= -2.6667 ) )', '( x_1 >= -2.6667 until[23,35] always[23,46] ( x_0 >= -1.3333 ) )', 'always[58,inf] ( ( x_0 >= -1.3333 until[0,inf] x_1 >= -2.6667 ) )', 'always[0,58] ( ( x_1 >= -2.6667 until[0,23] x_0 >= -1.3333 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.8267, 0.8312, 0.8253, 0.8267, 0.8252, 0.8331, 0.8267, 0.8311, 0.8302,
+         0.8276]])
+dist_form = 0.1716294288635254
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 5, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 2.112360715866089, Cos_dist = 0.7064154148101807, Dist_rho = 1.3770296432517786, Norm_proposal = 0.1845322698354721, Norm_target = 0.20365798473358154, Norm_imp = 2.163161277770996, Pinv_error = 33.251853942871094, Sum_weights = 1.595394379986064e-184, Sum_squared_weights = 0.0, Elapsed_time = 984.2948224544525, Process_mem = 318.22265625, n_e = None, overlap_form = 0.0, dist_form = 0.9801605138927698, overlap_form = 0.0, dist_form = 0.9801605138927698, dist_new_kernels = 82.17549133300781, dist_embed = 2790.20703125,  model_to_target = 0.9452853947877884, model_to_imp = 1.0019524676026776
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 6, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 2.7300825119018555, Cos_dist = 0.1726176142692566, Dist_rho = 1.32052214872547, Norm_proposal = 0.18042023479938507, Norm_target = 0.3821814954280853, Norm_imp = 3.037841796875, Pinv_error = 40.45758819580078, Sum_weights = 2.421161612306486e-48, Sum_squared_weights = 5.861243843738516e-96, Elapsed_time = 985.2347557544708, Process_mem = 310.94140625, n_e = 1.0001330279355052, overlap_form = 0.0, dist_form = 0.1716294288635254, overlap_form = 0.0, dist_form = 0.1716294288635254, dist_new_kernels = 116.72916412353516, dist_embed = 61381.11328125,  model_to_target = 0.032953500747680664, model_to_imp = 0.6073318719863892
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 10, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 1.5666439533233643, Cos_dist = 0.39804208278656006, Dist_rho = 1.0735563290828534, Norm_proposal = 0.14884276688098907, Norm_target = 0.21099764108657837, Norm_imp = 1.684569001197815, Pinv_error = 33.251853942871094, Sum_weights = 1.595394379986064e-184, Sum_squared_weights = 0.0, Elapsed_time = 843.3346829414368, Process_mem = 309.48046875, n_e = None, overlap_form = 0.0, dist_form = 0.5309954285621643, overlap_form = 0.0, dist_form = 0.5309954285621643, dist_new_kernels = 68.95442962646484, dist_embed = 1286.8765869140625,  model_to_target = 0.9443190172314644, model_to_imp = 0.8118259906768799
+Completed job 1
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 12, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 42.48991775512695
+the norm of K_target is : 0.5085105299949646
+the norm of New_K_target is : 21.43429946899414
+the norm of rhos_phi_proposal is : 43.258541107177734
+the norm of K_proposal is : 0.5800725817680359
+the norm of New_K_proposal is : 21.266403198242188
+The norm of K_imp is : 1.7109078168869019
+the norm of New_K_imp is : 64.40919494628906
+the norm of target_embedding is : 13.855318069458008
+the norm of imp_embedding is : 466.7554016113281
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[3.3320255 3.3320255 3.3779578 3.5535405 3.5535405 3.6205678 3.6347132
+  3.659624  3.659624  3.659624 ]]
+total_search_time1 = 4.448261260986328
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[211202.28 211202.28 211202.28 211202.28 211202.28 211202.28 211202.28
+  211202.28 211202.28 211202.28]]
+total_search_time2 = 4.750092267990112
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_2 >= -4.0 and ( x_0 <= -2.0 until[0,35] x_2 <= 0.0 ) )', '( ( x_0 <= -2.0 until[0,35] x_2 <= 0.0 ) until x_0 <= -2.0 )', '( x_0 <= -2.0 until ( x_2 >= -2.0 until[35,inf] x_2 <= 0.0 ) )', '( x_0 <= -2.0 until[0,inf] ( x_0 <= 0.0 until[35,70] x_2 <= 0.0 ) )', '( x_0 <= -2.0 until[0,70] ( x_1 <= -4.0 or x_2 <= 0.0 ) )', '( ( x_0 <= -2.0 until[0,inf] x_1 >= -4.0 ) until[0,35] x_2 <= 0.0 )', '( ( x_2 <= 0.0 and x_0 <= -2.0 ) until[0,35] x_0 >= -4.0 )', '( x_0 <= -2.0 until[0,35] ( x_0 <= -2.0 and x_2 <= 0.0 ) )', '( ( x_0 <= -2.0 until[0,inf] x_2 <= 0.0 ) until[0,70] x_2 >= -2.0 )', '( x_0 <= -2.0 until ( x_1 <= 4.0 until[35,inf] x_2 <= 0.0 ) )'], target_formulae: ['eventually[0,35] ( ( x_0 >= 4.0 until[0,inf] eventually[35,inf] ( x_0 <= -4.0 ) ) )', 'eventually[0,35] ( ( x_0 >= 4.0 until eventually[0,inf] ( x_0 <= -4.0 ) ) )', '( always[0,inf] ( eventually[0,inf] ( x_1 >= 2.0 ) ) until[0,inf] x_1 <= -2.0 )', '( eventually[35,inf] ( eventually[35,inf] ( x_1 >= 2.0 ) ) until[0,inf] x_1 <= -2.0 )', '( always[0,70] ( eventually[0,inf] ( x_1 >= 2.0 ) ) until x_1 <= -2.0 )', 'eventually ( ( x_0 >= 4.0 until[0,inf] eventually[70,inf] ( x_0 <= -4.0 ) ) )', '( eventually[0,inf] ( x_1 >= 2.6667 ) until[23,46] x_1 <= -2.6667 )', '( eventually[58,inf] ( x_0 >= 2.6667 ) until[11,23] x_0 <= -2.6667 )', 'eventually[0,35] ( ( x_0 >= 4.0 and eventually[0,inf] ( x_0 <= -4.0 ) ) )', '( eventually[0,inf] ( x_0 >= 2.6667 ) until[11,58] x_0 <= -2.6667 )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.9765, 0.9760, 0.9776, 0.9761, 0.9758, 0.9760, 0.9771, 0.9760, 0.9774,
+         0.9759]])
+dist_form = 0.02354586124420166
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 13, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 29.634538650512695
+the norm of K_target is : 0.31086915731430054
+the norm of New_K_target is : 18.96013069152832
+the norm of rhos_phi_proposal is : 32.73851776123047
+the norm of K_proposal is : 0.386397123336792
+the norm of New_K_proposal is : 18.804887771606445
+The norm of K_imp is : 2.109715223312378
+the norm of New_K_imp is : 104.98579406738281
+the norm of target_embedding is : 11.170516014099121
+the norm of imp_embedding is : 22210.3984375
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[1.0059011 1.0118577 1.0327181 1.0339848 1.0344918 1.0345217 1.0357796
+  1.036303  1.0363277 1.0384377]]
+total_search_time1 = 3.479356288909912
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[4.9309418e+08 4.9309427e+08 4.9309427e+08 4.9309450e+08 4.9309450e+08
+  4.9309462e+08 4.9309462e+08 4.9309462e+08 4.9309462e+08 4.9309462e+08]]
+total_search_time2 = 2.9201340675354004
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['eventually ( ( x_2 <= -1.3333 until[46,70] x_0 <= -1.3333 ) )', '( x_0 <= -2.6667 until[35,70] eventually[23,inf] ( x_2 <= -0.0 ) )', '( x_0 <= -2.6667 until[35,70] eventually ( x_2 <= -0.0 ) )', 'eventually[35,70] ( ( x_0 <= -2.0 until always ( x_2 <= 0.0 ) ) )', '( x_2 <= 0.0 until[35,inf] ( x_1 <= 2.0 and x_0 <= -2.0 ) )', '( x_2 >= -4.0 and ( x_0 <= -2.0 until[0,35] x_2 <= 0.0 ) )', '( ( x_0 <= -2.0 until[0,35] x_2 <= 0.0 ) until x_0 <= -2.0 )', '( x_0 <= -2.0 until ( x_2 >= -2.0 until[35,inf] x_2 <= 0.0 ) )', '( x_0 <= -2.0 until[0,inf] ( x_0 <= 0.0 until[35,70] x_2 <= 0.0 ) )', '( x_0 <= -2.0 until[0,70] ( x_1 <= -4.0 or x_2 <= 0.0 ) )'], target_formulae: ['( x_0 <= -1.3333 until[0,46] always[11,35] ( x_0 >= -0.0 ) )', '( eventually[35,70] ( x_0 >= -0.0 ) until[11,23] x_0 <= -1.3333 )', '( eventually[23,46] ( x_0 <= -1.3333 ) until[0,11] x_0 >= -0.0 )', '( x_0 <= -1.3333 until[23,35] eventually[23,35] ( x_0 >= -0.0 ) )', '( x_0 <= -1.3333 until[0,11] eventually[35,46] ( x_0 >= -0.0 ) )', '( x_0 >= -0.0 until[11,23] eventually[0,58] ( x_0 <= -1.3333 ) )', '( eventually[58,inf] ( x_0 >= -0.0 ) until[35,inf] x_0 <= -1.3333 )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[0,46] x_0 <= -1.3333 )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[11,46] x_0 <= -1.3333 )', '( x_0 >= -0.0 until[11,35] eventually[35,inf] ( x_0 <= -1.3333 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.9697, 0.9855, 0.9855, 0.9579, 0.9556, 0.9706, 0.9700, 0.9720, 0.9697,
+         0.9697]])
+dist_form = 0.029382407665252686
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 11, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 27.127885818481445
+the norm of K_target is : 0.17655135691165924
+the norm of New_K_target is : 12.6514892578125
+the norm of rhos_phi_proposal is : 27.029287338256836
+the norm of K_proposal is : 0.16724659502506256
+the norm of New_K_proposal is : 10.381216049194336
+The norm of K_imp is : 0.4064064919948578
+the norm of New_K_imp is : 24.607160568237305
+the norm of target_embedding is : 6.778295993804932
+the norm of imp_embedding is : 14.208935737609863
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[2.8352861 2.8352861 2.8352861 2.8352861 2.8352861 2.8934226 2.8934226
+  2.9019032 2.9987988 2.9987988]]
+total_search_time1 = 2.1592471599578857
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[90.38998  90.38998  90.580635 90.68989  90.698425 90.698425 90.698425
+  90.698425 90.698425 90.698425]]
+total_search_time2 = 2.0884838104248047
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_0 >= -1.3333 until[0,inf] eventually[23,inf] ( x_2 >= -2.6667 ) )', '( eventually[35,58] ( x_0 >= -1.3333 ) until[0,inf] x_2 >= -2.6667 )', '( x_0 >= -1.3333 until[23,inf] always[46,70] ( x_2 >= -2.6667 ) )', '( x_0 >= -1.3333 until[11,inf] always[70,inf] ( x_2 >= -2.6667 ) )', '( x_2 >= -2.6667 until[35,46] always[0,46] ( x_0 >= -1.3333 ) )', '( always[46,58] ( x_0 >= -1.3333 ) until[23,35] x_2 >= -2.6667 )', '( x_2 >= -2.6667 until[35,inf] always[23,58] ( x_0 >= -1.3333 ) )', '( x_2 >= -2.6667 until[46,58] always[0,35] ( x_0 >= -1.3333 ) )', 'always[46,58] ( ( x_0 >= -1.3333 until[35,inf] x_2 >= -2.6667 ) )', '( eventually[23,35] ( x_0 >= -1.3333 ) until[58,inf] x_2 >= -2.6667 )'], target_formulae: ['( eventually ( x_2 <= 0.0 ) and always ( x_2 >= -2.0 ) )', '( always ( x_2 >= -2.0 ) until[0,inf] eventually[35,inf] ( x_2 <= 0.0 ) )', '( always[0,inf] ( x_2 >= -2.0 ) until[0,70] not ( x_2 >= 0.0 ) )', '( always[35,inf] ( x_2 >= -2.0 ) until[0,inf] eventually[35,inf] ( x_2 <= 0.0 ) )', '( always[0,inf] ( x_2 >= -2.0 ) until eventually ( x_2 <= 0.0 ) )', '( ( x_2 <= 0.0 until x_0 >= -4.0 ) until[0,inf] x_0 >= 0.0 )', '( x_2 <= 0.0 until[0,70] ( x_2 <= 4.0 until[0,inf] x_0 >= 0.0 ) )', '( x_2 <= 0.0 until[35,70] ( x_0 >= 0.0 or x_2 >= 0.0 ) )', 'always[0,inf] ( ( x_0 >= -1.3333 until[35,inf] x_2 <= -0.0 ) )', 'always[46,inf] ( ( x_0 >= -1.3333 until[0,inf] x_2 <= -0.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[-0.0439, -0.0501, -0.0137, -0.0254, -0.0260, -0.0358, -0.0265, -0.0221,
+         -0.0205, -0.0244]])
+dist_form = 1.0288318190723658
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 11, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.5104302763938904, Cos_dist = 1.447393774986267, Dist_rho = 0.7810327909989678, Norm_proposal = 0.16724659502506256, Norm_target = 0.17655135691165924, Norm_imp = 0.4064064919948578, Pinv_error = 33.251853942871094, Sum_weights = 1.595394379986064e-184, Sum_squared_weights = 0.0, Elapsed_time = 859.403596162796, Process_mem = 309.6171875, n_e = None, overlap_form = 0.0, dist_form = 1.0288318190723658, overlap_form = 0.0, dist_form = 1.0288318190723658, dist_new_kernels = 31.748441696166992, dist_embed = 13.698129653930664,  model_to_target = 0.6797385215759277, model_to_imp = 1.1148381605744362
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 12, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 1.500649333000183, Cos_dist = 0.46331942081451416, Dist_rho = 0.060633956442307985, Norm_proposal = 0.5800725817680359, Norm_target = 0.5085105299949646, Norm_imp = 1.7109078168869019, Pinv_error = 33.251853942871094, Sum_weights = 1.595394379986064e-184, Sum_squared_weights = 0.0, Elapsed_time = 853.9070010185242, Process_mem = 310.26171875, n_e = None, overlap_form = 0.0, dist_form = 0.02354586124420166, overlap_form = 0.0, dist_form = 0.02354586124420166, dist_new_kernels = 55.84721755981445, dist_embed = 459.4466857910156,  model_to_target = 0.22833281755447388, model_to_imp = 0.04130500555038452
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 13, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 1.9437702894210815, Cos_dist = 0.4135094881057739, Dist_rho = 0.4881491622409867, Norm_proposal = 0.386397123336792, Norm_target = 0.31086915731430054, Norm_imp = 2.109715223312378, Pinv_error = 33.251853942871094, Sum_weights = 1.595394379986064e-184, Sum_squared_weights = 0.0, Elapsed_time = 855.7038090229034, Process_mem = 310.34765625, n_e = None, overlap_form = 0.0, dist_form = 0.029382407665252686, overlap_form = 0.0, dist_form = 0.029382407665252686, dist_new_kernels = 94.83954620361328, dist_embed = 22206.18359375,  model_to_target = 0.11094462871551514, model_to_imp = 0.3539959788322449
+Completed job 2
+n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 14, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 28.218107223510742
+the norm of K_target is : 0.1486070454120636
+the norm of New_K_target is : 11.149685859680176
+the norm of rhos_phi_proposal is : 39.33667755126953
+the norm of K_proposal is : 0.12561896443367004
+the norm of New_K_proposal is : 5.168374538421631
+The norm of K_imp is : 1.4622722864151
+the norm of New_K_imp is : 60.51586151123047
+the norm of target_embedding is : 6.6273345947265625
+the norm of imp_embedding is : 307.7189636230469
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[0.66937035 0.67573625 0.67573625 0.67573625 0.6809704  0.6809704
+  0.6809704  0.6809704  0.6809704  0.6809704 ]]
+total_search_time1 = 2.2821545600891113
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[90730.05  90772.766 90773.914 90773.914 90775.19  90777.61  90780.74
+  90781.73  90783.555 90785.72 ]]
+total_search_time2 = 2.272801160812378
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( ( x_0 >= -2.0 and x_1 <= 4.0 ) until[35,70] x_2 <= 4.0 )', '( x_2 >= -4.0 until ( x_0 >= -2.0 until[35,70] x_1 <= 4.0 ) )', 'not ( ( x_0 <= -2.6667 until[70,inf] x_1 <= 1.3333 ) )', 'eventually[23,inf] ( ( x_1 >= 1.3333 or x_0 >= -2.6667 ) )', '( x_1 >= -4.0 until[0,35] ( x_0 >= -2.0 until[0,35] x_1 >= -4.0 ) )', 'not ( ( x_0 <= -2.6667 until[0,11] x_2 <= -0.0 ) )', '( x_0 >= -2.0 or not ( always[35,70] ( x_2 >= 0.0 ) ) )', '( always[35,58] ( x_0 >= -2.6667 ) or x_2 <= -4.0 )', '( eventually[35,70] ( x_2 <= -2.0 ) or eventually ( x_0 >= -2.0 ) )', '( x_1 >= 2.0 or eventually[0,70] ( eventually ( x_0 >= -2.0 ) ) )'], target_formulae: ['( always[0,46] ( x_2 <= 4.0 ) and x_2 >= -0.0 )', '( x_2 >= 0.0 until[0,70] ( x_0 <= 2.0 until x_1 <= 2.0 ) )', '( x_0 <= 2.0 and ( x_2 >= 0.0 until[0,35] x_1 <= 2.0 ) )', '( ( x_0 <= 2.0 and x_2 >= 0.0 ) until x_1 <= 2.0 )', '( x_2 >= 0.0 until[0,inf] always[0,inf] ( always[35,inf] ( x_1 >= -2.0 ) ) )', '( x_2 >= 0.0 until[0,inf] ( x_1 >= -2.0 until[0,70] x_2 >= 0.0 ) )', '( x_2 >= 0.0 until[0,35] eventually[35,inf] ( eventually[0,inf] ( x_1 >= -2.0 ) ) )', '( ( x_2 >= 0.0 and x_1 >= -2.0 ) until[0,35] x_2 >= 0.0 )', '( x_2 >= 0.0 until always ( eventually[70,inf] ( x_1 >= -2.0 ) ) )', '( x_2 >= 0.0 and ( x_1 >= -2.0 until[35,70] x_2 <= 4.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[-0.0239, -0.0203, -0.0235, -0.0231, -0.0247, -0.0122, -0.0568, -0.0223,
+         -0.0248, -0.0242]])
+dist_form = 1.0255711674690247
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 0, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: human
+the norm of rhos_phi_target is : 75.84300994873047
+the norm of K_target is : 0.23070746660232544
+the norm of New_K_target is : 11.671712875366211
+the norm of rhos_phi_proposal is : 68.43622589111328
+the norm of K_proposal is : 0.17737030982971191
+the norm of New_K_proposal is : 7.407122611999512
+The norm of K_imp is : 1.1560128927230835
+the norm of New_K_imp is : 56.180545806884766
+the norm of target_embedding is : 6.620173931121826
+the norm of imp_embedding is : 145.99937438964844
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[2.3028202 2.3028202 2.347336  2.354326  2.3618357 2.3618357 2.371233
+  2.3720703 2.373868  2.375152 ]]
+total_search_time1 = 0.908977746963501
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[18850.838 18870.568 18871.75  18873.916 18874.902 18875.975 18875.975
+  18876.742 18878.227 18878.227]]
+total_search_time2 = 2.0605506896972656
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_0 >= -4.0 until[35,inf] ( x_1 <= 4.0 until[0,35] x_2 >= -4.0 ) )', 'not ( always[0,inf] ( ( x_1 >= 0.0 until[0,inf] x_0 <= -4.0 ) ) )', 'not ( ( x_1 >= 2.6667 until[11,inf] x_0 >= 1.3333 ) )', '( ( x_0 >= -4.0 until[0,inf] x_2 >= -4.0 ) until[35,70] x_1 <= 4.0 )', 'eventually[0,35] ( ( x_1 <= 4.0 until[23,46] x_0 >= -4.0 ) )', 'eventually ( ( eventually[35,inf] ( x_1 >= -4.0 ) until x_0 >= -4.0 ) )', '( eventually[35,70] ( x_1 >= -4.0 ) and eventually[0,35] ( x_0 >= -4.0 ) )', '( eventually[11,inf] ( x_0 >= -4.0 ) until[23,35] x_1 <= 4.0 )', 'eventually[11,23] ( ( x_1 <= 2.6667 until[46,58] x_2 <= 4.0 ) )', '( x_2 <= 4.0 until[11,23] always[23,58] ( x_1 <= 2.6667 ) )'], target_formulae: ['( x_0 <= 2.6667 until[0,23] eventually ( x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[0,58] x_0 <= 2.6667 )', '( x_0 <= 2.6667 until eventually[0,46] ( x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[0,46] x_0 <= 2.6667 )', '( x_0 <= 2.6667 until[11,23] eventually ( x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[11,58] eventually[0,inf] ( x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[23,70] eventually[0,inf] ( x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[0,23] x_0 <= 2.6667 )', '( x_0 <= 2.6667 until[11,35] eventually[11,58] ( x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[23,70] eventually ( x_0 >= -0.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.1320, 0.1339, 0.1077, 0.1320, 0.1299, 0.1282, 0.1282, 0.1308, 0.1142,
+         0.1137]])
+dist_form = 0.8749445974826813
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 1, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: linear
+the norm of rhos_phi_target is : 76.49514770507812
+the norm of K_target is : 0.2277102768421173
+the norm of New_K_target is : 11.441125869750977
+the norm of rhos_phi_proposal is : 64.9363784790039
+the norm of K_proposal is : 0.1707286834716797
+the norm of New_K_proposal is : 7.603291988372803
+The norm of K_imp is : 0.7576274275779724
+the norm of New_K_imp is : 38.804073333740234
+the norm of target_embedding is : 6.560466289520264
+the norm of imp_embedding is : 38.68360900878906
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[1.9018033 1.9177327 1.9228071 1.9454985 1.9454985 1.9454985 1.949016
+  1.9497446 1.9498751 1.9522913]]
+total_search_time1 = 0.9674782752990723
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[919.5485  923.92816 924.13416 924.32837 924.32837 924.5668  924.6712
+  925.58105 925.58105 926.076  ]]
+total_search_time2 = 2.399089813232422
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_0 >= -4.0 until[35,inf] ( x_1 <= 4.0 until[0,35] x_2 >= -4.0 ) )', '( ( x_0 >= -4.0 until[0,inf] x_2 >= -4.0 ) until[35,70] x_1 <= 4.0 )', 'not ( always[0,inf] ( ( x_1 >= 0.0 until[0,inf] x_0 <= -4.0 ) ) )', 'eventually ( ( eventually[35,inf] ( x_1 >= -4.0 ) until x_0 >= -4.0 ) )', '( eventually[35,70] ( x_1 >= -4.0 ) and eventually[0,35] ( x_0 >= -4.0 ) )', 'eventually[0,35] ( ( x_1 <= 4.0 until[23,46] x_0 >= -4.0 ) )', '( eventually[11,inf] ( x_0 >= -4.0 ) until[23,35] x_1 <= 4.0 )', '( x_2 <= 4.0 until[35,inf] ( x_2 >= -4.0 until x_1 <= 4.0 ) )', '( x_2 <= 4.0 until[0,70] ( x_2 >= -4.0 until[0,inf] x_1 <= 4.0 ) )', 'not ( ( x_1 >= 2.6667 until[11,inf] x_0 >= 1.3333 ) )'], target_formulae: ['always[46,inf] ( ( x_0 <= 2.6667 until[0,46] x_0 >= -0.0 ) )', '( always[0,35] ( x_0 <= 2.6667 ) until[23,inf] x_0 >= -0.0 )', 'not ( ( x_0 >= -2.6667 until[23,inf] x_0 <= -0.0 ) )', 'eventually[23,inf] ( ( x_0 <= 2.6667 until[35,70] x_0 >= -0.0 ) )', 'eventually[23,35] ( ( x_0 <= 2.6667 until[35,inf] x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[58,inf] eventually[0,inf] ( x_0 >= -0.0 ) )', '( eventually[35,inf] ( x_0 >= -0.0 ) until[35,46] x_0 <= 2.6667 )', '( x_0 <= 2.6667 until[23,35] eventually[11,46] ( x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 <= 2.6667 ) until[23,58] x_0 >= -0.0 )', '( x_0 <= 2.6667 until[11,inf] eventually[35,46] ( x_0 >= -0.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.0269, 0.0269, 0.0293, 0.0228, 0.0228, 0.0247, 0.0257, 0.0158, 0.0168,
+         0.0031]])
+dist_form = 0.9785266499966383
+weight_strategy = only_target, n_psi_added = 0, n_traj = 2000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 14, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 1.4324779510498047, Cos_dist = 0.7507381737232208, Dist_rho = 1.081667432292557, Norm_proposal = 0.12561896443367004, Norm_target = 0.1486070454120636, Norm_imp = 1.4622722864151, Pinv_error = 33.251853942871094, Sum_weights = 1.595394379986064e-184, Sum_squared_weights = 0.0, Elapsed_time = 555.5047423839569, Process_mem = 310.34765625, n_e = None, overlap_form = 0.0, dist_form = 1.0255711674690247, overlap_form = 0.0, dist_form = 1.0255711674690247, dist_new_kernels = 59.12181854248047, dist_embed = 305.27301025390625,  model_to_target = 1.293006718158722, model_to_imp = 1.0958815217018127
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 0, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 1.092176914215088, Cos_dist = 0.6311573386192322, Dist_rho = 1.3235052056225909, Norm_proposal = 0.17737030982971191, Norm_target = 0.23070746660232544, Norm_imp = 1.1560128927230835, Pinv_error = 74.92887878417969, Sum_weights = 2.421450469190801e-48, Sum_squared_weights = 5.861243926221829e-96, Elapsed_time = 1167.1356148719788, Process_mem = 636.265625, n_e = 1.000371669998714, overlap_form = 0.0, dist_form = 0.8749445974826813, overlap_form = 0.0, dist_form = 0.8749445974826813, dist_new_kernels = 53.43669509887695, dist_embed = 142.6051788330078,  model_to_target = 0.8793613016605377, model_to_imp = 0.4574511647224426
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 1, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.7564514875411987, Cos_dist = 0.8445614576339722, Dist_rho = 1.295591213179966, Norm_proposal = 0.1707286834716797, Norm_target = 0.2277102768421173, Norm_imp = 0.7576274275779724, Pinv_error = 74.92887878417969, Sum_weights = 2.421450469190801e-48, Sum_squared_weights = 5.861243926221829e-96, Elapsed_time = 1199.4560623168945, Process_mem = 640.62890625, n_e = 1.000371669998714, overlap_form = 0.0, dist_form = 0.9785266499966383, overlap_form = 0.0, dist_form = 0.9785266499966383, dist_new_kernels = 39.108402252197266, dist_embed = 36.04743194580078,  model_to_target = 0.9997089628013782, model_to_imp = 0.3061595559120178
+Completed job 3
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 5, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: robot5
+the norm of rhos_phi_target is : 76.91168212890625
+the norm of K_target is : 0.2039823830127716
+the norm of New_K_target is : 9.767064094543457
+the norm of rhos_phi_proposal is : 72.61204528808594
+the norm of K_proposal is : 0.1801203340291977
+the norm of New_K_proposal is : 6.647388458251953
+The norm of K_imp is : 0.7957043647766113
+the norm of New_K_imp is : 30.590808868408203
+the norm of target_embedding is : 5.574841499328613
+the norm of imp_embedding is : 22.47129249572754
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[0.84372973 0.84372973 0.84372973 0.84372973 0.9136405  0.9204922
+  0.937982   0.94586873 0.94586873 0.9470067 ]]
+total_search_time1 = 2.3971948623657227
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[253.28745 253.63014 254.8545  254.8545  254.8545  254.8545  254.8545
+  254.8545  254.8545  254.8545 ]]
+total_search_time2 = 2.8623733520507812
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( ( x_0 >= -2.0 and x_1 <= 4.0 ) until[35,70] x_2 <= 4.0 )', '( x_2 >= -4.0 until ( x_0 >= -2.0 until[35,70] x_1 <= 4.0 ) )', '( eventually[46,70] ( x_0 >= -2.6667 ) or x_2 >= 1.3333 )', 'not ( ( x_0 <= -2.6667 until[46,58] x_2 >= -2.6667 ) )', 'always[23,58] ( ( x_0 >= -2.6667 or x_2 <= -0.0 ) )', '( x_2 <= -0.0 or always[0,58] ( x_0 >= -2.6667 ) )', 'not ( ( x_0 <= -2.6667 until[0,58] x_2 >= -1.3333 ) )', 'eventually[0,23] ( ( x_0 >= -2.6667 or x_2 >= 1.3333 ) )', 'not ( ( x_0 <= -2.6667 until x_2 <= 4.0 ) )', '( eventually[0,46] ( x_2 <= -1.3333 ) or x_0 >= -2.6667 )'], target_formulae: ['( eventually[0,35] ( x_2 <= 2.0 ) until eventually ( x_2 >= 0.0 ) )', 'eventually[0,inf] ( ( x_2 <= 2.0 until[0,inf] eventually[0,inf] ( x_2 >= 0.0 ) ) )', '( eventually[0,inf] ( eventually[0,inf] ( x_2 >= 0.0 ) ) until x_2 <= 2.0 )', '( x_2 <= 2.0 until[0,inf] ( x_0 <= 4.0 until x_2 >= 0.0 ) )', '( x_2 <= 2.6667 until[35,70] eventually[11,inf] ( x_2 >= -0.0 ) )', '( always[11,inf] ( x_2 <= 2.6667 ) until[0,46] x_2 >= -0.0 )', 'eventually[70,inf] ( ( x_2 <= 2.6667 until[0,23] x_2 >= -0.0 ) )', '( eventually[0,inf] ( x_2 <= 2.0 ) until[35,inf] eventually ( x_2 >= 0.0 ) )', '( eventually[0,35] ( eventually[35,inf] ( x_2 >= 0.0 ) ) until[0,inf] x_2 <= 2.0 )', '( eventually[0,inf] ( x_2 <= 2.0 ) until eventually[0,inf] ( x_2 >= 0.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.0247, 0.0277, 0.0261, 0.0287, 0.0127, 0.0121, 0.0247, 0.0284, 0.0277,
+         0.0232]])
+dist_form = 0.9764063730835915
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 6, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: train
+the norm of rhos_phi_target is : 70.90061950683594
+the norm of K_target is : 0.3855145573616028
+the norm of New_K_target is : 19.696195602416992
+the norm of rhos_phi_proposal is : 76.10714721679688
+the norm of K_proposal is : 0.17800933122634888
+the norm of New_K_proposal is : 6.627869606018066
+The norm of K_imp is : 0.9748155474662781
+the norm of New_K_imp is : 42.59970474243164
+the norm of target_embedding is : 9.799607276916504
+the norm of imp_embedding is : 51.64772033691406
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[13.881638  13.905537  13.919431  13.949898  13.961397  13.964907
+  13.9768715 13.97736   13.97736   13.97984  ]]
+total_search_time1 = 1.560469388961792
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[1860.8107 1867.389  1867.4492 1868.0427 1868.0427 1868.1659 1868.4658
+  1868.9194 1869.5648 1869.5648]]
+total_search_time2 = 3.212224245071411
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_0 >= -4.0 until[35,inf] ( x_1 <= 4.0 until[0,35] x_2 >= -4.0 ) )', 'not ( always[0,inf] ( ( x_1 >= 0.0 until[0,inf] x_0 <= -4.0 ) ) )', '( ( x_0 >= -4.0 until[0,inf] x_2 >= -4.0 ) until[35,70] x_1 <= 4.0 )', 'eventually ( ( eventually[35,inf] ( x_1 >= -4.0 ) until x_0 >= -4.0 ) )', '( eventually[35,70] ( x_1 >= -4.0 ) and eventually[0,35] ( x_0 >= -4.0 ) )', 'eventually[0,35] ( ( x_1 <= 4.0 until[23,46] x_0 >= -4.0 ) )', '( eventually[11,inf] ( x_0 >= -4.0 ) until[23,35] x_1 <= 4.0 )', 'not ( ( x_1 >= 2.6667 until[11,inf] x_0 >= 1.3333 ) )', '( x_2 <= 4.0 until[35,inf] ( x_2 >= -4.0 until x_1 <= 4.0 ) )', '( x_2 <= 4.0 until[0,70] ( x_2 >= -4.0 until[0,inf] x_1 <= 4.0 ) )'], target_formulae: ['( x_1 >= -2.6667 until[46,58] always[35,inf] ( x_0 >= -1.3333 ) )', '( x_1 >= -2.6667 until[0,inf] always[46,58] ( x_0 >= -1.3333 ) )', '( always[0,46] ( x_1 >= -2.6667 ) until[35,inf] x_0 >= -1.3333 )', 'always[11,58] ( ( x_1 >= -2.6667 until[23,inf] x_0 >= -1.3333 ) )', '( eventually[46,70] ( x_1 >= -2.6667 ) until[23,inf] x_0 >= -1.3333 )', '( x_1 >= -2.6667 until[11,inf] always[23,58] ( x_0 >= -1.3333 ) )', '( always[58,70] ( x_1 >= -2.6667 ) until[11,inf] x_0 >= -1.3333 )', '( x_1 >= -2.6667 until[70,inf] eventually[0,11] ( x_0 >= -1.3333 ) )', '( x_1 >= -2.6667 until[70,inf] x_0 >= -1.3333 )', '( x_1 >= -2.6667 until[0,11] eventually[23,35] ( x_0 >= -1.3333 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.7982, 0.8012, 0.7984, 0.8012, 0.8013, 0.7978, 0.7979, 0.7820, 0.7930,
+         0.7930]])
+dist_form = 0.20359551906585693
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 2, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: maritime
+the norm of rhos_phi_target is : 75.32044219970703
+the norm of K_target is : 0.44034892320632935
+the norm of New_K_target is : 19.55780601501465
+the norm of rhos_phi_proposal is : 70.79216003417969
+the norm of K_proposal is : 0.24792569875717163
+the norm of New_K_proposal is : 10.473904609680176
+The norm of K_imp is : 0.3390308618545532
+the norm of New_K_imp is : 14.65707778930664
+the norm of target_embedding is : 11.112299919128418
+the norm of imp_embedding is : 6.522724628448486
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[13.298318  13.462596  13.622877  13.664746  13.761434  13.7672615
+  13.795718  13.795718  13.795718  13.798777 ]]
+total_search_time1 = 4.459745407104492
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[13.251759 13.357999 13.357999 13.442638 13.442638 13.442638 13.442638
+  13.442638 13.442638 13.442638]]
+total_search_time2 = 4.160490274429321
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_2 <= 1.3333 until[35,46] eventually[0,23] ( x_2 >= -1.3333 ) )', 'eventually[35,70] ( ( x_0 >= -0.0 or x_0 <= -1.3333 ) )', 'eventually[11,35] ( ( x_0 <= -1.3333 or x_0 >= -0.0 ) )', 'eventually[11,46] ( ( x_0 <= -1.3333 or x_0 >= -0.0 ) )', 'not ( ( x_0 >= -1.3333 until[58,70] x_0 <= -0.0 ) )', 'not ( ( x_0 <= -0.0 until[35,46] x_0 >= -1.3333 ) )', '( eventually[35,46] ( x_0 >= -0.0 ) or x_0 <= -1.3333 )', 'eventually[23,inf] ( ( x_0 >= -0.0 or x_0 <= -1.3333 ) )', '( eventually[23,35] ( x_0 <= -1.3333 ) or x_0 >= -0.0 )', 'eventually[23,35] ( ( x_0 <= -1.3333 or x_0 >= -0.0 ) )'], target_formulae: ['( x_0 <= 0.0 until[70,inf] ( x_2 <= 0.0 until[0,inf] x_1 >= 0.0 ) )', '( x_0 <= -2.0 or ( x_1 >= 2.0 until[35,70] x_2 <= 2.0 ) )', '( ( x_2 <= 0.0 until[0,inf] x_1 <= 0.0 ) until[35,inf] x_0 <= 0.0 )', '( eventually[0,35] ( x_2 <= -2.0 ) or always[0,35] ( x_0 <= -2.0 ) )', '( x_0 >= -4.0 until[70,inf] ( x_0 <= -2.0 or x_2 <= -2.0 ) )', '( x_2 <= -2.0 or always[0,inf] ( always[0,inf] ( x_0 <= -2.0 ) ) )', 'eventually[35,inf] ( always[35,inf] ( ( x_2 <= -2.0 or x_0 <= -2.0 ) ) )', 'always[35,inf] ( eventually[35,inf] ( ( x_0 <= -2.0 or x_2 <= -2.0 ) ) )', 'always ( eventually[70,inf] ( ( x_0 <= -2.0 or x_2 <= -2.0 ) ) )', 'always[0,35] ( not ( ( x_2 >= -2.0 until[0,35] x_0 >= -2.0 ) ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[-0.4270, -0.6335, -0.6128, -0.6306, -0.5632, -0.6082, -0.5557, -0.6651,
+         -0.5361, -0.5911]])
+dist_form = 1.5823354125022888
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 2, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.717705249786377, Cos_dist = 1.69076669216156, Dist_rho = 1.119287222902926, Norm_proposal = 0.24792569875717163, Norm_target = 0.44034892320632935, Norm_imp = 0.3390308618545532, Pinv_error = 72.81832122802734, Sum_weights = 3.7246562609780526e-113, Sum_squared_weights = 1.3488448716039526e-225, Elapsed_time = 1534.223906993866, Process_mem = 634.24609375, n_e = 1.0285144388728795, overlap_form = 0.0, dist_form = 1.5823354125022888, overlap_form = 0.0, dist_form = 1.5823354125022888, dist_new_kernels = 31.673744201660156, dist_embed = 11.42284107208252,  model_to_target = 0.6144123375415802, model_to_imp = 1.3850490152835846
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 5, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.7753396034240723, Cos_dist = 0.7732642292976379, Dist_rho = 1.373405166834469, Norm_proposal = 0.1801203340291977, Norm_target = 0.2039823830127716, Norm_imp = 0.7957043647766113, Pinv_error = 71.21730041503906, Sum_weights = 2.1220826539122284e-184, Sum_squared_weights = 0.0, Elapsed_time = 1527.6984617710114, Process_mem = 668.2734375, n_e = None, overlap_form = 0.0, dist_form = 0.9764063730835915, overlap_form = 0.0, dist_form = 0.9764063730835915, dist_new_kernels = 30.247480392456055, dist_embed = 20.25770378112793,  model_to_target = 0.9244557842612267, model_to_imp = 1.0155797572806478
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 6, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.6887421607971191, Cos_dist = 0.16909003257751465, Dist_rho = 1.3318123774671364, Norm_proposal = 0.17800933122634888, Norm_target = 0.3855145573616028, Norm_imp = 0.9748155474662781, Pinv_error = 74.92887878417969, Sum_weights = 2.421450469190801e-48, Sum_squared_weights = 5.861243926221829e-96, Elapsed_time = 1531.9994118213654, Process_mem = 379.19140625, n_e = 1.000371669998714, overlap_form = 0.0, dist_form = 0.20359551906585693, overlap_form = 0.0, dist_form = 0.20359551906585693, dist_new_kernels = 27.552040100097656, dist_embed = 43.31480407714844,  model_to_target = 0.039257586002349854, model_to_imp = 0.6358700394630432
+Completed job 4
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 10, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 49.61125564575195
+the norm of K_target is : 0.20699992775917053
+the norm of New_K_target is : 13.881301879882812
+the norm of rhos_phi_proposal is : 62.26274490356445
+the norm of K_proposal is : 0.14994437992572784
+the norm of New_K_proposal is : 6.829416275024414
+The norm of K_imp is : 0.400831401348114
+the norm of New_K_imp is : 18.53409194946289
+the norm of target_embedding is : 6.8934197425842285
+the norm of imp_embedding is : 9.679269790649414
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[2.905374  2.9582446 2.9593265 2.9760938 3.0234914 3.0661147 3.0674248
+  3.0899491 3.0914888 3.0914888]]
+total_search_time1 = 2.285686492919922
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[41.425476 41.60274  41.615314 41.6475   41.696514 41.696514 41.699715
+  41.812737 41.827717 41.850418]]
+total_search_time2 = 2.317466974258423
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['not ( ( x_0 <= 0.0 until[0,35] not ( x_2 >= 0.0 ) ) )', 'eventually ( ( eventually[0,inf] ( x_2 >= 0.0 ) or x_0 >= 0.0 ) )', '( x_0 >= -2.0 until[70,inf] ( x_2 >= 0.0 or x_0 >= 0.0 ) )', '( eventually[0,70] ( x_2 >= 0.0 ) or eventually[0,35] ( x_0 >= 0.0 ) )', '( eventually[58,70] ( x_2 >= -0.0 ) or x_0 >= -0.0 )', '( x_0 >= 0.0 or eventually[0,inf] ( always[0,35] ( x_2 >= 0.0 ) ) )', 'not ( ( x_2 <= 0.0 until[0,35] always[0,inf] ( x_0 <= 0.0 ) ) )', '( x_0 >= 0.0 or eventually[35,70] ( eventually ( x_2 >= 0.0 ) ) )', 'eventually[70,inf] ( ( always ( x_0 >= 0.0 ) or x_2 >= 0.0 ) )', '( x_1 >= -4.0 and ( x_2 >= 0.0 or x_0 >= 0.0 ) )'], target_formulae: ['eventually[0,inf] ( ( eventually[0,inf] ( x_2 <= -2.0 ) or x_2 >= 0.0 ) )', 'eventually ( ( always[0,inf] ( x_2 <= -2.0 ) or x_2 >= 0.0 ) )', '( x_0 >= -2.0 and ( x_2 >= 0.0 or x_0 <= 0.0 ) )', 'not ( always[35,70] ( ( x_2 <= 0.0 and x_2 >= -2.0 ) ) )', '( eventually[35,46] ( x_2 >= -0.0 ) or x_2 <= -1.3333 )', 'not ( ( x_2 >= -1.3333 until[35,70] x_2 <= -0.0 ) )', 'eventually ( not ( ( x_2 <= 0.0 and x_2 >= -2.0 ) ) )', 'not ( ( always ( x_2 <= 0.0 ) until[0,inf] x_2 >= -2.0 ) )', '( eventually ( x_2 >= 0.0 ) or always ( x_2 <= -2.0 ) )', '( x_2 <= -2.0 or eventually[35,inf] ( eventually[0,35] ( x_2 >= 0.0 ) ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.5577, 0.6192, 0.5450, 0.6298, 0.6245, 0.6175, 0.5572, 0.6516, 0.6215,
+         0.5861]])
+dist_form = 0.3989938497543335
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 11, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 46.14332962036133
+the norm of K_target is : 0.17052459716796875
+the norm of New_K_target is : 12.496977806091309
+the norm of rhos_phi_proposal is : 46.56165313720703
+the norm of K_proposal is : 0.16547130048274994
+the norm of New_K_proposal is : 10.323432922363281
+The norm of K_imp is : 0.13440333306789398
+the norm of New_K_imp is : 8.240968704223633
+the norm of target_embedding is : 6.686910629272461
+the norm of imp_embedding is : 4.192768096923828
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[2.7514565 2.7514565 2.7514565 2.7514565 2.7514565 2.9339297 2.9339297
+  2.9339297 2.9339297 2.9478698]]
+total_search_time1 = 2.5023081302642822
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[5.4811945 5.4811945 5.6014714 5.819676  5.874434  6.0211973 6.230163
+  6.260138  6.260138  6.278921 ]]
+total_search_time2 = 2.251528263092041
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['always[11,inf] ( ( x_1 >= -1.3333 until[35,inf] x_1 <= 1.3333 ) )', 'always[11,inf] ( ( x_1 >= -1.3333 until[58,inf] x_1 <= 1.3333 ) )', 'always[23,inf] ( ( x_1 <= 1.3333 until[0,11] x_1 >= -1.3333 ) )', 'always[58,inf] ( ( x_1 >= -1.3333 until[35,inf] x_1 <= 1.3333 ) )', '( always[0,inf] ( x_1 >= -1.3333 ) until[58,70] x_1 <= 1.3333 )', 'always[11,inf] ( ( x_0 >= -1.3333 and x_0 <= 1.3333 ) )', 'always[23,inf] ( ( x_2 >= -1.3333 and x_2 <= 1.3333 ) )', '( x_1 >= -1.3333 until[58,70] always[11,inf] ( x_1 <= 1.3333 ) )', '( x_1 <= 1.3333 until[58,70] always[0,inf] ( x_1 >= -1.3333 ) )', 'eventually[0,11] ( ( x_1 <= 1.3333 until[70,inf] x_1 >= -1.3333 ) )'], target_formulae: ['( eventually ( x_2 <= 0.0 ) and always ( x_2 >= -2.0 ) )', '( always ( x_2 >= -2.0 ) until[0,inf] eventually[35,inf] ( x_2 <= 0.0 ) )', '( always[0,inf] ( x_2 >= -2.0 ) until[0,70] not ( x_2 >= 0.0 ) )', '( always[35,inf] ( x_2 >= -2.0 ) until[0,inf] eventually[35,inf] ( x_2 <= 0.0 ) )', '( always[0,inf] ( x_2 >= -2.0 ) until eventually ( x_2 <= 0.0 ) )', 'always[0,inf] ( ( x_0 >= -1.3333 until[35,inf] x_2 <= -0.0 ) )', 'always[46,inf] ( ( x_0 >= -1.3333 until[0,inf] x_2 <= -0.0 ) )', 'always[35,inf] ( ( x_0 >= -1.3333 until[23,inf] x_2 <= -0.0 ) )', 'always[0,inf] ( ( x_0 >= -1.3333 until[23,inf] x_2 <= -0.0 ) )', '( ( x_2 <= 0.0 until x_0 >= -4.0 ) until[0,inf] x_0 >= 0.0 )']
+overlap_form = 0.0
+cosine similarity: tensor([[-0.0276, -0.0276, -0.0351, -0.0276, -0.0321,  0.0237,  0.3054, -0.0225,
+         -0.0370, -0.0345]])
+dist_form = 0.9914880804717541
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 12, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 73.60604095458984
+the norm of K_target is : 0.5091384649276733
+the norm of New_K_target is : 21.47368812561035
+the norm of rhos_phi_proposal is : 74.91827392578125
+the norm of K_proposal is : 0.5804881453514099
+the norm of New_K_proposal is : 21.279827117919922
+The norm of K_imp is : 0.6734374165534973
+the norm of New_K_imp is : 24.918304443359375
+the norm of target_embedding is : 13.875659942626953
+the norm of imp_embedding is : 17.20741081237793
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[3.3737922 3.4028714 3.4028714 3.5633378 3.5633378 3.5939631 3.7221656
+  3.7226524 3.7483459 3.771829 ]]
+total_search_time1 = 2.2960054874420166
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[109.32792  109.80302  109.90626  110.491165 110.514244 110.53267
+  110.53804  110.53804  110.545746 110.71505 ]]
+total_search_time2 = 2.1625900268554688
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( always[11,23] ( x_0 <= -1.3333 ) until[11,35] x_2 <= -1.3333 )', '( x_0 <= -1.3333 until[0,inf] always[11,58] ( x_2 <= -1.3333 ) )', '( not ( x_2 >= -1.3333 ) until[0,inf] x_0 <= -1.3333 )', 'always[35,inf] ( ( x_2 <= -2.0 and always[35,inf] ( x_0 <= -2.0 ) ) )', 'eventually[23,46] ( ( x_2 <= -1.3333 until x_0 <= -1.3333 ) )', 'eventually[46,inf] ( ( x_2 <= -1.3333 until[46,inf] x_0 <= -1.3333 ) )', '( x_2 <= -2.0 until[0,35] always[35,inf] ( eventually[0,inf] ( x_0 <= -2.0 ) ) )', '( x_2 <= -2.0 until[0,inf] always[0,inf] ( always[70,inf] ( x_0 <= -2.0 ) ) )', '( x_0 <= -1.3333 until[23,inf] always[0,70] ( x_2 <= -1.3333 ) )', '( x_0 <= -2.0 until eventually ( always[0,inf] ( x_2 <= -2.0 ) ) )'], target_formulae: ['( always[0,inf] ( eventually[0,inf] ( x_1 >= 2.0 ) ) until[0,inf] x_1 <= -2.0 )', 'eventually[0,35] ( ( x_0 >= 4.0 until[0,inf] eventually[35,inf] ( x_0 <= -4.0 ) ) )', 'eventually[0,35] ( ( x_0 >= 4.0 until eventually[0,inf] ( x_0 <= -4.0 ) ) )', '( eventually[35,inf] ( eventually[35,inf] ( x_1 >= 2.0 ) ) until[0,inf] x_1 <= -2.0 )', '( always[0,70] ( eventually[0,inf] ( x_1 >= 2.0 ) ) until x_1 <= -2.0 )', '( eventually[0,inf] ( x_1 >= 2.6667 ) until[23,46] x_1 <= -2.6667 )', 'always[0,inf] ( ( eventually[70,inf] ( x_1 <= -2.0 ) until x_1 >= 2.0 ) )', '( x_0 <= -2.0 until[0,35] ( x_2 <= 0.0 until[35,inf] x_0 >= 2.0 ) )', 'eventually ( ( x_0 >= 4.0 until[0,inf] eventually[70,inf] ( x_0 <= -4.0 ) ) )', '( eventually[58,inf] ( x_0 >= 2.6667 ) until x_0 <= -2.6667 )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.9757, 0.9760, 0.9676, 0.9958, 0.9654, 0.9722, 0.9946, 0.9948, 0.9798,
+         0.9951]])
+dist_form = 0.01829707622528076
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 10, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.3363853394985199, Cos_dist = 0.4554811716079712, Dist_rho = 1.074390810732474, Norm_proposal = 0.14994437992572784, Norm_target = 0.20699992775917053, Norm_imp = 0.400831401348114, Pinv_error = 71.21730041503906, Sum_weights = 2.1220826539122284e-184, Sum_squared_weights = 0.0, Elapsed_time = 1200.9585535526276, Process_mem = 368.15234375, n_e = None, overlap_form = 0.0, dist_form = 0.3989938497543335, overlap_form = 0.0, dist_form = 0.3989938497543335, dist_new_kernels = 16.66834831237793, dist_embed = 7.424944877624512,  model_to_target = 1.2340959906578064, model_to_imp = 0.8868799358606339
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 11, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.25529342889785767, Cos_dist = 1.3933803737163544, Dist_rho = 0.7770605724116761, Norm_proposal = 0.16547130048274994, Norm_target = 0.17052459716796875, Norm_imp = 0.13440333306789398, Pinv_error = 71.21730041503906, Sum_weights = 2.1220826539122284e-184, Sum_squared_weights = 0.0, Elapsed_time = 1210.3963673114777, Process_mem = 369.36328125, n_e = None, overlap_form = 0.0, dist_form = 0.9914880804717541, overlap_form = 0.0, dist_form = 0.9914880804717541, dist_new_kernels = 17.099706649780273, dist_embed = 5.544856548309326,  model_to_target = 0.692406177520752, model_to_imp = 0.5862284004688263
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 12, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.5495180487632751, Cos_dist = 0.4009881019592285, Dist_rho = 0.06072847731434464, Norm_proposal = 0.5804881453514099, Norm_target = 0.5091384649276733, Norm_imp = 0.6734374165534973, Pinv_error = 71.21730041503906, Sum_weights = 2.1220826539122284e-184, Sum_squared_weights = 0.0, Elapsed_time = 1213.3656749725342, Process_mem = 369.15234375, n_e = None, overlap_form = 0.0, dist_form = 0.01829707622528076, overlap_form = 0.0, dist_form = 0.01829707622528076, dist_new_kernels = 20.814659118652344, dist_embed = 11.354743003845215,  model_to_target = 0.43943673372268677, model_to_imp = 0.17335569858551025
+Completed job 5
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 14, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 48.88378143310547
+the norm of K_target is : 0.149804025888443
+the norm of New_K_target is : 11.2265043258667
+the norm of rhos_phi_proposal is : 67.7744369506836
+the norm of K_proposal is : 0.12357261031866074
+the norm of New_K_proposal is : 5.13960599899292
+The norm of K_imp is : 0.48476091027259827
+the norm of New_K_imp is : 20.570667266845703
+the norm of target_embedding is : 6.665807723999023
+the norm of imp_embedding is : 11.576679229736328
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[0.63882565 0.6495198  0.6495198  0.6495198  0.6576257  0.671839
+  0.6735296  0.6735296  0.6735296  0.6735296 ]]
+total_search_time1 = 3.4320247173309326
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[64.750496 65.26871  65.3106   65.3106   65.31095  65.37968  65.46382
+  65.49906  65.49906  65.57583 ]]
+total_search_time2 = 2.819232940673828
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['not ( ( x_0 <= 0.0 until[0,35] not ( x_2 >= 0.0 ) ) )', 'eventually ( ( eventually[0,inf] ( x_2 >= 0.0 ) or x_0 >= 0.0 ) )', 'eventually[0,70] ( always ( ( x_0 >= 0.0 or x_2 >= 0.0 ) ) )', 'not ( ( eventually ( x_2 <= 0.0 ) until[70,inf] x_0 <= 0.0 ) )', '( x_0 >= -2.0 until[70,inf] ( x_2 >= 0.0 or x_0 >= 0.0 ) )', '( eventually[0,70] ( x_2 >= 0.0 ) or eventually[0,35] ( x_0 >= 0.0 ) )', '( x_0 >= 0.0 or ( x_0 <= 2.0 until[0,35] x_2 >= 0.0 ) )', '( eventually[58,70] ( x_2 >= -0.0 ) or x_0 >= -0.0 )', '( x_0 >= 0.0 or eventually[0,inf] ( always[0,35] ( x_2 >= 0.0 ) ) )', '( eventually[0,23] ( x_0 >= -1.3333 ) until[35,70] x_2 >= -1.3333 )'], target_formulae: ['( always[0,46] ( x_2 <= 4.0 ) and x_2 >= -0.0 )', '( x_2 >= 0.0 until[0,70] ( x_0 <= 2.0 until x_1 <= 2.0 ) )', '( x_0 <= 2.0 and ( x_2 >= 0.0 until[0,35] x_1 <= 2.0 ) )', '( ( x_0 <= 2.0 and x_2 >= 0.0 ) until x_1 <= 2.0 )', '( x_2 >= -0.0 until[11,inf] eventually[0,inf] ( x_1 <= 2.6667 ) )', '( ( x_2 >= 0.0 until[0,inf] x_0 >= -2.0 ) until[0,70] x_1 >= -2.0 )', '( x_2 >= 0.0 until[0,inf] always[0,inf] ( always[35,inf] ( x_1 >= -2.0 ) ) )', '( x_2 >= 0.0 until[0,inf] ( x_1 >= -2.0 until[0,70] x_2 >= 0.0 ) )', '( x_2 >= 0.0 until[0,35] eventually[35,inf] ( eventually[0,inf] ( x_1 >= -2.0 ) ) )', '( ( x_2 >= 0.0 and x_1 >= -2.0 ) until[0,35] x_2 >= 0.0 )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.4127, 0.3272, 0.4205, 0.4198, 0.3106, 0.3662, 0.4139, 0.3951, 0.4055,
+         0.2424]])
+dist_form = 0.6286063492298126
+n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 13, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 50.638893127441406
+the norm of K_target is : 0.3035450577735901
+the norm of New_K_target is : 18.796369552612305
+the norm of rhos_phi_proposal is : 56.7271614074707
+the norm of K_proposal is : 0.38674497604370117
+the norm of New_K_proposal is : 18.809024810791016
+The norm of K_imp is : 0.6782289743423462
+the norm of New_K_imp is : 33.562252044677734
+the norm of target_embedding is : 11.008009910583496
+the norm of imp_embedding is : 32.618324279785156
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[1.0067011 1.0083914 1.0292739 1.0519612 1.0551074 1.0586668 1.0586668
+  1.0588777 1.0588777 1.0615543]]
+total_search_time1 = 3.5399043560028076
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[610.08813 610.43445 610.70416 610.70416 610.70416 610.70416 610.70416
+  610.70416 610.70416 610.70416]]
+total_search_time2 = 2.955181837081909
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['eventually ( ( x_2 <= -1.3333 until[46,70] x_0 <= -1.3333 ) )', '( always[11,23] ( x_0 <= -1.3333 ) until[11,35] x_2 <= -1.3333 )', '( x_0 <= -1.3333 until[11,23] eventually[0,58] ( x_2 <= -1.3333 ) )', '( always[0,23] ( x_0 <= -1.3333 ) until[0,35] x_2 <= -1.3333 )', '( x_2 <= -1.3333 until[0,inf] always[11,46] ( x_0 <= -1.3333 ) )', 'always[46,58] ( ( x_0 <= -1.3333 until[23,35] x_2 <= -1.3333 ) )', '( x_2 <= -1.3333 until[0,46] always[35,inf] ( x_0 <= -1.3333 ) )', '( x_0 <= -1.3333 until[0,inf] eventually[23,58] ( x_2 <= -1.3333 ) )', 'eventually[23,35] ( ( x_0 <= -1.3333 until[23,35] x_2 <= -1.3333 ) )', '( always[11,23] ( x_0 <= -1.3333 ) until[11,46] x_2 <= -1.3333 )'], target_formulae: ['( eventually[35,70] ( x_0 >= -0.0 ) until[11,23] x_0 <= -1.3333 )', '( eventually[0,inf] ( x_0 <= -1.3333 ) until[0,23] x_0 >= -0.0 )', '( x_0 <= -1.3333 until[0,46] always[11,35] ( x_0 >= -0.0 ) )', '( eventually[23,46] ( x_0 <= -1.3333 ) until[0,11] x_0 >= -0.0 )', '( eventually[58,inf] ( x_0 >= -0.0 ) until[35,inf] x_0 <= -1.3333 )', '( eventually[11,inf] ( x_0 <= -1.3333 ) until[0,inf] x_0 >= -0.0 )', '( eventually[0,inf] ( x_0 <= -1.3333 ) until[0,70] x_0 >= -0.0 )', '( eventually[11,inf] ( x_0 >= -0.0 ) until[23,58] x_0 <= -1.3333 )', '( eventually[11,58] ( x_0 >= -0.0 ) until[0,inf] x_0 <= -1.3333 )', '( eventually[23,46] ( x_0 <= -1.3333 ) until[0,11] x_0 >= -0.0 )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.9696, 0.9702, 0.9678, 0.9701, 0.9710, 0.9691, 0.9710, 0.9662, 0.9693,
+         0.9699]])
+dist_form = 0.03058147430419922
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 0, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: human
+the norm of rhos_phi_target is : 97.95026397705078
+the norm of K_target is : 0.2307942658662796
+the norm of New_K_target is : 11.675910949707031
+the norm of rhos_phi_proposal is : 88.67736053466797
+the norm of K_proposal is : 0.17864589393138885
+the norm of New_K_proposal is : 7.421757698059082
+The norm of K_imp is : 0.6968684792518616
+the norm of New_K_imp is : 33.72496032714844
+the norm of target_embedding is : 6.626209735870361
+the norm of imp_embedding is : 26.313222885131836
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[2.3165882 2.3165882 2.3646536 2.3726554 2.385686  2.385686  2.394158
+  2.395589  2.3969877 2.39779  ]]
+total_search_time1 = 1.013087272644043
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[336.127   338.34274 338.55743 338.55743 338.77753 338.7872  338.86523
+  339.51483 339.51483 339.58063]]
+total_search_time2 = 2.343531847000122
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_0 >= -4.0 until[35,inf] ( x_1 <= 4.0 until[0,35] x_2 >= -4.0 ) )', '( ( x_0 >= -4.0 until[0,inf] x_2 >= -4.0 ) until[35,70] x_1 <= 4.0 )', 'eventually ( ( eventually[35,inf] ( x_1 >= -4.0 ) until x_0 >= -4.0 ) )', '( eventually[35,70] ( x_1 >= -4.0 ) and eventually[0,35] ( x_0 >= -4.0 ) )', 'not ( always[0,inf] ( ( x_1 >= 0.0 until[0,inf] x_0 <= -4.0 ) ) )', '( eventually[11,inf] ( x_0 >= -4.0 ) until[23,35] x_1 <= 4.0 )', 'eventually[0,35] ( ( x_1 <= 4.0 until[23,46] x_0 >= -4.0 ) )', '( x_2 <= 4.0 until[35,inf] ( x_2 >= -4.0 until x_1 <= 4.0 ) )', '( x_2 <= 4.0 until[0,70] ( x_2 >= -4.0 until[0,inf] x_1 <= 4.0 ) )', '( ( x_1 >= -4.0 until[0,inf] x_2 <= 4.0 ) until[35,70] x_0 >= -4.0 )'], target_formulae: ['( x_0 <= 2.6667 until[0,23] eventually ( x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[0,58] x_0 <= 2.6667 )', '( x_0 <= 2.6667 until eventually[0,46] ( x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[0,46] x_0 <= 2.6667 )', '( x_0 <= 2.6667 until[11,23] eventually ( x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[11,58] eventually[0,inf] ( x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[23,70] eventually[0,inf] ( x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[11,35] eventually[11,58] ( x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[11,inf] x_0 <= 2.6667 )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[0,23] x_0 <= 2.6667 )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.1565, 0.1566, 0.1516, 0.1518, 0.1574, 0.1535, 0.1538, 0.1483, 0.1472,
+         0.1522]])
+dist_form = 0.847130224108696
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 13, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.5506581664085388, Cos_dist = 0.3954777717590332, Dist_rho = 0.48993442229347156, Norm_proposal = 0.38674497604370117, Norm_target = 0.3035450577735901, Norm_imp = 0.6782289743423462, Pinv_error = 71.21730041503906, Sum_weights = 2.1220826539122284e-184, Sum_squared_weights = 0.0, Elapsed_time = 1221.3109557628632, Process_mem = 367.37109375, n_e = None, overlap_form = 0.0, dist_form = 0.03058147430419922, overlap_form = 0.0, dist_form = 0.03058147430419922, dist_new_kernels = 26.449298858642578, dist_embed = 25.35226821899414,  model_to_target = 0.5723128318786621, model_to_imp = 0.3390735387802124
+weight_strategy = only_target, n_psi_added = 0, n_traj = 6000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 14, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.4684128761291504, Cos_dist = 0.7381972372531891, Dist_rho = 1.0827716568818027, Norm_proposal = 0.12357261031866074, Norm_target = 0.149804025888443, Norm_imp = 0.48476091027259827, Pinv_error = 71.21730041503906, Sum_weights = 2.1220826539122284e-184, Sum_squared_weights = 0.0, Elapsed_time = 1213.4668881893158, Process_mem = 365.5, n_e = None, overlap_form = 0.0, dist_form = 0.6286063492298126, overlap_form = 0.0, dist_form = 0.6286063492298126, dist_new_kernels = 21.116174697875977, dist_embed = 9.910414695739746,  model_to_target = 1.2629210650920868, model_to_imp = 0.8689033091068268
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 0, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.6471917033195496, Cos_dist = 0.6268353760242462, Dist_rho = 1.327919464111328, Norm_proposal = 0.17864589393138885, Norm_target = 0.2307942658662796, Norm_imp = 0.6968684792518616, Pinv_error = 97.76882934570312, Sum_weights = 2.429131607184488e-48, Sum_squared_weights = 5.861285813693092e-96, Elapsed_time = 1464.6577966213226, Process_mem = 402.62890625, n_e = 1.0067211449128735, overlap_form = 0.0, dist_form = 0.847130224108696, overlap_form = 0.0, dist_form = 0.847130224108696, dist_new_kernels = 31.759296417236328, dist_embed = 23.319528579711914,  model_to_target = 0.8603880703449249, model_to_imp = 0.4584447741508484
+Completed job 6
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 5, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: robot5
+the norm of rhos_phi_target is : 99.3242416381836
+the norm of K_target is : 0.2037268579006195
+the norm of New_K_target is : 9.756733894348145
+the norm of rhos_phi_proposal is : 93.58308410644531
+the norm of K_proposal is : 0.17826956510543823
+the norm of New_K_proposal is : 6.584631443023682
+The norm of K_imp is : 0.5014415979385376
+the norm of New_K_imp is : 20.15184783935547
+the norm of target_embedding is : 5.566104412078857
+the norm of imp_embedding is : 15.131537437438965
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[0.8447866  0.8447866  0.8447866  0.8447866  0.92094076 0.92961013
+  0.93931526 0.93931526 0.93931526 0.93931526]]
+total_search_time1 = 2.0945799350738525
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[139.40872 139.40872 139.40872 139.53416 139.56102 139.62521 139.62564
+  139.7214  139.72557 139.90605]]
+total_search_time2 = 2.352790117263794
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['always[0,35] ( not ( ( x_2 <= 0.0 until x_0 <= 0.0 ) ) )', 'always[35,inf] ( not ( ( x_2 <= 0.0 until x_0 <= 0.0 ) ) )', '( always[0,inf] ( x_0 >= 0.0 ) or always[0,70] ( x_2 >= 0.0 ) )', 'eventually ( ( eventually[0,inf] ( x_2 >= 0.0 ) or x_0 >= 0.0 ) )', '( eventually[0,inf] ( x_2 >= 0.0 ) or eventually ( x_0 >= 0.0 ) )', 'always[23,inf] ( ( x_0 >= -0.0 or x_2 >= -0.0 ) )', 'always[0,inf] ( eventually[70,inf] ( ( x_0 >= 0.0 or x_2 >= 0.0 ) ) )', '( x_0 >= -0.0 or always[0,70] ( x_2 >= -0.0 ) )', '( eventually[0,70] ( x_2 >= 0.0 ) or eventually[0,35] ( x_0 >= 0.0 ) )', '( x_2 >= 0.0 or always[0,35] ( always[0,35] ( x_0 >= 0.0 ) ) )'], target_formulae: ['( eventually[0,35] ( x_2 <= 2.0 ) until eventually ( x_2 >= 0.0 ) )', 'eventually[0,inf] ( ( x_2 <= 2.0 until[0,inf] eventually[0,inf] ( x_2 >= 0.0 ) ) )', '( eventually[0,inf] ( eventually[0,inf] ( x_2 >= 0.0 ) ) until x_2 <= 2.0 )', '( x_2 <= 2.0 until[0,inf] ( x_0 <= 4.0 until x_2 >= 0.0 ) )', '( x_2 <= 2.6667 until[35,70] eventually[11,inf] ( x_2 >= -0.0 ) )', '( always[11,inf] ( x_2 <= 2.6667 ) until[0,46] x_2 >= -0.0 )', '( eventually[0,inf] ( x_2 <= 2.0 ) until eventually[0,inf] ( x_2 >= 0.0 ) )', 'eventually[0,70] ( ( eventually[0,inf] ( x_2 <= 2.0 ) until[0,inf] x_2 >= 0.0 ) )', 'eventually ( ( x_2 <= 2.0 until[0,35] eventually[0,35] ( x_2 >= 0.0 ) ) )', '( eventually[0,inf] ( x_2 >= 0.0 ) until[0,70] eventually ( x_2 <= 2.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.4290, 0.3962, 0.4034, 0.3958, 0.3958, 0.3931, 0.4106, 0.3466, 0.4102,
+         0.4502]])
+dist_form = 0.5969071984291077
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 2, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: maritime
+the norm of rhos_phi_target is : 97.18595886230469
+the norm of K_target is : 0.4401053488254547
+the norm of New_K_target is : 19.558664321899414
+the norm of rhos_phi_proposal is : 91.42845916748047
+the norm of K_proposal is : 0.2561715841293335
+the norm of New_K_proposal is : 10.833261489868164
+The norm of K_imp is : 0.08059807121753693
+the norm of New_K_imp is : 3.490417003631592
+the norm of target_embedding is : 11.10795783996582
+the norm of imp_embedding is : 3.369276285171509
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[13.289561 13.36174  13.620424 13.662737 13.758255 13.76222  13.78829
+  13.78829  13.78829  13.793933]]
+total_search_time1 = 2.0498294830322266
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[3.6769629 3.6769629 3.7890496 3.797062  4.1280594 4.3147635 4.380664
+  4.507486  4.528961  4.5763154]]
+total_search_time2 = 2.0888283252716064
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['always[11,inf] ( ( x_1 >= -1.3333 until[35,inf] x_1 <= 1.3333 ) )', 'always[11,inf] ( ( x_1 >= -1.3333 until[58,inf] x_1 <= 1.3333 ) )', 'always[23,inf] ( ( x_1 <= 1.3333 until[0,11] x_1 >= -1.3333 ) )', 'always[11,inf] ( ( x_0 >= -1.3333 and x_0 <= 1.3333 ) )', 'always[58,inf] ( ( x_1 >= -1.3333 until[35,inf] x_1 <= 1.3333 ) )', '( always[0,inf] ( x_1 >= -1.3333 ) until[58,70] x_1 <= 1.3333 )', 'always[0,inf] ( ( x_0 <= 1.3333 until[0,11] x_0 >= -1.3333 ) )', '( x_0 >= -1.3333 until[35,46] always[11,inf] ( x_0 <= 1.3333 ) )', 'always[23,inf] ( ( x_2 >= -1.3333 and x_2 <= 1.3333 ) )', 'always[11,inf] ( ( x_0 <= 1.3333 until[58,inf] x_0 >= -1.3333 ) )'], target_formulae: ['( x_0 <= 0.0 until[70,inf] ( x_2 <= 0.0 until[0,inf] x_1 >= 0.0 ) )', '( x_0 <= -2.0 or ( x_1 >= 2.0 until[35,70] x_2 <= 2.0 ) )', '( ( x_2 <= 0.0 until[0,inf] x_1 <= 0.0 ) until[35,inf] x_0 <= 0.0 )', '( eventually[0,35] ( x_2 <= -2.0 ) or always[0,35] ( x_0 <= -2.0 ) )', '( x_0 >= -4.0 until[70,inf] ( x_0 <= -2.0 or x_2 <= -2.0 ) )', '( x_2 <= -2.0 or always[0,inf] ( always[0,inf] ( x_0 <= -2.0 ) ) )', 'eventually[35,inf] ( always[35,inf] ( ( x_2 <= -2.0 or x_0 <= -2.0 ) ) )', 'always[35,inf] ( eventually[35,inf] ( ( x_0 <= -2.0 or x_2 <= -2.0 ) ) )', 'always ( eventually[70,inf] ( ( x_0 <= -2.0 or x_2 <= -2.0 ) ) )', 'always[0,35] ( not ( ( x_2 >= -2.0 until[0,35] x_0 >= -2.0 ) ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[-0.3051, -0.3051, -0.3197, -0.2611, -0.3238, -0.3229, -0.2738, -0.3290,
+         -0.2979, -0.2928]])
+dist_form = 1.3031199872493744
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 1, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: linear
+the norm of rhos_phi_target is : 98.7353744506836
+the norm of K_target is : 0.22751550376415253
+the norm of New_K_target is : 11.438924789428711
+the norm of rhos_phi_proposal is : 84.01890563964844
+the norm of K_proposal is : 0.17125695943832397
+the norm of New_K_proposal is : 7.57924222946167
+The norm of K_imp is : 0.5262817144393921
+the norm of New_K_imp is : 26.877975463867188
+the norm of target_embedding is : 6.561686038970947
+the norm of imp_embedding is : 15.687126159667969
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[1.9076248 1.9233927 1.930095  1.9432634 1.945742  1.9470589 1.952225
+  1.9530423 1.9531786 1.9531786]]
+total_search_time1 = 0.9229469299316406
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[79.326935 79.696365 79.74102  79.74102  79.77225  79.88923  80.1082
+  80.11446  80.11446  80.130394]]
+total_search_time2 = 2.037510633468628
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_0 >= -4.0 until[35,inf] ( x_1 <= 4.0 until[0,35] x_2 >= -4.0 ) )', '( ( x_0 >= -4.0 until[0,inf] x_2 >= -4.0 ) until[35,70] x_1 <= 4.0 )', 'eventually ( ( eventually[35,inf] ( x_1 >= -4.0 ) until x_0 >= -4.0 ) )', '( eventually[35,70] ( x_1 >= -4.0 ) and eventually[0,35] ( x_0 >= -4.0 ) )', '( x_0 >= -4.0 until eventually[35,46] ( x_1 <= 4.0 ) )', '( eventually[11,inf] ( x_0 >= -4.0 ) until[23,35] x_1 <= 4.0 )', 'eventually[0,35] ( ( x_1 <= 4.0 until[23,46] x_0 >= -4.0 ) )', '( eventually[23,35] ( x_0 >= -4.0 ) until[0,58] x_1 <= 4.0 )', '( eventually[35,70] ( x_0 >= -4.0 ) until eventually[0,inf] ( x_1 <= 4.0 ) )', '( ( x_1 >= -4.0 until[0,inf] x_2 <= 4.0 ) until[35,70] x_0 >= -4.0 )'], target_formulae: ['always[46,inf] ( ( x_0 <= 2.6667 until[0,46] x_0 >= -0.0 ) )', '( always[0,35] ( x_0 <= 2.6667 ) until[23,inf] x_0 >= -0.0 )', 'not ( ( x_0 >= -2.6667 until[23,inf] x_0 <= -0.0 ) )', '( eventually[0,inf] ( x_0 <= 2.6667 ) until[23,58] x_0 >= -0.0 )', '( x_0 <= 2.6667 until[23,35] eventually[11,46] ( x_0 >= -0.0 ) )', '( eventually[35,inf] ( x_0 >= -0.0 ) until[35,46] x_0 <= 2.6667 )', '( x_0 <= 2.6667 until[23,46] eventually[23,inf] ( x_0 >= -0.0 ) )', '( x_0 <= 2.6667 until[11,inf] eventually[35,46] ( x_0 >= -0.0 ) )', 'eventually[23,inf] ( ( x_0 <= 2.6667 until[35,70] x_0 >= -0.0 ) )', 'eventually[23,35] ( ( x_0 <= 2.6667 until[35,inf] x_0 >= -0.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[ 9.7565e-04,  1.0793e-03, -7.8957e-04, -6.7952e-04, -1.3550e-04,
+         -6.5354e-04, -1.4113e-03, -7.8792e-04, -8.5810e-05, -1.0653e-03]])
+dist_form = 1.000355341937393
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 1, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.5389894843101501, Cos_dist = 0.8403752446174622, Dist_rho = 1.301022491455078, Norm_proposal = 0.17125695943832397, Norm_target = 0.22751550376415253, Norm_imp = 0.5262817144393921, Pinv_error = 97.76882934570312, Sum_weights = 2.429131607184488e-48, Sum_squared_weights = 5.861285813693092e-96, Elapsed_time = 1872.5779237747192, Process_mem = 917.1328125, n_e = 1.0067211449128735, overlap_form = 0.0, dist_form = 1.000355341937393, overlap_form = 0.0, dist_form = 1.000355341937393, dist_new_kernels = 27.878028869628906, dist_embed = 13.667963027954102,  model_to_target = 1.0235311072319746, model_to_imp = 0.3080342411994934
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 2, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.4981306195259094, Cos_dist = 1.675826609134674, Dist_rho = 1.1096021270751952, Norm_proposal = 0.2561715841293335, Norm_target = 0.4401053488254547, Norm_imp = 0.08059807121753693, Pinv_error = 95.77732849121094, Sum_weights = 3.724671522290976e-113, Sum_squared_weights = 1.3488448716184133e-225, Elapsed_time = 1819.998786687851, Process_mem = 413.0078125, n_e = 1.0285228672975288, overlap_form = 0.0, dist_form = 1.3031199872493744, overlap_form = 0.0, dist_form = 1.3031199872493744, dist_new_kernels = 22.112478256225586, dist_embed = 9.487298965454102,  model_to_target = 0.5992622077465057, model_to_imp = 0.5993241369724274
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 5, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.4396972358226776, Cos_dist = 0.5124437808990479, Dist_rho = 1.3613410949707032, Norm_proposal = 0.17826956510543823, Norm_target = 0.2037268579006195, Norm_imp = 0.5014415979385376, Pinv_error = 94.20899963378906, Sum_weights = 3.843764998101933e-184, Sum_squared_weights = 0.0, Elapsed_time = 1405.9428369998932, Process_mem = 413.81640625, n_e = None, overlap_form = 0.0, dist_form = 0.5969071984291077, overlap_form = 0.0, dist_form = 0.5969071984291077, dist_new_kernels = 17.939924240112305, dist_embed = 12.698953628540039,  model_to_target = 0.9185516759753227, model_to_imp = 0.7432157099246979
+Completed job 7
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 11, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 59.813350677490234
+the norm of K_target is : 0.17283841967582703
+the norm of New_K_target is : 12.600883483886719
+the norm of rhos_phi_proposal is : 59.9603385925293
+the norm of K_proposal is : 0.16168498992919922
+the norm of New_K_proposal is : 10.142951011657715
+The norm of K_imp is : 0.32831695675849915
+the norm of New_K_imp is : 20.468921661376953
+the norm of target_embedding is : 6.73142671585083
+the norm of imp_embedding is : 12.06863784790039
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[2.802877  2.802877  2.8988118 2.8988118 2.8988118 2.8988118 2.8988118
+  2.957985  3.095842  3.095842 ]]
+total_search_time1 = 2.2792718410491943
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[68.87141 68.88331 68.88331 68.88331 68.88331 68.97657 68.97657 69.05615
+  69.05615 69.11489]]
+total_search_time2 = 2.3461408615112305
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( eventually[23,46] ( x_0 >= -0.0 ) until[11,46] x_2 >= -0.0 )', '( eventually[0,inf] ( x_2 >= -0.0 ) until[0,70] x_0 >= -0.0 )', '( eventually[11,inf] ( x_2 >= -0.0 ) until x_0 >= -0.0 )', '( eventually ( eventually ( x_2 >= 0.0 ) ) until[0,70] x_0 >= 0.0 )', '( eventually[0,inf] ( eventually ( x_0 >= 0.0 ) ) until[0,70] x_2 >= 0.0 )', '( eventually[0,inf] ( x_2 >= 0.0 ) until[0,inf] eventually[0,35] ( x_0 >= 0.0 ) )', '( eventually ( x_2 >= 0.0 ) until[0,70] eventually[0,inf] ( x_0 >= 0.0 ) )', 'eventually[23,inf] ( ( x_2 >= -0.0 until[0,23] x_0 >= -0.0 ) )', '( eventually[0,inf] ( x_0 >= -0.0 ) until[23,70] x_2 >= -0.0 )', '( x_0 >= -0.0 until[0,46] always[11,23] ( x_2 >= -0.0 ) )'], target_formulae: ['( ( x_2 <= 0.0 until x_0 >= -4.0 ) until[0,inf] x_0 >= 0.0 )', '( x_2 <= 0.0 until[0,70] ( x_2 <= 4.0 until[0,inf] x_0 >= 0.0 ) )', '( eventually ( x_2 <= 0.0 ) and always ( x_2 >= -2.0 ) )', '( always ( x_2 >= -2.0 ) until[0,inf] eventually[35,inf] ( x_2 <= 0.0 ) )', '( always[0,inf] ( x_2 >= -2.0 ) until[0,70] not ( x_2 >= 0.0 ) )', '( always[35,inf] ( x_2 >= -2.0 ) until[0,inf] eventually[35,inf] ( x_2 <= 0.0 ) )', '( always[0,inf] ( x_2 >= -2.0 ) until eventually ( x_2 <= 0.0 ) )', '( x_2 <= 0.0 until[35,70] ( x_0 >= 0.0 or x_2 >= 0.0 ) )', 'always[0,inf] ( ( x_0 >= -1.3333 until[35,inf] x_2 <= -0.0 ) )', 'always[46,inf] ( ( x_0 >= -1.3333 until[0,inf] x_2 <= -0.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.2025, 0.1690, 0.1635, 0.1690, 0.1511, 0.1586, 0.1572, 0.1724, 0.1674,
+         0.2100]])
+dist_form = 0.8279021382331848
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 10, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 64.09691619873047
+the norm of K_target is : 0.20809167623519897
+the norm of New_K_target is : 13.928998947143555
+the norm of rhos_phi_proposal is : 80.2892837524414
+the norm of K_proposal is : 0.14616581797599792
+the norm of New_K_proposal is : 6.677725315093994
+The norm of K_imp is : 0.338450163602829
+the norm of New_K_imp is : 15.996675491333008
+the norm of target_embedding is : 6.90812349319458
+the norm of imp_embedding is : 9.473419189453125
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[2.8970919 2.9221404 2.952709  2.958704  3.0234065 3.0508184 3.0698647
+  3.085996  3.085996  3.0864823]]
+total_search_time1 = 2.3742566108703613
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[44.780125 44.780125 45.02168  45.150215 45.15629  45.159378 45.202072
+  45.22444  45.289677 45.353783]]
+total_search_time2 = 2.0692007541656494
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( eventually[0,inf] ( x_2 >= -0.0 ) until[46,inf] x_0 >= -1.3333 )', 'eventually[46,inf] ( ( x_2 >= -0.0 and x_0 >= -1.3333 ) )', '( always[0,46] ( x_0 >= -1.3333 ) until[23,inf] x_2 >= -0.0 )', '( always[0,inf] ( x_0 >= -1.3333 ) until[35,70] x_2 >= -0.0 )', '( eventually[0,inf] ( x_2 >= -0.0 ) until[35,58] x_0 >= -1.3333 )', 'always[35,70] ( ( x_0 >= -1.3333 until[0,inf] x_2 >= -0.0 ) )', '( always[23,46] ( x_0 >= -1.3333 ) until[23,46] x_2 >= -0.0 )', '( eventually[0,inf] ( x_0 >= -1.3333 ) until[11,35] x_2 >= -0.0 )', '( x_0 >= -1.3333 until eventually[0,46] ( x_2 >= -0.0 ) )', '( x_0 >= -1.3333 until[35,58] eventually ( x_2 >= -0.0 ) )'], target_formulae: ['eventually[0,inf] ( ( eventually[0,inf] ( x_2 <= -2.0 ) or x_2 >= 0.0 ) )', '( x_0 >= -2.0 and ( x_2 >= 0.0 or x_0 <= 0.0 ) )', 'eventually ( ( always[0,inf] ( x_2 <= -2.0 ) or x_2 >= 0.0 ) )', 'not ( always[35,70] ( ( x_2 <= 0.0 and x_2 >= -2.0 ) ) )', '( eventually[35,46] ( x_2 >= -0.0 ) or x_2 <= -1.3333 )', 'not ( ( x_2 >= -1.3333 until[35,70] x_2 <= -0.0 ) )', 'eventually ( not ( ( x_2 <= 0.0 and x_2 >= -2.0 ) ) )', '( eventually ( x_2 >= 0.0 ) or always ( x_2 <= -2.0 ) )', '( x_2 <= -2.0 or eventually[35,inf] ( eventually[0,35] ( x_2 >= 0.0 ) ) )', 'not ( ( always ( x_2 <= 0.0 ) until[0,inf] x_2 >= -2.0 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.6949, 0.6939, 0.6329, 0.6102, 0.6976, 0.6181, 0.6352, 0.7125, 0.7203,
+         0.6619]])
+dist_form = 0.3322659730911255
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 6, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+model name: train
+the norm of rhos_phi_target is : 91.5967025756836
+the norm of K_target is : 0.3841593563556671
+the norm of New_K_target is : 19.618478775024414
+the norm of rhos_phi_proposal is : 98.22039031982422
+the norm of K_proposal is : 0.18080371618270874
+the norm of New_K_proposal is : 6.764138221740723
+The norm of K_imp is : 0.5674321055412292
+the norm of New_K_imp is : 24.791034698486328
+the norm of target_embedding is : 9.753352165222168
+the norm of imp_embedding is : 13.411005020141602
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[13.654391 13.730149 13.742086 13.757433 13.76436  13.774435 13.775132
+  13.779184 13.794287 13.796148]]
+total_search_time1 = 0.8836276531219482
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[52.56688  52.586864 52.646286 52.686874 52.80918  52.86148  52.88096
+  52.89019  52.89019  52.90436 ]]
+total_search_time2 = 1.9853549003601074
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( always[11,inf] ( x_0 <= 4.0 ) until[46,70] x_0 >= -2.6667 )', 'eventually[0,inf] ( ( always[0,35] ( x_0 >= -4.0 ) until[35,inf] x_0 <= 4.0 ) )', '( eventually[58,inf] ( x_0 <= 4.0 ) until[35,inf] x_0 >= -2.6667 )', 'always[23,inf] ( ( x_0 <= 4.0 until[11,70] x_0 >= -2.6667 ) )', '( always[0,58] ( x_0 <= 4.0 ) until[35,inf] x_0 >= -2.6667 )', '( eventually[0,46] ( x_0 >= -2.6667 ) until[46,inf] x_0 <= 4.0 )', '( always[0,23] ( x_0 <= 4.0 ) until[0,35] x_0 >= -2.6667 )', '( x_0 >= -2.6667 until[35,46] always[0,46] ( x_0 <= 4.0 ) )', '( x_0 >= -2.6667 until[23,inf] always[23,inf] ( x_0 <= 4.0 ) )', '( x_0 <= 4.0 until[11,46] not ( x_0 <= -2.6667 ) )'], target_formulae: ['( x_1 >= -2.6667 until[46,58] always[35,inf] ( x_0 >= -1.3333 ) )', '( x_1 >= -2.6667 until[0,inf] always[46,58] ( x_0 >= -1.3333 ) )', '( always[0,46] ( x_1 >= -2.6667 ) until[35,inf] x_0 >= -1.3333 )', '( x_1 >= -2.6667 until[11,inf] always[23,58] ( x_0 >= -1.3333 ) )', '( x_1 >= -2.6667 until[35,inf] always[35,58] ( x_0 >= -1.3333 ) )', '( eventually[46,70] ( x_1 >= -2.6667 ) until[23,inf] x_0 >= -1.3333 )', 'always[0,58] ( ( x_1 >= -2.6667 until[0,23] x_0 >= -1.3333 ) )', 'always[11,58] ( ( x_1 >= -2.6667 until[23,inf] x_0 >= -1.3333 ) )', '( x_1 >= -2.6667 until[23,35] always[23,46] ( x_0 >= -1.3333 ) )', '( x_0 >= -1.3333 until[46,58] always[11,35] ( x_1 >= -2.6667 ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.8448, 0.8022, 0.8486, 0.8430, 0.8449, 0.8492, 0.8335, 0.8552, 0.8514,
+         0.8384]])
+dist_form = 0.1588801145553589
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 6, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.3278525173664093, Cos_dist = 0.1695038080215454, Dist_rho = 1.3213595581054687, Norm_proposal = 0.18080371618270874, Norm_target = 0.3841593563556671, Norm_imp = 0.5674321055412292, Pinv_error = 97.76882934570312, Sum_weights = 2.429131607184488e-48, Sum_squared_weights = 5.861285813693092e-96, Elapsed_time = 1647.9695703983307, Process_mem = 915.5625, n_e = 1.0067211449128735, overlap_form = 0.0, dist_form = 0.1588801145553589, overlap_form = 0.0, dist_form = 0.1588801145553589, dist_new_kernels = 12.783730506896973, dist_embed = 6.449213027954102,  model_to_target = 0.038520634174346924, model_to_imp = 1.283177673816681
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 10, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.35316136479377747, Cos_dist = 0.7648136913776398, Dist_rho = 1.0732218170166015, Norm_proposal = 0.14616581797599792, Norm_target = 0.20809167623519897, Norm_imp = 0.338450163602829, Pinv_error = 94.20899963378906, Sum_weights = 3.843764998101933e-184, Sum_squared_weights = 0.0, Elapsed_time = 1635.9186353683472, Process_mem = 384.16015625, n_e = None, overlap_form = 0.0, dist_form = 0.3322659730911255, overlap_form = 0.0, dist_form = 0.3322659730911255, dist_new_kernels = 18.138402938842773, dist_embed = 7.621284484863281,  model_to_target = 1.227645680308342, model_to_imp = 0.8899466469883919
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 11, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.35590824484825134, Cos_dist = 0.9031252562999725, Dist_rho = 0.7749083709716796, Norm_proposal = 0.16168498992919922, Norm_target = 0.17283841967582703, Norm_imp = 0.32831695675849915, Pinv_error = 94.20899963378906, Sum_weights = 3.843764998101933e-184, Sum_squared_weights = 0.0, Elapsed_time = 1614.5273652076721, Process_mem = 381.87890625, n_e = None, overlap_form = 0.0, dist_form = 0.8279021382331848, overlap_form = 0.0, dist_form = 0.8279021382331848, dist_new_kernels = 23.478307723999023, dist_embed = 10.399176597595215,  model_to_target = 0.11944526433944702, model_to_imp = 1.0319930128753185
+Completed job 8
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 14, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 63.11494064331055
+the norm of K_target is : 0.1493930220603943
+the norm of New_K_target is : 11.201456069946289
+the norm of rhos_phi_proposal is : 87.28852844238281
+the norm of K_proposal is : 0.1238013207912445
+the norm of New_K_proposal is : 5.152763843536377
+The norm of K_imp is : 0.3485652506351471
+the norm of New_K_imp is : 14.674193382263184
+the norm of target_embedding is : 6.649245262145996
+the norm of imp_embedding is : 6.599786281585693
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[0.63545465 0.6492884  0.6492884  0.6492884  0.66161805 0.66567266
+  0.66567266 0.66567266 0.66567266 0.66567266]]
+total_search_time1 = 7.402116537094116
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[17.041183 17.081163 17.098385 17.120361 17.167923 17.181557 17.199598
+  17.204405 17.232595 17.23801 ]]
+total_search_time2 = 2.0991287231445312
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( x_1 <= 1.3333 until[70,inf] always[0,23] ( x_1 >= -1.3333 ) )', '( x_1 >= -1.3333 until[11,23] always[46,70] ( x_1 <= 1.3333 ) )', 'always[23,35] ( ( x_1 <= 1.3333 until[35,46] x_1 >= -1.3333 ) )', '( x_1 >= -1.3333 until[46,58] always ( x_1 <= 1.3333 ) )', 'eventually[11,35] ( ( x_1 <= 1.3333 until[58,inf] x_1 >= -1.3333 ) )', '( always[58,70] ( x_0 <= -1.3333 ) or x_0 >= -0.0 )', '( always ( x_1 <= 1.3333 ) until[0,inf] x_1 >= -1.3333 )', '( always[0,inf] ( x_1 <= 1.3333 ) until[23,46] x_1 >= -1.3333 )', 'always[11,inf] ( ( x_1 <= 1.3333 until[35,46] x_1 >= -1.3333 ) )', 'eventually[46,58] ( ( x_1 <= 1.3333 until[35,inf] x_1 >= -1.3333 ) )'], target_formulae: ['( always[0,46] ( x_2 <= 4.0 ) and x_2 >= -0.0 )', '( x_2 >= 0.0 until[0,70] ( x_0 <= 2.0 until x_1 <= 2.0 ) )', '( x_0 <= 2.0 and ( x_2 >= 0.0 until[0,35] x_1 <= 2.0 ) )', '( ( x_0 <= 2.0 and x_2 >= 0.0 ) until x_1 <= 2.0 )', '( x_2 >= -0.0 until[11,inf] eventually[0,inf] ( x_1 <= 2.6667 ) )', '( x_2 >= 0.0 until[0,inf] always[0,inf] ( always[35,inf] ( x_1 >= -2.0 ) ) )', '( x_2 >= 0.0 until[0,inf] ( x_1 >= -2.0 until[0,70] x_2 >= 0.0 ) )', '( x_2 >= 0.0 until[0,35] eventually[35,inf] ( eventually[0,inf] ( x_1 >= -2.0 ) ) )', '( ( x_2 >= 0.0 and x_1 >= -2.0 ) until[0,35] x_2 >= 0.0 )', '( x_2 >= 0.0 until always ( eventually[70,inf] ( x_1 >= -2.0 ) ) )']
+overlap_form = 0.0
+cosine similarity: tensor([[-0.0299, -0.0352, -0.0352, -0.0282, -0.0360, -0.0354, -0.0288, -0.0287,
+         -0.0271, -0.0366]])
+dist_form = 1.0321015566587448
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 12, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 95.03473663330078
+the norm of K_target is : 0.5093578100204468
+the norm of New_K_target is : 21.485496520996094
+the norm of rhos_phi_proposal is : 96.70984649658203
+the norm of K_proposal is : 0.5805957913398743
+the norm of New_K_proposal is : 21.28837776184082
+The norm of K_imp is : 0.660086989402771
+the norm of New_K_imp is : 24.438631057739258
+the norm of target_embedding is : 13.887876510620117
+the norm of imp_embedding is : 19.566020965576172
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[3.4048252 3.4322238 3.4322238 3.604944  3.604944  3.624094  3.7543464
+  3.7586274 3.8030362 3.8088458]]
+total_search_time1 = 2.5146138668060303
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[168.68529 168.77342 168.77342 168.77342 168.77342 168.84937 169.08852
+  169.08852 169.09875 169.10783]]
+total_search_time2 = 2.616295337677002
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( ( x_2 >= 2.0 until[0,inf] x_1 >= 2.0 ) until[0,70] x_0 <= 4.0 )', '( x_1 >= 2.0 until[0,70] ( x_2 >= 2.0 and x_0 <= 2.0 ) )', '( x_2 >= 2.0 until[0,70] always[0,inf] ( always[0,inf] ( x_1 >= 2.0 ) ) )', '( ( x_1 >= 2.0 until x_2 <= 2.0 ) until x_2 >= 2.0 )', '( always ( x_1 >= 2.0 ) until always ( x_2 >= 2.0 ) )', '( x_2 <= 4.0 until[0,inf] ( x_1 >= 2.0 until[35,inf] x_2 >= 2.0 ) )', '( not ( always[0,inf] ( x_1 <= 4.0 ) ) until[35,70] x_2 >= 4.0 )', '( not ( always[0,inf] ( x_1 <= 4.0 ) ) until[70,inf] x_2 >= 4.0 )', '( eventually[0,35] ( x_1 >= 2.0 ) until eventually[0,inf] ( x_2 >= 2.0 ) )', 'always ( ( eventually[0,70] ( x_1 >= 2.0 ) until x_2 >= 2.0 ) )'], target_formulae: ['( always[0,inf] ( eventually[0,inf] ( x_1 >= 2.0 ) ) until[0,inf] x_1 <= -2.0 )', 'eventually[0,35] ( ( x_0 >= 4.0 until[0,inf] eventually[35,inf] ( x_0 <= -4.0 ) ) )', 'eventually[0,35] ( ( x_0 >= 4.0 until eventually[0,inf] ( x_0 <= -4.0 ) ) )', '( eventually[35,inf] ( eventually[35,inf] ( x_1 >= 2.0 ) ) until[0,inf] x_1 <= -2.0 )', '( always[0,70] ( eventually[0,inf] ( x_1 >= 2.0 ) ) until x_1 <= -2.0 )', '( eventually[0,inf] ( x_1 >= 2.6667 ) until[23,46] x_1 <= -2.6667 )', 'always[0,inf] ( ( eventually[70,inf] ( x_1 <= -2.0 ) until x_1 >= 2.0 ) )', '( x_0 <= -2.0 until[0,35] ( x_2 <= 0.0 until[35,inf] x_0 >= 2.0 ) )', 'eventually ( ( x_0 >= 4.0 until[0,inf] eventually[70,inf] ( x_0 <= -4.0 ) ) )', '( eventually[58,inf] ( x_0 >= 2.6667 ) until x_0 <= -2.6667 )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.9953, 0.9946, 0.9963, 0.9947, 0.9957, 0.9938, 0.9998, 0.9998, 0.9925,
+         0.9955]])
+dist_form = 0.004196524620056152
+n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 13, base_xi_id = 0, weight_strategy = only_target, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5
+the norm of rhos_phi_target is : 65.26081085205078
+the norm of K_target is : 0.30287203192710876
+the norm of New_K_target is : 18.786781311035156
+the norm of rhos_phi_proposal is : 73.79280090332031
+the norm of K_proposal is : 0.3917757570743561
+the norm of New_K_proposal is : 18.908153533935547
+The norm of K_imp is : 0.45041921734809875
+the norm of New_K_imp is : 21.953388214111328
+the norm of target_embedding is : 10.998655319213867
+the norm of imp_embedding is : 13.687092781066895
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+target dists: [[0.9935009 1.0010302 1.0260377 1.0352631 1.0389661 1.0390786 1.039425
+  1.039425  1.039425  1.039425 ]]
+total_search_time1 = 2.1884992122650146
+Starting the search of formula from embeddings
+Ending the search of formula from embeddings
+imp dists: [[65.350105 65.81876  65.887375 65.986145 66.02282  66.02282  66.02396
+  66.04193  66.05912  66.05912 ]]
+total_search_time2 = 2.0231261253356934
+formulae are there! There are 10 imp_formulae and 10 target_formulae
+imp_formulae: ['( ( x_0 <= 0.0 until[35,inf] x_2 <= 0.0 ) until[0,inf] x_2 >= 0.0 )', '( x_2 <= 2.0 until[35,inf] ( x_1 >= 2.0 or x_0 <= -2.0 ) )', '( ( x_2 <= 0.0 until[35,inf] x_1 >= 0.0 ) until[0,inf] x_0 <= 0.0 )', '( ( x_0 <= 0.0 until[0,35] x_2 <= 0.0 ) until[0,inf] x_2 >= 0.0 )', '( ( x_1 >= 0.0 until[0,inf] x_0 <= 0.0 ) until[0,70] x_2 <= 0.0 )', '( x_0 <= 0.0 until[0,inf] ( x_1 >= 0.0 until[35,inf] x_2 <= 0.0 ) )', '( ( x_0 <= 0.0 until[0,inf] x_1 >= 0.0 ) until[70,inf] x_1 <= 0.0 )', '( x_0 <= 0.0 until[70,inf] ( x_2 >= 2.0 or x_0 >= 0.0 ) )', '( ( x_2 <= 0.0 until[0,inf] x_1 <= 0.0 ) until[0,inf] x_0 <= 0.0 )', '( ( x_0 <= 0.0 until[0,inf] x_1 <= 0.0 ) until[35,inf] x_2 <= 0.0 )'], target_formulae: ['( eventually[0,inf] ( x_0 <= -1.3333 ) until[0,23] x_0 >= -0.0 )', '( eventually[35,70] ( x_0 >= -0.0 ) until[11,23] x_0 <= -1.3333 )', '( x_0 <= -1.3333 until[0,46] always[11,35] ( x_0 >= -0.0 ) )', '( eventually[23,46] ( x_0 <= -1.3333 ) until[0,11] x_0 >= -0.0 )', '( eventually[58,inf] ( x_0 >= -0.0 ) until[35,inf] x_0 <= -1.3333 )', '( eventually[23,46] ( x_0 <= -1.3333 ) until[0,11] x_0 >= -0.0 )', '( x_0 <= -1.3333 until[0,11] always[58,inf] ( x_0 >= -0.0 ) )', '( always[58,inf] ( x_0 >= -0.0 ) until[23,inf] x_0 <= -1.3333 )', '( always[70,inf] ( x_0 >= -0.0 ) until[0,11] x_0 <= -1.3333 )', '( always[23,inf] ( x_0 >= -0.0 ) and x_0 <= -1.3333 )']
+overlap_form = 0.0
+cosine similarity: tensor([[0.8856, 0.8461, 0.8026, 0.8871, 0.7892, 0.8183, 0.9156, 0.8924, 0.7632,
+         0.7943]])
+dist_form = 0.16056221723556519
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 12, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.5068091750144958, Cos_dist = 0.348188579082489, Dist_rho = 0.060687685012817384, Norm_proposal = 0.5805957913398743, Norm_target = 0.5093578100204468, Norm_imp = 0.660086989402771, Pinv_error = 94.20899963378906, Sum_weights = 3.843764998101933e-184, Sum_squared_weights = 0.0, Elapsed_time = 1657.5904366970062, Process_mem = 381.69140625, n_e = None, overlap_form = 0.0, dist_form = 0.004196524620056152, overlap_form = 0.0, dist_form = 0.004196524620056152, dist_new_kernels = 19.445714950561523, dist_embed = 13.014742851257324,  model_to_target = 0.44188594818115234, model_to_imp = 0.013831079006195068
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 13, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.3417797386646271, Cos_dist = 0.3483494520187378, Dist_rho = 0.49237159729003904, Norm_proposal = 0.3917757570743561, Norm_target = 0.30287203192710876, Norm_imp = 0.45041921734809875, Pinv_error = 94.20899963378906, Sum_weights = 3.843764998101933e-184, Sum_squared_weights = 0.0, Elapsed_time = 1672.6452023983002, Process_mem = 379.10546875, n_e = None, overlap_form = 0.0, dist_form = 0.16056221723556519, overlap_form = 0.0, dist_form = 0.16056221723556519, dist_new_kernels = 17.01604652404785, dist_embed = 8.227444648742676,  model_to_target = 1.4346424043178558, model_to_imp = 0.16462433338165283
+weight_strategy = only_target, n_psi_added = 0, n_traj = 10000, target_std = 1, proposal_std = 1, n_traj_points = 100, phi_id = 14, base_xi_id = 0, mu0 = 0, mu1 = 0, sigma1 = 1, q = 0.1, q0 = 0.5, Dist = 0.35033705830574036, Cos_dist = 0.7975931614637375, Dist_rho = 1.0753143310546875, Norm_proposal = 0.1238013207912445, Norm_target = 0.1493930220603943, Norm_imp = 0.3485652506351471, Pinv_error = 94.20899963378906, Sum_weights = 3.843764998101933e-184, Sum_squared_weights = 0.0, Elapsed_time = 1646.1593823432922, Process_mem = 378.8671875, n_e = None, overlap_form = 0.0, dist_form = 1.0321015566587448, overlap_form = 0.0, dist_form = 1.0321015566587448, dist_new_kernels = 16.925832748413086, dist_embed = 6.247809410095215,  model_to_target = 1.2672640979290009, model_to_imp = 1.0824705362319946
+Completed job 9

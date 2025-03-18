@@ -15,7 +15,7 @@
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # List of test names #M E H J B T G S
-test_names=("selfnorm_pure_M2M" "selfnorm_pure_B2M" "selfnorm_pure_G2M" "selfnorm_pure_H2M" "selfnorm_pure_T2M" )
+test_names=("squareroot_pure_M2M" "squareroot_pure_B2M" "squareroot_pure_G2M" "squareroot_pure_H2M" "squareroot_pure_T2M" )
 for test_name in "${test_names[@]}"; do
 
     echo "Generating jobs for test: $test_name"

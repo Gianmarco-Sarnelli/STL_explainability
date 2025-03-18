@@ -339,7 +339,7 @@ if (partition != "THIN") and (partition != "EPYC") and (partition != "lovelace")
     raise RuntimeError(f"Unable to use the partition: {partition}")
 
 # Parameters for the test
-list_weight_strategy =  ["self_norm"]#, "only_target", "square_root"] # NOTE: try to assign a single weight strategy to a single job. This will avoid confusion in the results!!
+list_weight_strategy =  ["only_target"]#["self_norm", "only_target", "square_root"] # NOTE: try to assign a single weight strategy to a single job. This will avoid confusion in the results!!
 list_n_traj_points = [100]
 list_target_std = [1] #[1, 0.6]
 list_proposal_std = [1]#[1, 1.2, 1.4, 1.6, 1.8, 2]#[1] #[1, 4]
@@ -349,7 +349,7 @@ list_phi_id = [0, 1, 2, 5, 6, 10, 11, 12, 13, 14]
 list_base_xi_id = [0]#    #NOTE: fix this to a single value
 list_mu0 =[0]# [0, 0.2, 0.4, 0.6, 0.8, 1]#[0]#[0, 0.1, 0.2, 0.3, 0.4, 0.5]#[0, 0.1]
 list_mu1 = [0]#[0, 0.1]
-list_sigma1 = [1, 1.2, 1.4, 1.6, 1.8, 2]#[1]#[1, 1.1]
+list_sigma1 = [1]#[1, 1.2, 1.4, 1.6, 1.8, 2]#[1]#[1, 1.1]
 list_q = [0.1]#[0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
 list_q0 = [0.5]
 
@@ -434,7 +434,7 @@ for job_id in range(n_jobs):
 #SBATCH --partition={partition}                     # Partition name
 #SBATCH --account=dssc                       # Account name
 #SBATCH --ntasks=1                           # Number of tasks (since we're using multiprocessing)
-#SBATCH --cpus-per-task=16                   # CPUs per task (for multiprocessing)
+#SBATCH --cpus-per-task=8                    # CPUs per task (for multiprocessing)
 #SBATCH --mem-per-cpu=2G                     # Memory per CPU
 #SBATCH --time=2:00:00                       # Time limit (2 hours)
 #SBATCH --output=output_{test_name}_{job_id}.log         # Standard output log

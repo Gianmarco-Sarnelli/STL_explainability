@@ -15,12 +15,12 @@
 source /u/dssc/gsarne00/Environments/expl_orfeo/bin/activate
 
 # List of test names #M E H J B T G S
-test_names=("squareroot_pure_M2M" "squareroot_pure_B2M" "squareroot_pure_G2M" "squareroot_pure_H2M" "squareroot_pure_T2M" )
+test_names=("selfnorm_again_M2M")
 for test_name in "${test_names[@]}"; do
 
     echo "Generating jobs for test: $test_name"
 
-    python3 Generate_jobs.py "$test_name" 10 "yes" "THIN" "Test_model.py"
+    python3 Generate_jobs.py "$test_name" 5 "yes" "THIN" "Test_model.py"
 
     echo "$test_name jobs are generated"
 
